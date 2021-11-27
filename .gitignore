@@ -4,24 +4,20 @@
 *~
 *.swp
 
-## Matebot
-*.cfg
-*.csv
-*.db
-*.txt
-!requirements.txt
-
 ## Python
 *.py[cod]
 **__pycache__
 
-## Flask
-instance/
+## Pyinstaller
+build/
+dist/
+*.spec
 
 ## Virtualenv
 env/
 venv/
 virtualenv/
+Pipfile.lock
 
 ## Geany
 *.geany
@@ -29,3 +25,13 @@ virtualenv/
 ## Windows
 Thumbs.db
 
+## Flask
+instance/
+
+## iacecil
+*.txt
+!requirements.txt
+!CHANGES.txt
+*.cfg
+*.csv
+*.db

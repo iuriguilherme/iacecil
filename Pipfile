@@ -6,49 +6,46 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-telepot = "*"
-urllib3 = "*"
-flask = "*"
-python-dotenv = "*"
-python-telegram-bot = "*"
-requests = "*"
-flup = "*"
-gunicorn = "*"
-pypng = "*"
-totalvoice = "*"
-pytz = "*"
-dataset = "*"
-youtube-dl = "*"
-PyMySQL = "*"
-PyQRCode = "*"
-Babel = "*"
+#aiodns = "*"
+#aiohttp = {extras = ["speedups"],version = "*"}
+#Babel = "*"
+#brotlipy = {version = "*", sys_platform = "!= 'win32'"}
+#cchardet = "*"
+#dataset = "*"
+#flair = "*"
+#flup = "*"
+#gunicorn = "*"
+#hypercorn = "*"
+#pydantic = "*"
+#PyMySQL = "*"
+#pypng = "*"
+#PyQRCode = "*"
+#python-dotenv = "*"
+#requests = "*"
+#telepot = "*"
+#totalvoice = "*"
+#ujson = {version = "*", sys_platform = "!= 'win32'"}
+#urllib3 = "*"
+#uvloop = {version = "*", sys_platform = "!= 'win32'"}
 aiogram = "*"
-uvloop = {version = "*",sys_platform = "!= 'win32'"}
-brotlipy = {version = "*",sys_platform = "!= 'win32'"}
-ujson = "*"
-cchardet = "*"
-aiodns = "*"
-aiohttp = {extras = ["speedups"],version = "*"}
+fastapi = {extras = ["all"], version = "*"}
+flask = "*"
+pyinstaller = "*"
+pyqrcode = "*"
+python-telegram-bot = "*"
 quart = "*"
-hypercorn = "*"
-pydantic = "*"
+torch = "*"
+torchaudio = "*"
+torchvision = "*"
 validators = "*"
+youtube-dl = "*"
+#pytz = "*"
 
 [requires]
-python_version = "3"
+python_version = "3.9"
 
 [scripts]
-### Scripts atuais
-matebot = 'python app.py aiogram' # Vai usar 'matebot' por padrão
-prod = 'python app.py aiogram production'
-test = 'python app.py aiogram testing'
-dev = 'python app.py aiogram development'
-### Scripts antigos
-telepot = 'python app.py telepot'
-ptb = 'python app.py flask'
-flask_dev = 'flask run'
-flask_test = 'gunicorn matebot.ptb_matebot:app'
-quart_dev = 'quart run'
-quart_test = 'hypercorn matebot.aio_matebot:app'
-### O mesmo que 'pipenv run python app.py aiogram matebot'
-pure = 'python app.py'
+iacecil = 'python start.py quart iacecil'
+quart = 'python start.py quart iacecil 8000 127.0.0.1 info'
+dev = 'python start.py dev'
+app = 'python app.py'
