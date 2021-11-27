@@ -20,11 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-from aiogram import (
-    Dispatcher,
-    exceptions,
-    types,
-)
+from aiogram import types
 
 from iacecil import config
 

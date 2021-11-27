@@ -72,7 +72,7 @@ if __name__ == '__main__':
     if mode == 'quart':
         try:
             logger.info(u"Starting {}".format(iacecil.actual_name))
-            app = iacecil.get_app(bot)
+            app = iacecil.get_app(bot.split(','))
             uvicorn.run(
                 app,
                 host = host,

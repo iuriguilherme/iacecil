@@ -1,38 +1,21 @@
-<!DOCTYPE html>
-<html lang="pt_BR">
-<!--
-  ia.cecil
-  
-  Copyleft 2012-2021 Iuri Guilherme <https://iuri.neocities.org/>
-   
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-   
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02110-1301, USA.
-   
-   
--->
-
-<head>
-<meta charset="utf-8" />
-<title>{{ title }}</title>
-<meta name="generator" content="Geany 1.36" />
-</head>
-
-<body>
-<h1>Mensagem enviada&excl; (eu acho...)</h1>
+{% extends "default_layout.html" %}
+{% block body %}
+<h3>Send message to a user or group</h3>
+<p>Make sure you have the correct user id, deleting messages is <b>not</b> yet implemented.</p>
+<hr>
+<form action="{{ url_for('root.send_message') }}" method="post">
+    <p>bot_id: <input type="text" size="30" name="bot_id">
+    <p>chat_id: <input type="text" size="30" name="chat_id">
+    <p>text: <textarea name="text" rows="5" cols="40"></textarea>
+    <p><input type="submit" value="Send">
+    </dl>
+</form>
+<hr>
+{% if message %}
+<h3>Last message:</h3>
 <pre>{{ message }}</pre>
+<hr>
+{% endif %}
+<p>&nbsp;</p>
+{% endblock %}
 
-</body>
-
-</html>

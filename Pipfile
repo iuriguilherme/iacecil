@@ -6,40 +6,39 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-#aiodns = "*"
-#aiohttp = {extras = ["speedups"],version = "*"}
 #Babel = "*"
-#brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #cchardet = "*"
 #dataset = "*"
+#fastapi = {extras = ["all"], version = "*"}
 #flair = "*"
+#flask = "*"
 #flup = "*"
 #gunicorn = "*"
 #hypercorn = "*"
 #pydantic = "*"
+#pyinstaller = "*"
 #PyMySQL = "*"
 #pypng = "*"
-#PyQRCode = "*"
 #python-dotenv = "*"
+#python-telegram-bot = "*"
 #requests = "*"
 #telepot = "*"
+#torch = "*"
+#torchaudio = "*"
+#torchvision = "*"
 #totalvoice = "*"
-#ujson = {version = "*", sys_platform = "!= 'win32'"}
 #urllib3 = "*"
-#uvloop = {version = "*", sys_platform = "!= 'win32'"}
+aiodns = "*"
 aiogram = "*"
-fastapi = {extras = ["all"], version = "*"}
-flask = "*"
-pyinstaller = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
+brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 pyqrcode = "*"
-python-telegram-bot = "*"
+pytz = "*"
 quart = "*"
-torch = "*"
-torchaudio = "*"
-torchvision = "*"
+ujson = {version = "*", sys_platform = "!= 'win32'"}
+uvloop = {version = "*", sys_platform = "!= 'win32'"}
 validators = "*"
 youtube-dl = "*"
-#pytz = "*"
 
 [requires]
 python_version = "3.9"

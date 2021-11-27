@@ -51,7 +51,7 @@ except Exception as e:
     ".format(actual_name, str(e)))
     raise
 
-def get_app(bot):
-    return quart_startup(aiogram_startup(config, bot))
+app = quart_startup(aiogram_startup(config, ['iacecil', 'tiodochurrasbot']))
 
-app = quart_startup(aiogram_startup(config, 'iacecil'))
+def get_app(bots):
+    return quart_startup(aiogram_startup(config, bots))

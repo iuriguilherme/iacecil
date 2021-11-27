@@ -23,6 +23,7 @@
 import asyncio, json, logging
 from quart import (
     Quart,
+    current_app,
     jsonify,
     render_template,
 )
@@ -35,73 +36,112 @@ from iacecil.controllers.aiogram_bot import (
     add_filters,
     add_handlers,
 )
+from iacecil.views.blueprints import (
+    admin,
+    root,
+)
 
+# ~ logging.basicConfig(level=logging.INFO)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def quart_startup(dispatcher):
+async def add_blueprints():
+    current_app.register_blueprint(
+        root.blueprint,
+        url_prefix = '/',
+    )
+    current_app.register_blueprint(
+        admin.blueprint,
+        url_prefix = '/admin',
+    )
+
+# ~ def quart_startup(dispatcher):
+    # ~ quart_app = Quart(
+        # ~ __name__,
+        # ~ template_folder = '../views/templates',
+        # ~ static_folder = '../views/static',
+    # ~ )
+    # ~ @quart_app.before_serving
+    # ~ async def quart_before_serving():
+        # ~ logger.info("Starting up Quart...")
+        # ~ setattr(current_app, 'dispatcher', dispatcher)
+        # ~ loop = asyncio.get_event_loop()
+        # ~ await add_filters(dispatcher)
+        # ~ await add_handlers(dispatcher)
+        # ~ loop.create_task(dispatcher.start_polling(
+            # ~ reset_webhook = True,
+            # ~ timeout = 20,
+            # ~ relax = 0.1,
+            # ~ fast = True,
+            # ~ allowed_updates = None,
+        # ~ ))
+        # ~ loop.create_task(add_blueprints())
+        # ~ try:
+            # ~ await dispatcher.bot.send_message(
+                # ~ chat_id = dispatcher.users['special']['info'],
+                # ~ text = u"Mãe tá #on",
+                # ~ disable_notification = True,
+            # ~ )
+        # ~ except Exception as e:
+            # ~ logging.critical(u"logs not configured properly: {}\
+            # ~ ".format(e))
+    # ~ @quart_app.after_serving
+    # ~ async def quart_after_serving():
+        # ~ logger.info("Shutting down Quart...")
+        # ~ try:
+            # ~ await dispatcher.bot.send_message(
+                # ~ chat_id = dispatcher.users['special']['info'],
+                # ~ text = u"Mãe tá #off",
+                # ~ disable_notification = True,
+            # ~ )
+        # ~ except Exception as e:
+            # ~ logging.critical(u"logs not configured properly: {}\
+            # ~ ".format(e))
+    # ~ return quart_app
+
+
+def quart_startup(dispatchers):
     quart_app = Quart(
         __name__,
         template_folder = '../views/templates',
+        static_folder = '../views/static',
     )
     @quart_app.before_serving
     async def quart_before_serving():
         logger.info("Starting up Quart...")
+        setattr(current_app, 'dispatchers', dispatchers)
         loop = asyncio.get_event_loop()
-        await add_filters(dispatcher)
-        await add_handlers(dispatcher)
-        loop.create_task(dispatcher.start_polling(
-            reset_webhook = True,
-            timeout = 20,
-            relax =0.1,
-            fast = True,
-            allowed_updates = None,
-        ))
-        try:
-            await dispatcher.bot.send_message(
-                chat_id = dispatcher.users['special']['info'],
-                text = u"Mãe tá #on",
-                disable_notification = True,
-            )
-        except Exception as e:
-            logging.critical(u"logs not configured properly: {}\
-            ".format(e))
+        for dispatcher in dispatchers:
+            await add_filters(dispatcher)
+            await add_handlers(dispatcher)
+            loop.create_task(dispatcher.start_polling(
+                reset_webhook = True,
+                timeout = 20,
+                relax = 0.1,
+                fast = True,
+                allowed_updates = None,
+            ))
+            try:
+                await dispatcher.bot.send_message(
+                    chat_id = dispatcher.users['special']['info'],
+                    text = u"Mãe tá #on",
+                    disable_notification = True,
+                )
+            except Exception as e:
+                logging.critical(u"logs not configured properly: {}\
+                ".format(e))
+        loop.create_task(add_blueprints())
     @quart_app.after_serving
     async def quart_after_serving():
         logger.info("Shutting down Quart...")
-        try:
-            await dispatcher.bot.send_message(
-                chat_id = dispatcher.users['special']['info'],
-                text = u"Mãe tá #off",
-                disable_notification = True,
-            )
-        except Exception as e:
-            logging.critical(u"logs not configured properly: {}\
-            ".format(e))
-    @quart_app.route("/")
-    async def quart_webapp():
-        return u"Hello Quart"
-    @quart_app.route("/status")
-    async def quart_status():
-        return jsonify(dispatcher.is_polling())
-    @quart_app.route("/get_me")
-    async def get_me():
-        user = await dispatcher.bot.get_me()
-        return await render_template(
-            "get_me.html",
-            title = user['first_name'],
-            user = user,
-        )
-    @quart_app.route("/send_message/<chat_id>/<text>")
-    async def send_message(chat_id=1, text=u"Nada"):
-        user = await dispatcher.bot.get_me()
-        message = await dispatcher.bot.send_message(
-            chat_id = chat_id,
-            text = text,
-        )
-        return await render_template(
-            "send_message.html",
-            title = user['first_name'],
-            message = message,
-        )
+        for dispatcher in dispatchers:
+            try:
+                await dispatcher.bot.send_message(
+                    chat_id = dispatcher.users['special']['info'],
+                    text = u"Mãe tá #off",
+                    disable_notification = True,
+                )
+            except Exception as e:
+                logging.critical(u"logs not configured properly: {}\
+                ".format(e))
     return quart_app

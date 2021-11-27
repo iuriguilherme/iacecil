@@ -45,6 +45,7 @@ from plugins import (
     donate as plugin_donate,
     echo as plugin_echo,
     feedback as plugin_feedback,
+    # ~ greatful as plugin_greatful,
     hashes as plugin_hashes,
     mate_matica as plugin_matematica,
     personalidades as plugin_personalidades,
@@ -73,21 +74,24 @@ from iacecil.controllers.aiogram_bot.filters import (
     IsReplyToIdFilter,
 )
 
-def aiogram_startup(config, name):
+def aiogram_startup(config, names):
     logger.info(u"Starting up Aiogram...")
-    bot = IACecilBot(
-        token = config.bots[name]['token'] or '',
-        config = config,
-        name = name,
-    )
-    dispatcher = Dispatcher(bot)
-    setattr(dispatcher, 'info',
-        config.bots[name]['info'] or config.default_bot['info'])
-    setattr(dispatcher, 'plugins',
-        config.bots[name]['plugins'] or config.default_bot['plugins'])
-    setattr(dispatcher, 'users',
-        config.bots[name]['users'] or config.default_bot['users'])
-    return dispatcher
+    dispatchers = list()
+    for name in names:
+        bot = (IACecilBot(
+            token = config.bots[name]['token'] or '',
+            config = config,
+            name = name,
+        ))
+        dispatcher = Dispatcher(bot)
+        setattr(dispatcher, 'info',
+            config.bots[name]['info'] or config.default_bot['info'])
+        setattr(dispatcher, 'plugins',
+            config.bots[name]['plugins'] or config.default_bot['plugins'])
+        setattr(dispatcher, 'users',
+            config.bots[name]['users'] or config.default_bot['users'])
+        dispatchers.append(dispatcher)
+    return dispatchers
 
 async def add_filters(dispatcher: Dispatcher):
     ### Filters

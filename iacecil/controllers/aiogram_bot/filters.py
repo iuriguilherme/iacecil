@@ -27,10 +27,8 @@ from aiogram import (
 
 class IsReplyToIdFilter(filters.BoundFilter):
     key = 'is_reply_to_id'
-
     def __init__(self, is_reply_to_id):
         self.is_reply_to_id = is_reply_to_id
-
     async def check(self, msg: types.Message):
         if msg.reply_to_message and (
             msg.reply_to_message.from_user.id == self.is_reply_to_id

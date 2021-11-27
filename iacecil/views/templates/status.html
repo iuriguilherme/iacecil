@@ -1,0 +1,8 @@
+{% extends "default_layout.html" %}
+{% block body %}
+<p>&nbsp;</p>
+{% for user in users %}
+<p>{{ user['user']['first_name'] }} is {% if not user['status'] %} <b>not</b> {% endif %} running long polling!</p>
+{% endfor %}
+<p>&nbsp;</p>
+{% endblock %}
