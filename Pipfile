@@ -15,7 +15,7 @@ verify_ssl = true
 #flup = "*"
 #gunicorn = "*"
 #hypercorn = "*"
-#pydantic = "*"
+pydantic = "*"
 #pyinstaller = "*"
 #PyMySQL = "*"
 #pypng = "*"
@@ -39,6 +39,8 @@ ujson = {version = "*", sys_platform = "!= 'win32'"}
 uvloop = {version = "*", sys_platform = "!= 'win32'"}
 validators = "*"
 youtube-dl = "*"
+flask-wtf = "*"
+starlette-wtf = "*"
 
 [requires]
 python_version = "3.9"

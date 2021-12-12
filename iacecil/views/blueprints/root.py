@@ -25,12 +25,24 @@ from quart import (
     abort,
     Blueprint,
     current_app,
+    flash,
     jsonify,
     request,
     render_template,
 )
+from flask_wtf import FlaskForm
+from wtforms import (
+    Form,
+    StringField,
+    SubmitField,
+    RadioField,
+    TextAreaField,
+)
 from jinja2 import TemplateNotFound
-from iacecil import name, version
+from iacecil import (
+    actual_name,
+    version,
+)
 
 logger = logging.getLogger('blueprints.root')
 
@@ -42,7 +54,7 @@ async def show(page):
     try:
         return await render_template(
             '{0}.html'.format(page),
-            title = name,
+            title = actual_name,
             version = version,
         )
     except TemplateNotFound as e:
@@ -55,52 +67,76 @@ async def status():
         'user': await dispatcher.bot.get_me(),
         'status': dispatcher.is_polling(),
     } for dispatcher in current_app.dispatchers]
+    names = [user['user']['first_name'] for user in users]
+    await flash(
+        u"Total configured bots: {0}\nTotal running bots: {1}".format(
+            len(users),
+            len([user['status'] for user in users if user['status']]),
+        ), 'info')
     return await render_template(
         "status.html",
-        title = name,
-        version = version,
-        users = users,
-    )
-
-@blueprint.route("/map")
-async def map():
-    return jsonify(str(current_app.url_map))
-
-@blueprint.route("/get_me")
-async def get_me():
-    users = [await dispatcher.bot.get_me() for dispatcher in current_app.dispatchers]
-    names = [user['first_name'] for user in users]
-    return await render_template(
-        "get_me.html",
-        title = name,
+        title = actual_name,
         version = version,
         names = names,
         users = users,
     )
 
 @blueprint.route("/send_message", methods=['GET', 'POST'])
-@blueprint.route("/send_message/<bot_id>/<chat_id>/<text>", methods=['GET'])
-async def send_message(bot_id = None, chat_id = None, text = None):
+async def send_message():
     message = None
-    if request.method == 'POST':
+    bots = [
+        (user['id'], user['first_name']) for
+        user in [await dispatcher.bot.get_me() for
+        dispatcher in current_app.dispatchers]
+    ]
+    _Auto = object()
+    class SubFlaskForm(Form):
+        def __init__(self, formdata = _Auto, **kwargs):
+            super().__init__(formdata = formdata, **kwargs)
+        # ~ def __init__(self, *args, **kwargs):
+            # ~ super().__init__(*args, **kwargs)
+        # ~ async def wrap_formdata(self, form, formdata):
+            # ~ return super().wrap_formdata(self, form, formdata)
+        # ~ async def is_submitted(self):
+            # ~ return super().is_submitted(self)
+        # ~ async def validate_on_submit(self):
+            # ~ return super().validate_on_submit(self)
+        # ~ async def hidden_tag(self, *fields):
+            # ~ return super().hidden_tag(self, *fields)
+        # ~ async def _is_submitted():
+            # ~ return super()._is_submitted()
+    class SendMessageForm(SubFlaskForm):
+        bot_id_field = RadioField(
+            u"select bot id",
+            choices = bots,
+        )
+        chat_id_field = StringField(
+            u"select chat id",
+        )
+        text_field = TextAreaField(
+            u"Text",
+        )
+        submit = SubmitField(u"Send")
+    form = SendMessageForm(formdata = await request.form)
+    if request.method == "POST":
         try:
             form = await request.form
-            dispatcher = [dispatcher for dispatcher in current_app.dispatchers if int(form['bot_id']) == int((await dispatcher.bot.get_me())['id'])][0]
+            dispatcher = [dispatcher for 
+                dispatcher in current_app.dispatchers if 
+                int(form['bot_id_field']) == int((
+                await dispatcher.bot.get_me())['id'])
+            ][0]
             message = await dispatcher.bot.send_message(
-                chat_id = form['chat_id'],
-                text = form['text'],
+                chat_id = form['chat_id_field'],
+                text = form['text_field'],
+                parse_mode = "MarkdownV2",
             )
         except Exception as e:
             return jsonify(repr(e))
-    elif bot_id and chat_id and text:
-        dispatcher = [dispatcher for dispatcher in current_app.dispatchers if int(bot_id) == int((await dispatcher.bot.get_me())['id'])][0]
-        message = await dispatcher.bot.send_message(
-            chat_id = chat_id,
-            text = text,
-        )
     return await render_template(
         "send_message.html",
-        title = name,
+        title = actual_name,
         version = version,
         message = message,
+        form = form,
     )

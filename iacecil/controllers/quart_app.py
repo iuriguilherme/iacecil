@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-import asyncio, json, logging
+import asyncio, json, logging, secrets
 from quart import (
     Quart,
     current_app,
@@ -55,57 +55,13 @@ async def add_blueprints():
         url_prefix = '/admin',
     )
 
-# ~ def quart_startup(dispatcher):
-    # ~ quart_app = Quart(
-        # ~ __name__,
-        # ~ template_folder = '../views/templates',
-        # ~ static_folder = '../views/static',
-    # ~ )
-    # ~ @quart_app.before_serving
-    # ~ async def quart_before_serving():
-        # ~ logger.info("Starting up Quart...")
-        # ~ setattr(current_app, 'dispatcher', dispatcher)
-        # ~ loop = asyncio.get_event_loop()
-        # ~ await add_filters(dispatcher)
-        # ~ await add_handlers(dispatcher)
-        # ~ loop.create_task(dispatcher.start_polling(
-            # ~ reset_webhook = True,
-            # ~ timeout = 20,
-            # ~ relax = 0.1,
-            # ~ fast = True,
-            # ~ allowed_updates = None,
-        # ~ ))
-        # ~ loop.create_task(add_blueprints())
-        # ~ try:
-            # ~ await dispatcher.bot.send_message(
-                # ~ chat_id = dispatcher.users['special']['info'],
-                # ~ text = u"Mãe tá #on",
-                # ~ disable_notification = True,
-            # ~ )
-        # ~ except Exception as e:
-            # ~ logging.critical(u"logs not configured properly: {}\
-            # ~ ".format(e))
-    # ~ @quart_app.after_serving
-    # ~ async def quart_after_serving():
-        # ~ logger.info("Shutting down Quart...")
-        # ~ try:
-            # ~ await dispatcher.bot.send_message(
-                # ~ chat_id = dispatcher.users['special']['info'],
-                # ~ text = u"Mãe tá #off",
-                # ~ disable_notification = True,
-            # ~ )
-        # ~ except Exception as e:
-            # ~ logging.critical(u"logs not configured properly: {}\
-            # ~ ".format(e))
-    # ~ return quart_app
-
-
 def quart_startup(dispatchers):
     quart_app = Quart(
         __name__,
         template_folder = '../views/templates',
         static_folder = '../views/static',
     )
+    quart_app.secret_key = secrets.token_urlsafe(32)
     @quart_app.before_serving
     async def quart_before_serving():
         logger.info("Starting up Quart...")

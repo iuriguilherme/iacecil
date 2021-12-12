@@ -3,11 +3,28 @@
 <h3>Send message to a user or group</h3>
 <p>Make sure you have the correct user id, deleting messages is <b>not</b> yet implemented.</p>
 <hr>
-<form action="{{ url_for('root.send_message') }}" method="post">
+<form action="" method="post">
+<!--
     <p>bot_id: <input type="text" size="30" name="bot_id">
     <p>chat_id: <input type="text" size="30" name="chat_id">
     <p>text: <textarea name="text" rows="5" cols="40"></textarea>
     <p><input type="submit" value="Send">
+-->
+    {{ form.hidden_tag() }}
+    {% for subfield in form.bot_id_field %}
+        <div class="form-check">
+        {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+        </div>
+    {% endfor %}
+    <p>
+    {{ form.chat_id_field.label }}<br>
+    {{ form.chat_id_field(size=5, placeholder = form.chat_id_field.description) }}<br>
+    {% for error in form.chat_id_field.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+    </p>
+    <p>{{ form.text_field }}</p>
+    <p>{{ form.submit(class="btn btn-primary") }}</p>
     </dl>
 </form>
 <hr>

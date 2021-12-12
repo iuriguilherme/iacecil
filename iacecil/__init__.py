@@ -33,6 +33,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+import quart.flask_patch
+
 ### Config
 try:
     from instance.config import Config
@@ -51,7 +53,14 @@ except Exception as e:
     ".format(actual_name, str(e)))
     raise
 
-app = quart_startup(aiogram_startup(config, ['iacecil', 'tiodochurrasbot']))
+app = quart_startup(aiogram_startup(config, [
+    'iacecil',
+    'tiodochurrasbot',
+    'tropixelbot',
+]))
 
 def get_app(bots):
     return quart_startup(aiogram_startup(config, bots))
+
+def run_app(quart_app):
+    quart_app.run()

@@ -85,6 +85,17 @@ if __name__ == '__main__':
             logger.warning(u"Finishing with error {}...\
             ".format(iacecil.actual_name))
             raise
+    elif mode == 'block':
+        try:
+            logger.info(u"Starting {}".format(iacecil.actual_name))
+            app = iacecil.get_app(bot.split(','))
+            iacecil.run_app(app)
+            logger.info(u"Finishing {}".format(iacecil.actual_name))
+        except Exception as e:
+            logger.critical(repr(e))
+            logger.warning(u"Finishing with error {}...\
+            ".format(iacecil.actual_name))
+            raise
     elif mode == 'dev':
         try:
             logger.info(u"Starting {}".format(iacecil.actual_name))

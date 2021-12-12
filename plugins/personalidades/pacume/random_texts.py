@@ -25,45 +25,47 @@
 import random
 
 try:
-  import instance.random_texts_pave as pave
+    import instance.random_texts_pave as pave
 except:
-  import plugins.personalidades.pave.random_texts as pave
+    import plugins.personalidades.pave.random_texts as pave
 
 def bebidas():
-  return pave.bebidas()
+    return pave.bebidas()
 
 def adjetivos():
-  return random.choice([pave.adjetivos(), random.choice([
-    u"direitopata",
-    u"esquerdopata",
-    u"gentalha",
-  ])])
+    return random.choice([pave.adjetivos(), random.choice([
+        u"direitopata",
+        u"esquerdopata",
+        u"gentalha",
+    ])])
 
 def respostas_bebida():
-  return pave.respostas_bebida()
+    return pave.respostas_bebida()
 
 def respostas_quanto():
-  return pave.respostas_quanto()
+    return pave.respostas_quanto()
 
 def piadas():
-  return pave.piadas()
+    return pave.piadas()
 
 def respostas_ignorante(admin):
-  return random.choice([pave.respostas_ignorante(admin), piadas(), adjetivos()])
+    return random.choice([
+        pave.respostas_ignorante(admin), piadas(), adjetivos()
+    ])
 
 def versiculos_md():
-  return pave.versiculos_md()
+    return pave.versiculos_md()
 
 def rimas_ao():
-  return random.choice([
-    u"e tu, que é um trouxão?",
-  ])
+    return random.choice([
+        u"e tu, que é um trouxão?",
+    ])
 
 def start(message):
-  return pave.start(message)
+    return pave.start(message)
 
 def welcome(message, count, admin):
-  return pave.welcome(message, count, admin)
+    return pave.welcome(message, count, admin)
 
 def bye(admin):
-  return pave.bye(admin)
+    return pave.bye(admin)

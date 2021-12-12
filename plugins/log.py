@@ -63,7 +63,7 @@ async def tecido_logger(texto: str = ''):
     )
     logger.info('connecting to {} port {}'.format(*server_address))
     try:
-        sock.connect(server_address)
+        await sock.connect(server_address)
     except ConnectionRefusedError:
         logger.debug(u"""Servidor TextoTecidoPalavras não escutando em \
 {0}:{1}""".format(bot.info['tecido']['host'],
@@ -76,7 +76,7 @@ async def tecido_logger(texto: str = ''):
         # ~ message = bytes(texto, 'cp860')
         # ~ message = bytearray(texto, 'UTF-8')
         logger.info('sending {!r}'.format(message))
-        sock.sendall(message)
+        await sock.sendall(message)
         # Look for the response
         # ~ amount_received = 0
         # ~ amount_expected = len(message)
@@ -89,7 +89,7 @@ async def tecido_logger(texto: str = ''):
         return 1
     finally:
         logger.info('closing socket')
-        sock.close()
+        await sock.close()
         return 0
 
 ## TODO: Descobrir tipo de update (era types.Message)
@@ -120,7 +120,7 @@ async def info_logger(
     text.append('```')
     try:
         ## TelegramTextoTecidoTabelas
-        await tecido_logger(getattr(update, 'text', ''))
+        # ~ await tecido_logger(getattr(update, 'text', ''))
         await bot.send_message(
             chat_id = bot.users['special']['info'],
             text = '\n'.join(text),
