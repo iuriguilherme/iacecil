@@ -37,6 +37,7 @@ if __name__ == '__main__':
     host = '127.0.0.1'
     log_level = 'info'
     reload = True
+    canonical = None
     
     ### Args parsing
     if len(sys.argv) > 1:
@@ -62,6 +63,10 @@ if __name__ == '__main__':
                             logger.info(u"Setting RELOAD to {}\
                             ".format(str(reload)))
                             reload = bool(sys.argv[6])
+                            if len(sys.argv) > 7:
+                                logger.info(u"Setting CANONICAL to {}\
+                                ".format(str(canonical)))
+                                canonical = str(sys.argv[7])
         else:
             logger.warning(u"Bot name not informed, assuming {}\
                 ".format(bot))
@@ -73,6 +78,7 @@ if __name__ == '__main__':
         try:
             logger.info(u"Starting {}".format(iacecil.actual_name))
             app = iacecil.get_app(bot.split(','))
+            setattr(app, 'canonical', canonical)
             uvicorn.run(
                 app,
                 host = host,
@@ -85,10 +91,30 @@ if __name__ == '__main__':
             logger.warning(u"Finishing with error {}...\
             ".format(iacecil.actual_name))
             raise
+    elif mode == 'socket':
+        try:
+            logger.info(u"Starting {}".format(iacecil.actual_name))
+            app = iacecil.get_app(bot.split(','))
+            setattr(app, 'canonical', canonical)
+            uvicorn.run(
+                app,
+                uds = 'uvicorn.sock',
+                forwarded_allow_ips = '*',
+                proxy_headers = True,
+                timeout_keep_alive = 0,
+                log_level = log_level,
+            )
+            logger.info(u"Finishing {}".format(iacecil.actual_name))
+        except Exception as e:
+            logger.critical(repr(e))
+            logger.warning(u"Finishing with error {}...\
+            ".format(iacecil.actual_name))
+            raise
     elif mode == 'block':
         try:
             logger.info(u"Starting {}".format(iacecil.actual_name))
             app = iacecil.get_app(bot.split(','))
+            setattr(app, 'canonical', canonical)
             iacecil.run_app(app)
             logger.info(u"Finishing {}".format(iacecil.actual_name))
         except Exception as e:

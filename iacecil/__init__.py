@@ -56,6 +56,7 @@ except Exception as e:
 app = quart_startup(aiogram_startup(config, [
     'iacecil',
     'tiodochurrasbot',
+    'tiozao_bot',
     'tropixelbot',
 ]))
 

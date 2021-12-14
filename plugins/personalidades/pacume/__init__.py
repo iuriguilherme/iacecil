@@ -59,8 +59,13 @@ async def bye(message):
     bot = Dispatcher.get_current().bot
     admin = message.from_user.first_name
     if message.chat.type in ['group', 'supergroup']:
-        admin = [member.user for member in await bot.get_chat_administrators(
-            message.chat.id) if member.status == 'creator'][0].first_name or u"@admin"
+        try:
+            admin = [member.user for member in 
+                await bot.get_chat_administrators(
+                message.chat.id) if member.status == 'creator'
+                ][0].first_name
+        except:
+             admin = u"@admin"
     return random_texts.bye(admin)
 
 async def info():

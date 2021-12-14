@@ -17,7 +17,16 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime, locale, logging
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
+    except:
+        try:
+            locale.setlocale(locale.LC_ALL, 'C')
+        except Exception as e:
+            logging.warning(repr(e))
 
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,

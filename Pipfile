@@ -15,13 +15,11 @@ verify_ssl = true
 #flup = "*"
 #gunicorn = "*"
 #hypercorn = "*"
-pydantic = "*"
 #pyinstaller = "*"
 #PyMySQL = "*"
 #pypng = "*"
 #python-dotenv = "*"
 #python-telegram-bot = "*"
-#requests = "*"
 #telepot = "*"
 #torch = "*"
 #torchaudio = "*"
@@ -32,15 +30,18 @@ aiodns = "*"
 aiogram = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 brotlipy = {version = "*", sys_platform = "!= 'win32'"}
+pydantic = "*"
 pyqrcode = "*"
 pytz = "*"
 quart = "*"
+requests = "*"
 ujson = {version = "*", sys_platform = "!= 'win32'"}
 uvloop = {version = "*", sys_platform = "!= 'win32'"}
 validators = "*"
 youtube-dl = "*"
 flask-wtf = "*"
 starlette-wtf = "*"
+uvicorn = "*"
 
 [requires]
 python_version = "3.9"

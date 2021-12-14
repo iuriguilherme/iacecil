@@ -56,6 +56,7 @@ async def show(page):
             '{0}.html'.format(page),
             title = actual_name,
             version = version,
+            canonical = current_app.canonical,
         )
     except TemplateNotFound as e:
         logger.warning(u"Template not found for {}".format(str(page)))
@@ -79,6 +80,7 @@ async def status():
         version = version,
         names = names,
         users = users,
+        canonical = current_app.canonical,
     )
 
 @blueprint.route("/send_message", methods=['GET', 'POST'])
@@ -139,4 +141,5 @@ async def send_message():
         version = version,
         message = message,
         form = form,
+        canonical = current_app.canonical,
     )

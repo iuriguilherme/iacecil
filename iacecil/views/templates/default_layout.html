@@ -27,25 +27,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="generator" content="Geany 1.36" />
 <title>IA Cecil - {% block title %}{{ title }}{% endblock %}</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/default.css') }}">
+<link rel="stylesheet" href=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='css/default.css') }}">
 {% block head %}
 {% endblock %}
 </head>
 <body class="bg-primary text-light">
 <nav class="navbar navbar-expand-lg navbar-light bg-transparent bg-gradient">
   <div class="container-fluid">
-    <a class="navbar-brand" href="./">{{ title }}</a>
+    <a class="navbar-brand" href=".{% if canonical %}{{ canonical }}{% endif %}">{{ title }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item active">
-          <a class="nav-link" href="{{ url_for('root.status') }}">Status</a>
+          <a class="nav-link" href=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('root.status') }}">Status</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('root.send_message') }}">Send Message</a>
+          <a class="nav-link" href="./{% if canonical %}{{ canonical }}{% endif %}{{ url_for('root.send_message') }}">Send Message</a>
         </li>
         <li class="nav-item">
           <a class="nav-link disabled">{{ version }}</a>
@@ -82,12 +82,12 @@
   https://addons.mozilla.org/pt-BR/firefox/addon/ublock-origin/
   https://chrome.google.com/webstore/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm
  -->
-<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script type="text/javascript" src=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 <script src="https://unpkg.com/@popperjs/core@2"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/holder.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/fontawesome.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/default.js') }}"></script>
+<script type="text/javascript" src=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='js/holder.min.js') }}"></script>
+<script type="text/javascript" src=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='js/fontawesome.min.js') }}"></script>
+<script type="text/javascript" src=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script type="text/javascript" src=".{% if canonical %}{{ canonical }}{% endif %}{{ url_for('static', filename='js/default.js') }}"></script>
 {% block footer %}
 {% endblock %}
 </footer>
