@@ -1,6 +1,7 @@
 {% extends "default_layout.html" %}
 {% block body %}
 <h1>Information about current iteration of {{ title }}</h1>
+<div class="container">
 <div class="row">
 {% for user in users %}
 <div class="col">
@@ -35,10 +36,12 @@
     </tr>
 </tbody>
 </table>
-</div>
-</div>
+</div> <!-- card-body -->
+</div> <!-- card -->
+</div> <!-- col -->
 {% endfor %}
-</div>
+</div> <!-- row -->
+</div> <!-- container -->
 <hr>
 <p>To change some of the above settings, message <b>@BotFather</b> on Telegram.</p>
 <p>&nbsp;</p>
