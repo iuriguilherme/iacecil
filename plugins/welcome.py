@@ -49,10 +49,9 @@ async def add_handlers(dispatcher):
     async def welcome_callback(message: types.Message):
         await message_callback(message, ['welcome', message.chat.type])
         text = await gerar_texto('welcome', dispatcher.bot, message)
-        if message['new_chat_member']['first_name'] in indesejaveis:
+        if str(message['new_chat_member']['first_name']).lower() in
+            [indesejavel.lower() for indesejavel in indesejaveis]:
             text = u"""sem querer caguetar @admin, mas taí de novo o {}\
-""".format(
-                message['new_chat_member']['first_name'],
-            )
+""".format(message['new_chat_member']['first_name'])
         command = await message.reply(text)
         await command_callback(command, ['welcome', message.chat.type])
