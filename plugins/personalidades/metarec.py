@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin personalidades para ia.cecil: Robô também é gente?
-#  Copyleft (C) 2020-2021 Iuri Guilherme
+#  Copyleft (C) 2020-2022 Iuri Guilherme
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,44 +18,64 @@
 ### Personalidade metarec https://metareciclagem.github.io/
 
 from iacecil.controllers.aiogram_bot.callbacks import (
-  command_callback,
-  message_callback,
+    command_callback,
+    message_callback,
 )
 
-from plugins.personalidades.default import info
+from plugins.personalidades.default import (
+    info,
+    start,
+    welcome,
+)
 
 async def tropixel(message):
-  return u"""Bem vinde{members}!\n\nSe você quer ser desconstruíde e re-constru\
-íde, ter suas idéias modificadas, reificadas, pisoteadas e amadas, se seu ego é\
- grande o suficiente para ter amor ao que faz mas consegue reconhecer o que os \
-outros fazem sem inveja, se não está aqui buscando promoção social, mérito ou g\
-rana, e se, acima de tudo, acredita em fadas, duendes e um mundo perfeito, seja\
- bem-vinde a {title}.\n\nUma rede onde maluques conversam, jogam bola, mandam e\
-mails, discutem e fazem as pazes, filosofam sobre vida e morte, colaboração, ap\
-ropriação de tecnologia, como as coisas são por dentro, de onde viemos e para o\
-nde vamos.\n\nAviso de utilidade pública: Não nos responsabilizamos pelas modif\
-icações causadas nos seus neurônios após o convívio (prolongado ou não) com est\
-a comunidade. Use com moderação.\n\nSe apesar de todos esses avisos você ainda \
-está à procura de pessoas que fazem parte dessa rede, nós nos encontramos aos s\
-ábados no Boteco Tropixel (use o comando /boteco pra pegar o link), e fora do t\
-empo no site/forum/rede Tropixel (use o comando /rede pra pegar o link).\
+    return u"""Bem vinde{members}!\n\nSe você quer ser desconstruíde e \
+re-construíde, ter suas idéias modificadas, reificadas, pisoteadas e am\
+adas, se seu ego é grande o suficiente para ter amor ao que faz mas con\
+segue reconhecer o que os outros fazem sem inveja, se não está aqui bus\
+cando promoção social, mérito ou grana, e se, acima de tudo, acredita e\
+m fadas, duendes e um mundo perfeito, seja bem-vinde a {title}.\n\nUma \
+rede onde maluques conversam, jogam bola, mandam emails, discutem e faz\
+em as pazes, filosofam sobre vida e morte, colaboração, apropriação de \
+tecnologia, como as coisas são por dentro, de onde viemos e para onde v\
+amos.\n\nAviso de utilidade pública: Não nos responsabilizamos pelas mo\
+dif\icações causadas nos seus neurônios após o convívio (prolongado ou \
+não) com esta comunidade. Use com moderação.\n\nSe apesar de todos esse\
+s avisos você ainda está à procura de pessoas que fazem parte dessa red\
+e, nós nos encontramos aos sábados no Boteco Tropixel (use o comando /b\
+oteco pra pegar o link), e fora do tempo no site/forum/rede Tropixel (u\
+se o comando /rede pra pegar o link).""".format(
+        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
+            ', '.join([' '.join([
+                member['first_name'] or '',
+                member['last_name'] or '',
+            ]) for member in message.new_chat_members]),
+        title = message.chat.title,
+    )
+
+async def portaria(message):
+    return u"""...sem querer incomodar @admin, mas tá na minha lista de\
+ desafetos o {members} e o nosso convívio precisa de mais terapia.\
 """.format(
-    members = 's' if len(message.new_chat_members) > 1 else ' ' + 
-      ', '.join([
-        ' '.join([member['first_name'] or '', member['last_name'] or ''])
-        for member in message.new_chat_members
-      ]),
-    title = message.chat.title,
-  )
+        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
+            ', '.join([' '.join(
+                [member['first_name'] or '',
+                member['last_name'] or '',
+            ]) for member in message.new_chat_members]),
+    )
 
 async def add_handlers(dispatcher):
-  ## Comando /info herdado da personalidade padrão
-  @dispatcher.message_handler(
-    commands = ['info'],
-  )
-  async def info_callback(message):
-    await message_callback(message, ['info',
-      dispatcher.bot.get('personalidade', 'metarec'), message.chat.type])
-    command = await message.reply(await info(dispatcher.bot.info))
-    await command_callback(command, ['info',
-      dispatcher.bot.get('personalidade', 'metarec'), message.chat.type])
+    ## Comando /info herdado da personalidade padrão
+    @dispatcher.message_handler(
+        commands = ['info'],
+    )
+    async def info_callback(message):
+        await message_callback(message, ['info',
+            dispatcher.bot.get('personalidade', 'metarec'),
+            message.chat.type],
+        )
+        command = await message.reply(await info(dispatcher.bot.info))
+        await command_callback(command, ['info',
+            dispatcher.bot.get('personalidade', 'metarec'),
+            message.chat.type],
+        )

@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin personalidades para ia.cecil: Robô também é gente?
-#  Copyleft (C) 2020-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -36,36 +36,47 @@ from plugins.personalidades import (
 async def gerar_comando(command, bot, message):
     try:
         return await getattr(
-            globals()[bot.info.get('personalidade', 'default')], command)(message)
+            globals()[bot.info.get('personalidade', 'default')],
+                command)(message)
     except AttributeError as exception:
         logging.info(repr(exception))
         try:
             return await getattr(globals()['default'], command)(message)
         except Exception as exception:
-            await error_callback(u"Erro tentando achar comando em personalidade",
-                                                     message, exception, ['personalidades',
-                bot.info.get('personalidade', 'default'), 'gerarComando'])
+            await error_callback(
+                u"Erro tentando achar comando em personalidade",
+                message, exception, ['personalidades',
+                bot.info.get('personalidade', 'default'),
+                'gerarComando'],
+            )
     except Exception as exception:
-        await error_callback(u"Erro tentando achar comando em personalidade",
-                                                 message, exception, ['personalidades',
-            bot.info.get('personalidade', 'default'), 'gerarComando'])
+        await error_callback(
+            u"Erro tentando achar comando em personalidade",
+            message, exception, ['personalidades',
+            bot.info.get('personalidade', 'default'), 'gerarComando'],
+        )
 
 async def gerar_texto(command, bot, message):
     try:
-        return await getattr(globals()[bot.info.get('personalidade', 'default')],
+        return await getattr(globals()[bot.info.get(
+            'personalidade', 'default')],
             command)(message)
     except AttributeError as exception:
         logging.info(repr(exception))
         try:
             return await getattr(globals()['default'], command)(message)
         except Exception as exception:
-            await error_callback(u"Erro tentando achar comando em personalidade",
-                                                     message, exception, ['personalidades',
-                bot.info.get('personalidade', 'default'), 'gerarTexto'])
+            await error_callback(
+                u"Erro tentando achar comando em personalidade",
+                message, exception, ['personalidades',
+                bot.info.get('personalidade', 'default'), 'gerarTexto'],
+            )
     except Exception as exception:
-        await error_callback(u"Erro tentando achar comando em personalidade",
-                                                 message, exception, ['personalidades',
-            bot.info.get('personalidade', 'default'), 'gerarTexto'])
+        await error_callback(
+            u"Erro tentando achar comando em personalidade",
+            message, exception, ['personalidades',
+            bot.info.get('personalidade', 'default'), 'gerarTexto'],
+        )
 
 async def add_handlers(dispatcher):
     try:
@@ -76,4 +87,7 @@ async def add_handlers(dispatcher):
         await getattr(globals()['default'], 'add_handlers')(dispatcher)
     except Exception as exception:
         logging.warning(repr(exception))
-        await exception_callback(exception, ['personalidades', 'add_handlers'])
+        await exception_callback(
+            exception,
+            ['personalidades', 'add_handlers'],
+        )

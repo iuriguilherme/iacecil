@@ -29,11 +29,6 @@ from plugins.personalidades import (
     gerar_texto,
 )
 
-indesejaveis = [
-    'HV Cursos',
-    'MateBot (dev)',
-]
-
 async def add_handlers(dispatcher):
     ## Padrão de boas vindas. Exclui grupos 'omega' pra evitar de mandar mensagem
     ## de boas vindas em grupos onde o bot só é utilizado com os comandos básicos.
@@ -49,9 +44,5 @@ async def add_handlers(dispatcher):
     async def welcome_callback(message: types.Message):
         await message_callback(message, ['welcome', message.chat.type])
         text = await gerar_texto('welcome', dispatcher.bot, message)
-        if str(message['new_chat_member']['first_name']).lower() in
-            [indesejavel.lower() for indesejavel in indesejaveis]:
-            text = u"""sem querer caguetar @admin, mas taí de novo o {}\
-""".format(message['new_chat_member']['first_name'])
         command = await message.reply(text)
         await command_callback(command, ['welcome', message.chat.type])

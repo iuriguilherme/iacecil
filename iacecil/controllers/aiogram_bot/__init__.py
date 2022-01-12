@@ -49,6 +49,7 @@ from plugins import (
     hashes as plugin_hashes,
     mate_matica as plugin_matematica,
     personalidades as plugin_personalidades,
+    portaria as plugin_portaria,
     qr as plugin_qr,
     # ~ totalvoice as plugin_totalvoice
     tropixel as plugin_tropixel,
@@ -72,6 +73,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 ## Filters
 from iacecil.controllers.aiogram_bot.filters import (
     IsReplyToIdFilter,
+    WhoJoinedFilter,
 )
 
 def aiogram_startup(config, names):
@@ -96,11 +98,13 @@ def aiogram_startup(config, names):
 async def add_filters(dispatcher: Dispatcher):
     ### Filters
     dispatcher.filters_factory.bind(IsReplyToIdFilter)
+    dispatcher.filters_factory.bind(WhoJoinedFilter)
 
 async def add_handlers(dispatcher: Dispatcher):
     # ~ await plugin_echo.add_handlers(dispatcher)
     ## Personalidades plugin, loaded first to overwrite methods
     ## (aiogram behaviour)
+    await plugin_portaria.add_handlers(dispatcher)
     await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
     if dispatcher.bot.info.get('personalidade') in [

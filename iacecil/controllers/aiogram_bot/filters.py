@@ -2,7 +2,7 @@
 #
 #  ia.cecil
 #  
-#  Copyleft 2012-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft 2012-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 #  
 
 from aiogram import (
-  filters,
-  types,
+    filters,
+    types,
 )
 
 class IsReplyToIdFilter(filters.BoundFilter):
@@ -32,5 +32,17 @@ class IsReplyToIdFilter(filters.BoundFilter):
     async def check(self, msg: types.Message):
         if msg.reply_to_message and (
             msg.reply_to_message.from_user.id == self.is_reply_to_id
+        ):
+            return True
+
+class WhoJoinedFilter(filters.BoundFilter):
+    key = 'unwanted'
+    def __init__(self, unwanted):
+        self.unwanted = unwanted
+    async def check(self, msg: types.Message):
+        print("AQUI AQUI AQUI: {}".format(self.unwanted))
+        if 'new_chat_member' in msg and str(
+            msg['new_chat_member'].get('first_name', ''
+            ).lower() in self.unwanted
         ):
             return True

@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin personalidades para ia.cecil: Robô também é gente?
-#  Copyleft (C) 2020-2021 Iuri Guilherme
+#  Copyleft (C) 2020-2022 Iuri Guilherme
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,58 +18,69 @@
 ### Personalidade padrão do @mate_obot
 
 from iacecil.controllers.aiogram_bot.callbacks import (
-  command_callback,
-  message_callback,
+    command_callback,
+    message_callback,
 )
 
 async def start(message):
-  return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu id no te\
-legram é {telegram_id}""".format(
-    first_name = message.from_user.first_name,
-    last_name = message.from_user.last_name,
-    telegram_id = message.from_user.id,
-  )
+    return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
+ id no telegram é {telegram_id}""".format(
+        first_name = message.from_user.first_name,
+        last_name = message.from_user.last_name,
+        telegram_id = message.from_user.id,
+    )
 
 async def help(message):
-  return u"""Eu sou uma bot social com múltiplas personalidades programada para\
- aprender conforme o ambiente onde estou. Para saber quais comandos estou respo\
-ndendo, envie /lista\nPara mais informações sobre a minha atual personalidade, \
-envie /info"""
+    return u"""Eu sou uma bot social com múltiplas personalidades progr\
+amada para aprender conforme o ambiente onde estou. Para saber quais co\
+mandos estou respondendo, envie /lista\nPara mais informações sobre a m\
+inha atual personalidade, envie /info"""
 
 async def welcome(message):
-  return u"""Bem vinda(o)(e){members} ao grupo {title}\n\nVerif\
-ique a mensagem fixada (se houver) para saber o que está acontecendo e se quise\
-r e puder, se apresente. Não parece, mas o pessoal daqui está genuinamente inte\
-ressado em te ver escrevendo! Mas sem pressão, pode ser no teu tempo. Qualquer \
-coisa, estou à disposição.""".format(
-    members = 's' if len(message.new_chat_members) > 1 else ' ' + 
-      ', '.join([
-        ' '.join([member['first_name'] or '', member['last_name'] or ''])
-        for member in message.new_chat_members
-      ]),
-    title = message.chat.title,
-  )
+    return u"""Bem vinda(o)(e){members} ao grupo {title}\n\nVerifique a\
+ mensagem fixada (se houver) para saber o que está acontecendo e se qui\
+ser e puder, se apresente. Não parece, mas o pessoal daqui está genuina\
+mente interessado em te ver escrevendo! Mas sem pressão, pode ser no te\
+u tempo. Qualquer coisa, estou à disposição.""".format(
+        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
+            ', '.join([' '.join([
+                member['first_name'] or '',
+                member['last_name'] or '',
+            ]) for member in message.new_chat_members]),
+        title = message.chat.title,
+    )
+
+async def portaria(message):
+    return u"""sem querer caguetar @admin, mas taí de novo o {members}\
+""".format(
+        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
+            ', '.join([' '.join(
+                [member['first_name'] or '',
+                member['last_name'] or '',
+            ]) for member in message.new_chat_members]),
+    )
 
 async def info(infos):
-  return u"""Eu sou uma MateBot com personalidade padrão configurada para respo\
-nder os comandos básicos. O meu código fonte está em {repository} , Quem me adm\
-inistra é {admin} , quem me desenvolve é {dev}\nSe quiser acompanhar meu proces\
-so de desenvolvimento, tem um canal de notícias {channel}\nTambém tem um grupo \
-do telegram onde mais gente interessada no meu desenvolvimento se encontra, o l\
-ink de acesso {group}""".format(
-    repository = infos.get('repository', u"algum lugar"),
-    admin = infos.get('admin', u"Ninguém"),
-    dev = infos.get('dev', u"Alguém"),
-    channel = infos.get('channel', u"que eu não sei."),
-    group = infos.get('group', u"eu não sei."),
-  )
+    return u"""Eu sou uma MateBot com personalidade padrão configurada \
+para responder os comandos básicos. O meu código fonte está em \
+{repository} , Quem me administra é {admin} , quem me desenvolve é \
+{dev}\nSe quiser acompanhar meu processo de desenvolvimento, tem um can\
+al de notícias {channel}\nTambém tem um grupo do telegram onde mais gen\
+te interessada no meu desenvolvimento se encontra, o link de acesso é: \
+{group}""".format(
+        repository = infos.get('repository', u"algum lugar"),
+        admin = infos.get('admin', u"Ninguém"),
+        dev = infos.get('dev', u"Alguém"),
+        channel = infos.get('channel', u"que eu não sei."),
+        group = infos.get('group', u"eu não sei."),
+    )
 
 async def add_handlers(dispatcher):
-  ## Comando /info padrão
-  @dispatcher.message_handler(
-    commands = ['info'],
-  )
-  async def info_callback(message):
-    await message_callback(message, ['info', message.chat.type])
-    command = await message.reply(await info(dispatcher.bot.info))
-    await command_callback(command, ['info', message.chat.type])
+    ## Comando /info padrão
+    @dispatcher.message_handler(
+        commands = ['info'],
+    )
+    async def info_callback(message):
+        await message_callback(message, ['info', message.chat.type])
+        command = await message.reply(await info(dispatcher.bot.info))
+        await command_callback(command, ['info', message.chat.type])
