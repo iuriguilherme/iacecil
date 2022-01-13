@@ -15,6 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+## FIXME: Plugin está quebrado e não está sendo utilizado. O plugin
+## welcome estava distribuído pelas personalidades e este plugin acabou
+## se tornando várias linhas de código redundantes em todos eles.
+
 from aiogram import types
 from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
