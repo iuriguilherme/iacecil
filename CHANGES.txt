@@ -46,4 +46,4 @@ v0.1.7.1, 2021-04-01 -- Não aconteceu, nunca teve essa versão
 v0.1.7.2, 2021-05-03 -- Migrando CryptoForexBot de volta para MateBot
 v0.1.7.3, 2021-11-16 -- Começa a gestão da ia.cecil
 v0.1.7.4, 2021-11-27 -- Interface web inicial
-v0.1.7.5, 2022-01-12 -- Portaria
+v0.1.8.0, 2022-01-13 -- Portaria
