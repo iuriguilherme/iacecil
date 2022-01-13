@@ -19,6 +19,7 @@ from aiogram import types
 from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
+    error_callback,
     message_callback,
 )
 from iacecil.controllers.aiogram_bot.filters import WhoJoinedFilter
@@ -41,5 +42,13 @@ async def add_handlers(dispatcher):
     async def portaria_callback(message: types.Message):
         await message_callback(message, ['portaria', message.chat.type])
         text = await gerar_texto('portaria', dispatcher.bot, message)
-        command = await message.reply(text)
-        await command_callback(command, ['portaria', message.chat.type])
+        # ~ command = await message.reply(text)
+        # ~ await command_callback(command, 
+            # ~ ['portaria', message.chat.type]
+        # ~ )
+        await error_callback(
+            text,
+            message,
+            None,
+            ['portaria', 'dev', 'teste',],
+        )

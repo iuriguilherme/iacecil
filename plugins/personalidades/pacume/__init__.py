@@ -20,20 +20,16 @@
 ### que está fazendo, não teste.
 
 import logging, random
-
 from aiogram import (
     Dispatcher,
     filters,
     types,
 )
-
 from aiogram.utils.markdown import escape_md
-
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-
 from plugins.personalidades import pave
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
@@ -96,11 +92,19 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_pegadinha_callback(message: types.Message):
-        await message_callback(message, ['welcome', 'pegadinha',
+        command_type = 'welcome'
+        await message_callback(message, [command_type, 'pegadinha',
             message.chat.type],
         )
-        command = await pave.pegadinha(message)
-        await command_callback(command, ['welcome', 'pegadinha',
+        if str(message['new_chat_member']['first_name']).lower() in \
+            [unwant.lower() for unwant in \
+            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            text = await portaria(message)
+            command_type = 'portaria'
+            command = await message.reply(text)
+        else:
+            command = await pave.pegadinha(message)
+        await command_callback(command, [command_type, 'pegadinha',
             message.chat.type],
         )
 
@@ -109,14 +113,20 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_callback(message: types.Message):
-        await message_callback(message, ['welcome',
-            dispatcher.bot.info.get(
+        command_type = 'welcome'
+        await message_callback(message,
+            [command_type, dispatcher.bot.info.get(
             'personalidade', 'pacume'), message.chat.type],
         )
         text = await welcome(message)
+        if str(message['new_chat_member']['first_name']).lower() in \
+            [unwant.lower() for unwant in \
+            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            text = await portaria(message)
+            command_type = 'portaria'
         command = await message.reply(text)
-        await command_callback(command, ['welcome',
-            dispatcher.bot.info.get(
+        await command_callback(command,
+            [command_type, dispatcher.bot.info.get(
             'personalidade', 'pacume'), message.chat.type],
         )
 

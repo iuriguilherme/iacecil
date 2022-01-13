@@ -1,7 +1,7 @@
 # vim:fileencoding=utf-8
 #  Plugin welcome para ia.cecil: Boas vindas a pessoas que entram em 
 #  grupos
-#  Copyleft (C) 2020-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,10 +30,11 @@ from plugins.personalidades import (
 )
 
 async def add_handlers(dispatcher):
-    ## Padrão de boas vindas. Exclui grupos 'omega' pra evitar de mandar mensagem
-    ## de boas vindas em grupos onde o bot só é utilizado com os comandos básicos.
-    ## Requer que grupos que queiram ativar o plugin de boas vindas sejam
-    ## adicionados pelo menos às listas 'delta' ou 'gama'.
+    ## Padrão de boas vindas. Exclui grupos 'omega' pra evitar de mandar
+    ## mensagem de boas vindas em grupos onde o bot só é utilizado com
+    ## os comandos básicos. Requer que grupos que queiram ativar o 
+    ## plugin de boas vindas sejam adicionados pelo menos às listas 
+    ## 'delta' ou 'gama'.
     @dispatcher.message_handler(
         filters.IDFilter(
             chat_id = dispatcher.bot.users.get('delta', -1) +
@@ -42,7 +43,19 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_callback(message: types.Message):
-        await message_callback(message, ['welcome', message.chat.type])
+        command_type = 'welcome'
+        await message_callback(message,
+            [command_type, message.chat.type],
+        )
         text = await gerar_texto('welcome', dispatcher.bot, message)
+        if str(message['new_chat_member']['first_name']).lower() in \
+            [unwant.lower() for unwant in \
+            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            text = await gerar_texto('portaria', dispatcher.bot,
+                message,
+            )
+            command_type = 'portaria'
         command = await message.reply(text)
-        await command_callback(command, ['welcome', message.chat.type])
+        await command_callback(command,
+            [command_type, message.chat.type],
+        )

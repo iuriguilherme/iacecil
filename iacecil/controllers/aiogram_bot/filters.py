@@ -40,7 +40,6 @@ class WhoJoinedFilter(filters.BoundFilter):
     def __init__(self, unwanted):
         self.unwanted = unwanted
     async def check(self, msg: types.Message):
-        print("AQUI AQUI AQUI: {}".format(self.unwanted))
         if 'new_chat_member' in msg and str(
             msg['new_chat_member'].get('first_name', ''
             ).lower() in self.unwanted

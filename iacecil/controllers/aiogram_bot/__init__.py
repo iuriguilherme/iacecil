@@ -104,7 +104,7 @@ async def add_handlers(dispatcher: Dispatcher):
     # ~ await plugin_echo.add_handlers(dispatcher)
     ## Personalidades plugin, loaded first to overwrite methods
     ## (aiogram behaviour)
-    await plugin_portaria.add_handlers(dispatcher)
+    # ~ await plugin_portaria.add_handlers(dispatcher)
     await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
     if dispatcher.bot.info.get('personalidade') in [

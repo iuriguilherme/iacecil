@@ -19,13 +19,11 @@
 ### Personalidade do Tiozão do Pavê @tiozao_bot
 
 import logging, random
-
 from aiogram import (
     Dispatcher,
     filters,
     types,
 )
-
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
@@ -126,11 +124,19 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_pegadinha_callback(message: types.Message):
-        await message_callback(message, ['welcome', 'pegadinha',
+        command_type = 'welcome'
+        await message_callback(message, [command_type, 'pegadinha',
             message.chat.type],
         )
-        command = await pegadinha(message)
-        await command_callback(command, ['welcome', 'pegadinha',
+        if str(message['new_chat_member']['first_name']).lower() in \
+            [unwant.lower() for unwant in \
+            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            text = await portaria(message)
+            command_type = 'portaria'
+            command = await message.reply(text)
+        else:
+            command = await pegadinha(message)
+        await command_callback(command, [command_type, 'pegadinha',
             message.chat.type],
         )
 
@@ -139,15 +145,21 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_callback(message: types.Message):
-        await message_callback(message, ['welcome',
-            dispatcher.bot.info.get(
-            'personalidade', 'pave'), message.chat.type],
+        command_type = 'welcome'
+        await message_callback(message,
+            [command_type, dispatcher.bot.info.get(
+            'personalidade', 'pacume'), message.chat.type],
         )
         text = await welcome(message)
+        if str(message['new_chat_member']['first_name']).lower() in \
+            [unwant.lower() for unwant in \
+            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            text = await portaria(message)
+            command_type = 'portaria'
         command = await message.reply(text)
-        await command_callback(command, ['welcome',
-            dispatcher.bot.info.get(
-            'personalidade', 'pave'), message.chat.type],
+        await command_callback(command,
+            [command_type, dispatcher.bot.info.get(
+            'personalidade', 'pacume'), message.chat.type],
         )
 
     ## Piadas sem graça
