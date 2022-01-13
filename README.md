@@ -450,7 +450,7 @@ nada disto então preciso de ajuda para tal feito.
 Licença
 ---
 
-Copyleft 2012-2021 Iuri Guilherme <https://iuri.neocities.org/>  
+Copyleft 2012-2022 Iuri Guilherme <https://iuri.neocities.org/>  
 
 **Este programa é um software livre; você pode redistribuí-lo e/ou**  
 **modificá-lo sob os termos da Licença Pública Geral GNU como publicada**  

@@ -2,7 +2,7 @@
 #
 #  ia.cecil
 #  
-#  Copyleft 2012-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft 2012-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ from quart import (
     current_app,
     jsonify,
     render_template,
+    # ~ websocket,
 )
 from aiogram import (
     Bot,
@@ -40,6 +41,7 @@ from iacecil.views.blueprints import (
     admin,
     root,
 )
+# ~ from functools import partial, wraps
 
 # ~ logging.basicConfig(level=logging.INFO)
 logging.basicConfig(level=logging.DEBUG)

@@ -2,7 +2,7 @@
 #
 #  ia.cecil
 #  
-#  Copyleft 2012-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft 2012-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ from quart import (
     jsonify,
     request,
     render_template,
+    # ~ websocket,
 )
 from flask_wtf import FlaskForm
 from wtforms import (
@@ -43,6 +44,7 @@ from iacecil import (
     actual_name,
     version,
 )
+from functools import partial, wraps
 
 logger = logging.getLogger('blueprints.root')
 
@@ -143,3 +145,38 @@ async def send_message():
         form = form,
         canonical = current_app.canonical,
     )
+
+# ~ @blueprint.route("/updates")
+# ~ async def updates():
+    # ~ return await render_template('updates.html')
+
+# ~ @blueprint.websocket("/ws")
+# ~ async def ws():
+    # ~ while True:
+        # ~ data = await websocket.receive()
+        # ~ await websocket.send(f"echo {data}")
+
+# ~ def collect_websocket(func):
+    # ~ @wraps(func)
+    # ~ async def wrapper(*args, **kwargs):
+        # ~ global connected_websockets
+        # ~ queue = asyncio.Queue()
+        # ~ connected_websockets.add(queue)
+        # ~ try:
+            # ~ return await func(queue, *args, **kwargs)
+        # ~ finally:
+            # ~ connected_websockets.remove(queue)
+    # ~ return wrapper
+
+# ~ @blueprint.websocket("api/v2/ws")
+# ~ @collect_websocket
+# ~ async def ws_v2(queue):
+    # ~ while True:
+        # ~ data = await queue.get()
+        # ~ await websocket.send(data)
+
+# ~ connected_websockets = set()
+
+# ~ async def broadcast(message):
+    # ~ for queue in connected_websockets:
+        # ~ await queue.put(message)
