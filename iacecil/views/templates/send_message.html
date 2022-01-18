@@ -10,7 +10,6 @@
     <p>text: <textarea name="text" rows="5" cols="40"></textarea>
     <p><input type="submit" value="Send">
 -->
-    {{ form.hidden_tag() }}
     {% for subfield in form.bot_id_field %}
         <div class="form-check">
         {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}

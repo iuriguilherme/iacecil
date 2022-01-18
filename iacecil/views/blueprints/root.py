@@ -121,22 +121,28 @@ async def send_message():
             u"Text",
         )
         submit = SubmitField(u"Send")
+    # ~ logging.debug('1: {}'.format(str(form)))
     form = SendMessageForm(formdata = await request.form)
+    # ~ form = SendMessageForm()
+    logging.debug('2: {}'.format(str(form)))
     if request.method == "POST":
         try:
-            form = await request.form
+            logging.debug('3: {}'.format(str(form)))
+            # ~ form = await request.form
+            logging.debug('4: {}'.format(str(form)))
             dispatcher = [dispatcher for 
                 dispatcher in current_app.dispatchers if 
-                int(form['bot_id_field']) == int((
+                int(form['bot_id_field'].data) == int((
                 await dispatcher.bot.get_me())['id'])
             ][0]
             message = await dispatcher.bot.send_message(
-                chat_id = form['chat_id_field'],
-                text = form['text_field'],
-                parse_mode = "MarkdownV2",
+                chat_id = int(form['chat_id_field'].data),
+                text = str(form['text_field'].data),
+                parse_mode = None,
             )
         except Exception as e:
             return jsonify(repr(e))
+    logging.debug(str(form))
     return await render_template(
         "send_message.html",
         title = actual_name,
