@@ -161,14 +161,16 @@ async def debug_logger(
     if message is not None:
         try:
             original_text = message.get('text', None)
-            if original_text:
+            if original_text is not None and hasattr(original_text,
+                'translate',
+            ):
                 original_text = original_text.translate(
                     str.maketrans('', '', '\\')
                 )
                 message['text'] = original_text
             text.append(pre(json.dumps(message.to_python(), indent=2)))
         except AttributeError:
-            message = message.translate(
+            message = str(message).translate(
                 str.maketrans('', '', '\\')
             )
             text.append(pre(json.dumps(message, indent=2)))

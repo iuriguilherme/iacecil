@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-import asyncio, logging, sys
+import asyncio, logging, re, sys
 from textwrap import wrap
 from aiogram import (
     Bot,
@@ -71,7 +71,7 @@ logging groups. Exiting...""")
                 try:
                     await error_callback(
                         u"Probably kicked from this group",
-                        str(kwargs),
+                        str(self.command),
                         exception,
                         ['sendMessage', 'BotKicked', 'exception'],
                     )
@@ -90,62 +90,38 @@ logging groups. Exiting...""")
 ge')""",
                 'not_found': "BadRequest('Replied message not found')",
             }
-            # ~ description = kwargs.get('description', None)
             reason = u"I don't know what just happened"
-            # ~ logging.debug(u"""\ntype(args): {args_type}\nargs: {args}\n\
-# ~ type(kwargs): {kwargs_type}\nkwargs: {kwargs}\ndescription: \
-# ~ {description}\n'too_long': {too_long} {is_too_long}\n'rights': {rights}\
- # ~ {is_rights}\nexception: {exception}\n""".format(
-                # ~ kwargs_type = type(kwargs),
-                # ~ kwargs = str(kwargs),
-                # ~ args_type = type(args),
-                # ~ args = str(args),
-                # ~ description = description,
-                # ~ too_long = descriptions['too_long'],
-                # ~ is_too_long = (
-                    # ~ descriptions['too_long'] == repr(exception)),
-                # ~ rights = descriptions['rights'],
-                # ~ is_rights = (
-                    # ~ descriptions['rights'] == repr(exception)),
-                # ~ exception = repr(exception),
-            # ~ ))
+            reply = self.command
             if repr(exception) == descriptions['rights']:
                 reason = u"Probably blocked in this group"
             elif repr(exception) == descriptions['not_found']:
                 reason = u"Probably message has been erased already"
             elif repr(exception) == descriptions['too_long']:
                 reason = u"Message is too long"
-                if kwargs.get('text', '') != '':
-                    kwargs['text'] = 'apagado'
-                # ~ logging.warning(
-                    # ~ u"Message is too long, stripping...",
-                # ~ )
-                # ~ limit = 4000 # Telegram limit is 4096
-                # ~ text = kwargs.get('text', 'nada')
-                # ~ chunks = [text[i:i+limit] for i in range(
-                    # ~ 0, len(text), limit)
-                # ~ ]
-                # ~ chunks = wrap(text, limit)
-                # ~ for count, chunk in enumerate(chunks):
-                    # ~ if kwargs.get('parse_mode', None) == "MarkdownV2":
-                        # ~ chunk = chunk.translate(
-                            # ~ str.maketrans('', '', '\\`')
-                        # ~ )
-                        # ~ chunk = markdown.pre(chunk)
-                    # ~ logging.debug(markdown.escape_md(
-                        # ~ u"\n#thread ({}/{}):\n\n{}".format(count, 
-                        # ~ len(chunks))) + chunk
-                    # ~ )
-                    # ~ logging.debug(
-                        # ~ u"\n#thread ({}/{}):\n\n".format(count, 
-                        # ~ len(chunks))
-                    # ~ )
-                    # ~ return await self.send_message(*args, **kwargs)
-                    # ~ pass
+                limit = 2048 # Telegram limit is 4096
+                text = kwargs.get('text', u"empty")
+                if len(text) >= limit:
+                    logging.info(
+                        u"Message is too long, stripping...",
+                    )
+                    chunks = [text[i:i+limit] for i in range(
+                        0, len(text), limit)
+                    ]
+                    for count, chunk in enumerate(chunks, start = 1):
+                        chunk = chunk.translate(
+                            str.maketrans('', '', '\\`')
+                        )
+                        kwargs['text'] = markdown.escape_md(
+                            u"#thread ({}/{}):\n\n".format(count, 
+                            len(chunks))
+                        ) + markdown.pre(chunk)
+                        await self.send_message(*args, **kwargs)
+                self.command['text'] = u"empty"
+                return self.command
             try:
                 await error_callback(
                     reason,
-                    str(kwargs),
+                    self.command,
                     exception,
                     ['sendMessage', 'TelegramAPIError', 'exception'],
                 )
@@ -156,12 +132,12 @@ ge')""",
                         ['sendMessage', 'TelegramAPIError'],
                     )
                 except Exception as e:
-                    logging.warning(repr(e))
+                    logging.critical(repr(e))
         except exceptions.BotBlocked as exception:
             try:
                 await error_callback(
                     u"Probably blocked by this user",
-                    str(kwargs),
+                    self.command,
                     exception,
                     ['sendMessage', 'BotBlocked', 'exception'],
                 )
@@ -177,7 +153,7 @@ ge')""",
             try:
                 await error_callback(
                     u"Probably group pressed the red button",
-                    str(kwargs),
+                    self.command,
                     exception,
                     ['sendMessage', 'ChatNotFound', 'exception'],
                 )
@@ -188,12 +164,12 @@ ge')""",
                         ['sendMessage', 'ChatNotFound'],
                     )
                 except Exception as e:
-                    logging.warning(repr(e))
+                    logging.critical(repr(e))
         except exceptions.UserDeactivated as exception:
             try:
                 await error_callback(
                     u"Probably the user pressed the red button",
-                    str(kwargs),
+                    self.command,
                     exception,
                     ['sendMessage', 'UserDeactivated', 'exception'],
                 )
@@ -206,8 +182,8 @@ ge')""",
                 except Exception as e:
                     logging.warning(repr(e))
         except exceptions.TerminatedByOtherGetUpdates as exception:
-            logging.warning(u"""Trying to login with the same token els\
-ewhere!\n{}""".format(repr(exception)))
+            logging.critical(u"""Trying to login with the same token el\
+sewhere!\n{}""".format(repr(exception)))
         except Exception as exception:
             try:
                 await exception_callback(
@@ -216,4 +192,4 @@ ewhere!\n{}""".format(repr(exception)))
                 )
             except Exception as e:
                 logging.warning(repr(e))
-        return None
+        return self.command
