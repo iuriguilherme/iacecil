@@ -20,7 +20,10 @@ from aiogram import (
     Dispatcher,
     types,
 )
-from aiogram.utils.markdown import escape_md
+from aiogram.utils.markdown import (
+    escape_md,
+    pre,
+)
 
 ## Telepot
 class log_str():
@@ -41,9 +44,9 @@ class log_str():
     def send(target, message):
         return u'[%s] [SEND] Enviando "%s" para %s' % (str(datetime.datetime.now()), message, target)
 
-key_error = u"""Mensagem não enviada para grupo de log. Para ativar log em grup\
-os de telegram, coloque o bot em um grupo e use o chat_id do grupo no arquivo d\
-e configuração."""
+key_error = u"""Mensagem não enviada para grupo de log. Para ativar log\
+em grupos de telegram, coloque o bot em um grupo e use o chat_id do gru\
+po no arquivo de configuração."""
 
 async def tecido_logger(texto: str = ''):
     logger = logging.getLogger('tecido')
@@ -111,13 +114,16 @@ async def info_logger(
         ])
     )
     text.append('')
-    text.append('```')
     if update is not None:
         if not isinstance(update, str):
-            text.append(json.dumps(update.to_python(), indent=2))
+            try:
+                text.append(pre(
+                    json.dumps(update.to_python(), indent=2)
+                ))
+            except AttributeError:
+                text.append(pre(json.dumps(update, indent=2)))
         else:
-            text.append(json.dumps(update, indent=2))
-    text.append('```')
+            text.append(pre(json.dumps(update, indent=2)))
     try:
         ## TelegramTextoTecidoTabelas
         # ~ await tecido_logger(getattr(update, 'text', ''))
@@ -153,14 +159,22 @@ async def debug_logger(
     )
     text.append('')
     if message is not None:
-        text.append('```')
-        text.append(json.dumps(message.to_python(), indent=2))
-        text.append('```')
+        try:
+            original_text = message.get('text', None)
+            if original_text:
+                original_text = original_text.translate(
+                    str.maketrans('', '', '\\')
+                )
+                message['text'] = original_text
+            text.append(pre(json.dumps(message.to_python(), indent=2)))
+        except AttributeError:
+            message = message.translate(
+                str.maketrans('', '', '\\')
+            )
+            text.append(pre(json.dumps(message, indent=2)))
         text.append('')
     if exception is not None:
-        text.append('```')
-        text.append(json.dumps(repr(exception), indent=2))
-        text.append('```')
+        text.append(pre(json.dumps(repr(exception), indent=2)))
         text.append('')
     text.append(escape_md(error))
     try:
@@ -188,9 +202,7 @@ async def exception_logger(
         ])
     )
     text.append('')
-    text.append('```')
-    text.append(json.dumps(repr(exception), indent=2))
-    text.append('```')
+    text.append(pre(json.dumps(repr(exception), indent=2)))
     try:
         await bot.send_message(
             chat_id = bot.users['special']['debug'],
