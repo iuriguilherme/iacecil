@@ -25,6 +25,7 @@ from aiogram.utils.markdown import (
     escape_md,
     pre,
 )
+from iacecil.models import PersistentChat
 
 ## Telepot
 ## FIXME Deprecated
@@ -184,7 +185,7 @@ async def exception_logger(
     except Exception as e:
         logging.critical(repr(e))
 
-async def zodb_callback(message):
+async def zodb_logger(message):
     dispatcher = Dispatcher.get_current()
     try:
         storage = ZODB.FileStorage.FileStorage(
@@ -211,7 +212,7 @@ async def zodb_callback(message):
             transaction.commit()
         except Exception as exception:
             transaction.abort()
-            await error_logger(
+            await debug_logger(
                 u"Message NOT added to database",
                 message,
                 exception,
@@ -230,45 +231,45 @@ async def info_logger(
     update: types.Update,
     descriptions: list = ['none'],
 ):
-    await zodb_callback(update)
-    # ~ dispatcher = Dispatcher.get_current()
-    # ~ bot = dispatcher.bot
-    # ~ url = ''
-    # ~ if hasattr(update, 'chat') and update.chat.type != "private":
-        ## url = update.url
-        # ~ url = update.link('link', as_html = False)
-    # ~ text = list()
-    # ~ text.append(
-        # ~ u" ".join([
-            # ~ u" ".join([escape_md("#" + d) for d in descriptions]),
-            # ~ url,
-        # ~ ])
-    # ~ )
-    # ~ text.append('')
-    # ~ if update is not None:
-        # ~ if not isinstance(update, str):
-            # ~ try:
-                # ~ text.append(pre(json.dumps(update.to_python(),
-                    # ~ indent = 2, ensure_ascii = False))
-                # ~ )
-            # ~ except AttributeError:
-                # ~ text.append(pre(json.dumps(update, indent = 2,
-                    # ~ ensure_ascii = False))
-                # ~ )
-        # ~ else:
-            # ~ text.append(pre(json.dumps(update, indent = 2,
-                # ~ ensure_ascii = False))
-            # ~ )
-    # ~ try:
-        # ~ ## TelegramTextoTecidoTabelas
-        ##await tecido_logger(getattr(update, 'text', ''))
-        # ~ await bot.send_message(
-            # ~ chat_id = bot.users['special']['info'],
-            # ~ text = '\n'.join(text),
-            # ~ disable_notification = True,
-            # ~ parse_mode = "MarkdownV2",
-        # ~ )
-    # ~ except KeyError:
-        # ~ logging.debug(key_error)
-    # ~ except Exception as e:
-        # ~ logging.critical(repr(e))
+    # ~ await zodb_callback(update)
+    dispatcher = Dispatcher.get_current()
+    bot = dispatcher.bot
+    url = ''
+    if hasattr(update, 'chat') and update.chat.type != "private":
+        # url = update.url
+        url = update.link('link', as_html = False)
+    text = list()
+    text.append(
+        u" ".join([
+            u" ".join([escape_md("#" + d) for d in descriptions]),
+            url,
+        ])
+    )
+    text.append('')
+    if update is not None:
+        if not isinstance(update, str):
+            try:
+                text.append(pre(json.dumps(update.to_python(),
+                    indent = 2, ensure_ascii = False))
+                )
+            except AttributeError:
+                text.append(pre(json.dumps(update, indent = 2,
+                    ensure_ascii = False))
+                )
+        else:
+            text.append(pre(json.dumps(update, indent = 2,
+                ensure_ascii = False))
+            )
+    try:
+        ## TelegramTextoTecidoTabelas
+        #await tecido_logger(getattr(update, 'text', ''))
+        await bot.send_message(
+            chat_id = bot.users['special']['info'],
+            text = '\n'.join(text),
+            disable_notification = True,
+            parse_mode = "MarkdownV2",
+        )
+    except KeyError:
+        logging.debug(key_error)
+    except Exception as e:
+        logging.critical(repr(e))

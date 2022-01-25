@@ -154,9 +154,14 @@ ge')""",
             reason = u"I don't know what just happened"
             if repr(exception) == descriptions['rights']:
                 reason = None
+                chat_id = 0
+                try:
+                    chat_id = self.command.chat.id
+                except AttributeError:
+                    pass
                 logging.info(
                     u"Bot has no rights in {}, skipping...".format(
-                        self.command.chat.id,
+                        str(chat_id),
                 ))
             elif repr(exception) == descriptions['not_found']:
                 reason = u"Probably message has been erased already"

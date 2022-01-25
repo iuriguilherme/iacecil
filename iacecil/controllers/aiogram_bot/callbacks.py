@@ -21,20 +21,20 @@
 #  
 
 from aiogram import types
-
 from iacecil import config
-
 from plugins.log import (
     debug_logger,
     exception_logger,
     info_logger,
+    zodb_logger,
 )
+from plugins.garimpo import varre_link
 
 async def message_callback(
     message: types.Message,
     descriptions: list = ['message'],
 ):
-    await info_logger(message, descriptions)
+    await zodb_logger(descriptions)
 
 async def command_callback(
     message: types.Message,
@@ -57,10 +57,8 @@ async def exception_callback(
     await exception_logger(exception, descriptions)
 
 async def any_message_callback(message: types.Message):
-    await info_logger(
-        message,
-        ['message', message.content_type, message.chat.type],
-    )
+    await varre_link(message)
+    await zodb_logger(message)
 
 async def any_edited_message_callback(message: types.Message):
     await info_logger(message, ['edited_message', message.chat.type])

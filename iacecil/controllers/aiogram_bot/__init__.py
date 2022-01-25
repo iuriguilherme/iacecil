@@ -45,6 +45,7 @@ from plugins import (
     donate as plugin_donate,
     echo as plugin_echo,
     feedback as plugin_feedback,
+    garimpo as plugin_garimpo,
     # ~ greatful as plugin_greatful,
     hashes as plugin_hashes,
     mate_matica as plugin_matematica,
@@ -107,7 +108,7 @@ async def add_handlers(dispatcher: Dispatcher):
     # ~ await plugin_portaria.add_handlers(dispatcher)
     await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
-    if dispatcher.bot.info.get('personalidade') in [
+    if dispatcher.bot.info.get('personalidade', None) in [
         'default',
         'metarec',
         'pave',
@@ -118,15 +119,20 @@ async def add_handlers(dispatcher: Dispatcher):
         await plugin_donate.add_handlers(dispatcher)
         await plugin_archive.add_handlers(dispatcher)
     ## Plugins mais que especiais
-    if dispatcher.bot.info.get('personalidade') in [
+    if dispatcher.bot.info.get('personalidade', None) in [
         'default',
         'metarec',
         'matebot',
+        'iacecil',
     ]:
         try:
             await plugin_welcome.add_handlers(dispatcher)
         except KeyError:
             logging.warning(u"plugin welcome não configurado")
+        try:
+            await plugin_garimpo.add_handlers(dispatcher)
+        except KeyError:
+            logging.warning(u"plugin garimpo não configurado")
         try:
             await plugin_tropixel.add_handlers(dispatcher)
         except KeyError:
