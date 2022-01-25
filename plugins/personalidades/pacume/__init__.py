@@ -34,7 +34,10 @@ from plugins.personalidades import pave
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
-    from instance.personalidades.pacume import random_texts
+    from instance.personalidades.pacume import (
+        random_texts,
+        add_instance_handlers,
+    )
 except Exception as e:
     logging.warning("Não achei o arquivo: {}".format(e))
     from plugins.personalidades.pacume import random_texts
@@ -81,6 +84,10 @@ Para enviar reclamações sobre comportamento indevido, abra processo no \
 Ministério Público Federal, chama a tua mãe, se fode."""
 
 async def add_handlers(dispatcher):
+    try:
+        await add_instance_handlers(dispatcher)
+    except Exception as e:
+        logging.warning("Não achei o arquivo: {}".format(e))
     ## Saúda com trollada
     @dispatcher.message_handler(
         filters.IDFilter(

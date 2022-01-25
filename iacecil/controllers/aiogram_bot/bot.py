@@ -49,12 +49,73 @@ class IACecilBot(Bot):
         self.command = None
         super().__init__(*args, **kwargs)
 
+    async def send_photo(self, *args, **kwargs):
+        self.command = None
+        try:
+            self.command = await super().send_voice(*args, **kwargs)
+            return self.command
+        except exceptions.RetryAfter as exception:
+            logging.info(u"Flood control: waiting {} seconds...\
+            ".format(exception.timeout))
+            await asyncio.sleep(exception.timeout)
+            return await self.send_photo(*args, **kwargs)
+        except Exception as exception:
+            try:
+                await exception_callback(
+                    exception,
+                    ['sendPhoto'],
+                )
+            except Exception as e:
+                logging.critical(repr(e))
+        return self.command
+
+    async def send_voice(self, *args, **kwargs):
+        self.command = None
+        try:
+            self.command = await super().send_voice(*args, **kwargs)
+            return self.command
+        except exceptions.RetryAfter as exception:
+            logging.info(u"Flood control: waiting {} seconds...\
+            ".format(exception.timeout))
+            await asyncio.sleep(exception.timeout)
+            return await self.send_voice(*args, **kwargs)
+        except Exception as exception:
+            try:
+                await exception_callback(
+                    exception,
+                    ['sendVoice'],
+                )
+            except Exception as e:
+                logging.critical(repr(e))
+        return self.command
+
+    async def send_video(self, *args, **kwargs):
+        self.command = None
+        try:
+            self.command = await super().send_video(*args, **kwargs)
+            return self.command
+        except exceptions.RetryAfter as exception:
+            logging.info(u"Flood control: waiting {} seconds...\
+            ".format(exception.timeout))
+            await asyncio.sleep(exception.timeout)
+            return await self.send_video(*args, **kwargs)
+        except Exception as exception:
+            try:
+                await exception_callback(
+                    exception,
+                    ['sendVideo'],
+                )
+            except Exception as e:
+                logging.critical(repr(e))
+        return self.command
+
     async def send_message(self, *args, **kwargs):
+        self.command = None
         try:
             self.command = await super().send_message(*args, **kwargs)
             return self.command
         except exceptions.RetryAfter as exception:
-            logging.warning(u"Flood control: waiting {} seconds...\
+            logging.info(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
             return await self.send_message(*args, **kwargs)
@@ -93,7 +154,11 @@ ge')""",
             reason = u"I don't know what just happened"
             reply = self.command
             if repr(exception) == descriptions['rights']:
-                reason = u"Probably blocked in this group"
+                reason = None
+                logging.info(
+                    u"Bot has no rights in {}, skipping...".format(
+                        reply['chat']['id'],
+                ))
             elif repr(exception) == descriptions['not_found']:
                 reason = u"Probably message has been erased already"
             elif repr(exception) == descriptions['too_long']:
@@ -118,21 +183,23 @@ ge')""",
                         await self.send_message(*args, **kwargs)
                 self.command['text'] = u"empty"
                 return self.command
-            try:
-                await error_callback(
-                    reason,
-                    self.command,
-                    exception,
-                    ['sendMessage', 'TelegramAPIError', 'exception'],
-                )
-            except Exception as e:
+            if reason is not None:
                 try:
-                    await exception_callback(
-                        e,
-                        ['sendMessage', 'TelegramAPIError'],
+                    await error_callback(
+                        reason,
+                        self.command,
+                        exception,
+                        ['sendMessage', 'TelegramAPIError',
+                            'exception'],
                     )
                 except Exception as e:
-                    logging.critical(repr(e))
+                    try:
+                        await exception_callback(
+                            e,
+                            ['sendMessage', 'TelegramAPIError'],
+                        )
+                    except Exception as e:
+                        logging.critical(repr(e))
         except exceptions.BotBlocked as exception:
             try:
                 await error_callback(

@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin ytdl para ia.cecil: Devolve vídeo/áudio a partir de link.
-#  Copyleft (C) 2020-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,15 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, random, validators, youtube_dl
-from aiogram.utils.markdown import escape_md
+import logging, os, random, validators, youtube_dl
+from aiogram.utils.markdown import escape_md, pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
     message_callback,
 )
 
-def baixar(url):
+async def baixar(url):
     video_rand = '%030x' % random.randrange(16**30)
     video_file_name = '/tmp/ytdl_%s.mp4' % video_rand
     options = {
@@ -38,126 +38,47 @@ def baixar(url):
             #'-vf scale=640:-1',
         #],
     }
+    ## FIXME Blocking!
     youtube_dl.YoutubeDL(options).download([url])
     return video_file_name
 
-
-def cmd_y(args):
-    try:
-        if len(args['command_list']) > 0:
-            response = u"#youtubedl"
-            debug = u"[#youtubedl]: [debug] chat_id: %s, from_id: %s, message_id: %s, command_list: %s" % (
-                str(args['chat_id']),
-                str(args['from_id']),
-                str(args['message_id']),
-                str(args['command_list']),
-            )
-            url = ''.join(args['command_list'])
-            # ~ args['bot'].sendMessage(
-                # ~ args['chat_id'],
-                # ~ u"Acho que encontrei o vídeo. Extraindo...",
-                # ~ reply_to_message_id = args['message_id'],
-            # ~ )
-            # ~ args['bot'].sendMessage(
-                # ~ args['chat_id'],
-                # ~ u"Vídeo extraído. Enviando...",
-                # ~ reply_to_message_id = args['message_id'],
-            # ~ )
-            video_file_name = baixar(url)
-            try:
-                video_file = open(video_file_name, 'rb')
-                args['bot'].sendVideo(
-                    args['chat_id'],
-                    video_file,
-#                    duration=None,
-#                    width=None,
-#                    height=None,
-#                    caption=None,
-#                    parse_mode=None,
-#                    supports_streaming=None,
-#                    disable_notification=None,
-                    reply_to_message_id=args['message_id'],
-#                     reply_markup=None
-                )
-            except Exception as e:
-                response = u"Não consegui enviar o vídeo por problemas técnicos. Os desenvolvedores devem ter sido avisados já, eu acho."
-                debug = u"[#yotubedl]: [exception] %s" % (e)
-                #raise
-            finally:
-                print("[#youtubedl] [debug]: closing and removing video...")
-                video_file.close()
-                if os.path.exists(video_file_name):
-                    os.remove(video_file_name)
-            #video_file.close()
-            #os.remove(video_file_name)
-            return {
-                'status': True,
-                'type': 'video',
-                'response': response,
-                'debug': debug,
-                'multi': False,
-                'parse_mode': None,
-                'reply_to_message_id': args['message_id'],
-            }
-        else:
-            response = u"O comando vós já achardes. Agora me envia o comando mais um link, um URL, alguma coisa que está na world wide web e que eu possa salvar. Por exemplo:\n\n/y https://www.youtube.com/watch?v=EqSQ3mnmQ6s"
-            debug = u"[#youtubedl]: [nenhum link]"
-    except Exception as e:
-        response = u"Não consegui extrair o vídeo por problemas técnicos. Os desenvolvedores devem ter sido avisados já, eu acho."
-        debug = u"[#yotubedl]: [exception] %s" % (e)
-        #raise
-    return {
-        'status': False,
-        'type': 'erro',
-        'response': response,
-        'debug': debug,
-        'multi': False,
-        'parse_mode': None,
-        'reply_to_message_id': args['message_id'],
-    }
-
-## Aliases
-def cmd_youtube(args):
-    return cmd_y(args)
-def cmd_ytdl(args):
-    return cmd_y(args)
-def cmd_yt(args):
-    return cmd_y(args)
-def cmd_baixar(args):
-    return cmd_y(args)
-
-## Aiogram
-async def add_handlers(dispatcher):
-    ## Extrai vídeo ou áudio de vários serviços
-    @dispatcher.message_handler(
-        commands = ['y', 'yt', 'ytdl', 'youtube', 'baixar', 'video'],
-    )
-    async def ytdl_callback(message):
+async def ytdl(dispatcher, message):
         await message_callback(message, ['ytdl', message.chat.type])
-        url = message.get_args()
+        url = None
         command = u"Não deu certo..."
         ## Será que é link?
-        if validators.url(url):
+        if message.entities is not None:
+            for entity in message.entities:
+                if entity['type'] == "url":
+                    url =  message.text[
+                        entity['offset']:entity['length'] + \
+                        entity['offset']
+                    ]
+        if not url and message.reply_to_message is not None:
+            for entity in message.reply_to_message.entities:
+                if entity['type'] == "url":
+                    url = message.reply_to_message.text[
+                        entity['offset']:entity['length'] + \
+                            entity['offset']
+                    ]
+        if url and validators.url(url):
             pass
         else:
-            if message.reply_to_message:
-                url = message.reply_to_message.text
-                if validators.url(url):
-                    pass
-                else:
-                    url = False
-            else:
-                url = False
+            url = None
         if url:
             video_file = None
             try:
-                video_file = baixar(url)
+                video_file = await baixar(url)
             except Exception as e:
-                await error_callback(u"Erro tentando baixar vídeo", message, e,
-                                                         ['ytdl'])
+                await error_callback(
+                    u"Erro tentando baixar vídeo",
+                    message,
+                    e,
+                    ['ytdl'],
+                )
                 command = await message.reply(
-                    escape_md(u"""Não consegui extrair a mídia. Olha o que o servidor me\
-disse: """) + u"```{}```".format(str(e)),
+                    escape_md(u"""Não consegui extrair a mídia. Olha o \
+que o servidor me disse: """) + pre("{}".format(str(e))),
                     parse_mode = "MarkdownV2",
                     disable_notification = True,
                 )
@@ -172,20 +93,36 @@ disse: """) + u"```{}```".format(str(e)),
                     if os.path.exists(video_file):
                         os.remove(video_file)
             except Exception as e:
-                await error_callback(u"Erro tentando subir vídeo", message, e,
-                                                         ['ytdl'])
-                command = await message.reply(u"""Não consegui enviar o arquivo. Tente\
-i avisar o pessoal do desenvolvimento...""",
+                await error_callback(
+                    u"Erro tentando subir vídeo",
+                    message,
+                    e,
+                    ['ytdl'],
+                )
+                command = await message.reply(u"""Não consegui enviar o\
+ arquivo. Tentei avisar o pessoal do desenvolvimento...""",
                     disable_notification = True,
                 )
         else:
-            command = await message.reply(
-                u"""```\nO comando {comando} serve pra extrair um vídeo ou áudio de alg\
-um site com suporte. Este comando usa o youtube-dl. Digite "{comando} url" para\
- usar (dê um espaço entre o comando e o link). Por exemplo, para baixar o vídeo\
- do rick roll:\n\n{comando} https://youtube.com/watch?v=dQw4w9WgXcQ""".format(
+            command = await message.reply(escape_md(u"""\nO comando \
+{comando} serve pra extrair um vídeo ou áudio de algum site com suporte\
+. Este comando usa o youtube-dl. Digite "{comando} url" para usar (dê u\
+m espaço entre o comando e o link). Por exemplo, para baixar o vídeo do\
+ rick roll:\n\n""".format(comando = message.get_command())) + \
+pre(u"""{comando} https://youtube.com/watch?v=dQw4w9WgXcQ""".format(
+    comando = message.get_command())) + escape_md(u"""\n\nOu então resp\
+onda uma mensagem que tem um link com {comando} na resposta.""".format(
                     comando = message.get_command()
-                ),
+                )),
                 parse_mode = "MarkdownV2",
             )
         await command_callback(command, ['ytdl', message.chat.type])
+
+## Aiogram
+async def add_handlers(dispatcher):
+    ## Extrai vídeo ou áudio de vários serviços
+    @dispatcher.message_handler(
+        commands = ['y', 'yt', 'ytdl', 'youtube', 'baixar', 'video'],
+    )
+    async def ytdl_callback(message):
+        await ytdl(dispatcher, message)

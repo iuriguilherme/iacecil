@@ -140,6 +140,25 @@ async def add_handlers(dispatcher):
             message.chat.type],
         )
 
+    ## /brinde
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            ## Somente grupos configurados pra receber novas pessoas com
+            ## pegadinha
+            ## Atualmente só o @ZaffariPoa
+            chat_id = dispatcher.bot.users.get('pegadinha', -1),
+        ),
+        commands = ['brinde', 'brindes'],
+    )
+    async def brinde_pegadinha_callback(message: types.Message):
+        command_type = 'brinde'
+        await message_callback(message, [command_type, 'pegadinha',
+            message.chat.type],
+        )
+        command = await pegadinha(message)
+        await command_callback(command, [command_type, 'pegadinha',
+            message.chat.type],
+        )
     ## Seja mau vindo
     @dispatcher.message_handler(
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
