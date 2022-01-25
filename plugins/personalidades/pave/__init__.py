@@ -40,10 +40,9 @@ async def start(message):
 
 async def welcome(message):
     bot = Dispatcher.get_current().bot
-    admin = message.from_user.first_name
+    admin = u"@admin"
     count = await bot.get_chat_members_count(message.chat.id)
     if message.chat.type in ['group', 'supergroup']:
-        admin = u"@admin"
         try:
             admin = [member.user for member in \
                 await bot.get_chat_administrators(

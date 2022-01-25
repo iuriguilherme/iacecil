@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin totalvoice para ia.cecil: Usa a API do totalvoice
-#  Copyleft (C) 2018-2021 Iuri Guilherme
+#  Copyleft (C) 2018-2022 Iuri Guilherme
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

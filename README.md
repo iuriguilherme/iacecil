@@ -252,6 +252,7 @@ user@home:~/iacecil$ mkdir instance
 Renomear o arquivo `doc/default_config.py` para `instance/config.py`.  
 
 ```bash
+user@home:~/iacecil$ mkdir instance
 user@home:~/iacecil$ cp doc/default_config.py instance/config.py
 ```
 
@@ -427,13 +428,14 @@ serviço caso esteja fora do ar.
 
 #### Docker
 
-Adicione seu token em `BOTFATHER_TOKEN` no arquivo `doc/default_env` e 
-depois rode os comandos abaixo na raiz do projeto  
+Adicione seu token em `BOTFATHER_TOKEN` no arquivo 
+`doc/default_config.py` e depois rode os comandos abaixo na raiz do 
+projeto  
 
  ```bash
- docker build -t matebot -f Dockfile .
- docker run -d --name matebot matebot
- docker inspect matebot | grep IPAddress
+ docker build -t iacecil -f Dockfile .
+ docker run -d --name iacecil iacecil
+ docker inspect iacecil | grep IPAddress
  ```
 
 Após esses comandos você terá o IP do seu container pegue esse IP e 

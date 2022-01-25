@@ -1,7 +1,7 @@
 # vim:fileencoding=utf-8
 #  Plugin cryptoforex para ia.cecil: Comandos para conversão de 
 #  criptomoedas
-#  Copyleft (C) 2016-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2016-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

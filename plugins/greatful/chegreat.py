@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin greatful para ia.cecil: Comandos para Greatful
-#  Copyleft (C) 2019-2021 Iuri Guilherme
+#  Copyleft (C) 2019-2022 Iuri Guilherme
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

@@ -51,5 +51,6 @@ python_version = "3.9"
 [scripts]
 iacecil = 'python start.py quart iacecil'
 quart = 'python start.py quart iacecil 8000 127.0.0.1 info'
+test = 'python start.py quart testing'
 dev = 'python start.py dev'
-app = 'python app.py'
+socket = 'python start.py socket tiozao_bot,tiodochurrasbot,tropixelbot,mate_obot,cryptoforexbot,s28paybot,iacecil 38000 127.0.0.1 debug 0'

@@ -1,6 +1,6 @@
 # vim:fileencoding=utf-8
 #  Plugin mate-matica para ia.cecil: Mate Mática
-#  Copyleft (C) 2019-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2019-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

@@ -1,18 +1,42 @@
-v0.0.1.a, 2016-06-24 -- Copiados vários arquivos de tg-cryptoforexbot v0.4.6.b
-v0.0.2.a, 2016-10-25 -- Adicionado comando para calcular hashes
-v0.0.4.b, 2016-10-25 -- Código adaptado para python3
-v0.0.5.b, 2016-10-31 -- Adicionando links para doação
+v0.0.0.1, 2013-12-30 -- Projeto retomado e repositório no Github criado
+v0.0.0.2, 2013-12-30 -- setup.py e estrutura inicial construídos
+v0.0.0.5, 2016-05-09 -- First commit to Github
+v0.0.0.6, 2016-05-09 -- Adding administration
+v0.0.0.7, 2016-05-09 -- Using lists for commands
+v0.0.0.8, 2016-05-09 -- Changed versioning scheme retroactively
+v0.0.0.9, 2016-05-10 -- Coinmarketcap API
+v0.0.0.10, 2016-05-10 -- Added command for listing available currencies
+v0.0.0.11, 2016-05-10 -- Added /price
+v0.0.1.0, 2016-05-10 -- Added /send command for feedback
+v0.0.2.0, 2016-05-10 -- Changed log facility to group admin, added group admin feature
+v0.0.2.1, 2016-05-11 -- Improved commands parsing
+v0.0.2.2, 2016-05-11 -- Started using json and better returns
+v0.0.3.0, 2016-05-12 -- Adding /feedback command
+v0.0.3.4, 2016-05-12 -- Added group feedback
+v0.0.3.5, 2016-05-12 -- Added conversion from crypto to crypto
+v0.0.4.0, 2016-05-12 -- Added conversion from all to all
+v0.0.4.1, 2016-05-12 -- Updated fiat currencies information
+v0.0.4.2, 2016-05-12 -- Updated crypto currencies information
+v0.0.4.3, 2016-05-12 -- Many improves for error handling
+v0.0.4.4, 2016-05-29 -- Many fixes from previous 'improvings'
+v0.0.4.5, 2016-05-29 -- Commands on groups now sent to users
+v0.0.4.6, 2016-06-05 -- Added Mercado Bitcoin API
+v0.0.5.0, 2016-06-24 -- Copiados vários arquivos de tg-cryptoforexbot v0.4.6.b
+v0.0.5.1, 2016-10-25 -- Adicionado comando para calcular hashes
+v0.0.5.2, 2016-10-25 -- Código adaptado para python3
+v0.0.5.3, 2016-10-31 -- Adicionando links para doação
+v0.0.5.4, 2017-04-13 -- Licença alterada para AGPL e repositório movido
 v0.0.6.0, 2018-05-09 -- Alterações, traduções e preparação para novo clone
 v0.0.6.1, 2018-05-09 -- Clonando repositório tg-matebot v0.0.6.0 para Velivery Bot
 v0.0.6.2, 2018-05-10 -- Verificação de pedidos pendentes (Velivery)
 v0.0.7.0, 2018-05-26 -- Acrescentando contribuições do VeliveryBot
-v0.0.8.b, 2018-06-01 -- Aprendendo a usar getattr e importlib pra otimizar o bot
+v0.0.8.0, 2018-06-01 -- Aprendendo a usar getattr e importlib pra otimizar o bot
 v0.0.8.2, 2018-06-01 -- Adicionando comando para enviar mensagens
 v0.0.8.3, 2018-06-10 -- Acrescentando contribuições do ClimoBikeBot
 v0.0.8.4, 2018-06-10 -- Merge no VeliveryBot com melhorias do upstream Matebot
 v0.0.8.5, 2018-06-10 -- Versão suficientemente estável após dia inteiro de teste
 v0.0.8.6, 2018-06-10 -- Adicionado suporte para diferentes timezones
-v0.0.9.b, 2018-06-20 -- Dicionários everywhere
+v0.0.9.0, 2018-06-20 -- Dicionários everywhere
 v0.0.10.0, 2018-07-13 -- Facilitando ligações em smartphones
 v0.0.11.0, 2018-07-21 -- Relatório de taxa de recompra
 v0.0.11.2, 2018-08-24 -- Alterações necessárias para Gramado Summit
@@ -27,11 +51,12 @@ v0.0.11.10, 2019-08-20 -- Arquivo de configuração formato novo
 v0.0.12.0, 2019-08-26 -- A vida é nesta semana e somente nela
 v0.0.13.0, 2019-09-31 -- Merge total da Vegga e Gê no Matebot, sem plugins do Velivery
 v0.0.14.0, 2020-01-17 -- Atualizando README com pipenv
-v0.1.0.0a, 2020-08-09 -- Usando Flask e python-telegram-bot
-v0.1.0.1a, 2020-08-10 -- Código reestrurutado para migrar entre telepot e flask/ptb
-v0.1.1.0a, 2020-08-18 -- Código funcional - robô respondendo /start e modo "papagaio"
-v0.1.2.0a, 2020-08-25 -- Código funcional - robô enviando exceções para grupo de depuração
-v0.1.2.1b, 2020-08-28 -- Primeiro beta teste com python-telegram-bot
+v0.0.14.1, 2020-01-18 -- Better telegram group logging
+v0.1.0.0, 2020-08-09 -- Usando Flask e python-telegram-bot
+v0.1.0.1, 2020-08-10 -- Código reestrurutado para migrar entre telepot e flask/ptb
+v0.1.1.0, 2020-08-18 -- Código funcional - robô respondendo /start e modo "papagaio"
+v0.1.2.0, 2020-08-25 -- Código funcional - robô enviando exceções para grupo de depuração
+v0.1.2.1, 2020-08-28 -- Primeiro beta teste com python-telegram-bot
 v0.1.3.0, 2020-09-01 -- Aiogram
 v0.1.3.1, 2020-09-02 -- Aiogram com logs em grupos e primeiro plugin async
 v0.1.3.2, 2020-09-02 -- Bot fazendo log em grupos com pretty print
@@ -49,3 +74,4 @@ v0.1.7.4, 2021-11-27 -- Interface web inicial
 v0.1.8.0, 2022-01-13 -- Portaria
 v0.1.8.2, 2022-01-18 -- Envio de mensagens via web
 v0.1.9.0, 2022-01-25 -- Armazenamento em ZODB local (primeiro banco de dados)
+v0.1.9.1, 2202-01-25 -- Serviço de garimpo de links

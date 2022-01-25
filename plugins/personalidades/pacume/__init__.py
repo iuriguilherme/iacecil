@@ -47,13 +47,30 @@ async def start(message):
 
 async def welcome(message):
     bot = Dispatcher.get_current().bot
-    admin = message.from_user.first_name
+    admin = u"@admin"
     count = await bot.get_chat_members_count(message.chat.id)
     if message.chat.type in ['group', 'supergroup']:
-        admin = [member.user for member in \
-            await bot.get_chat_administrators(
-            message.chat.id
-            ) if member.status == 'creator'][0].first_name or u"@admin"
+        try:
+            admin = [member.user for member in \
+                await bot.get_chat_administrators(
+                message.chat.id
+                ) if member.status == 'creator'][0].first_name
+        except IndexError:
+            pass
+    return random_texts.welcome(message, count, admin)
+
+async def welcome(message):
+    bot = Dispatcher.get_current().bot
+    admin = u"@admin"
+    count = await bot.get_chat_members_count(message.chat.id)
+    if message.chat.type in ['group', 'supergroup']:
+        try:
+            admin = [member.user for member in \
+                await bot.get_chat_administrators(
+                message.chat.id
+                ) if member.status == 'creator'][0].first_name
+        except IndexError:
+            pass
     return random_texts.welcome(message, count, admin)
 
 async def portaria(message):
@@ -61,15 +78,15 @@ async def portaria(message):
 
 async def bye(message):
     bot = Dispatcher.get_current().bot
-    admin = message.from_user.first_name
+    admin = u"admin"
     if message.chat.type in ['group', 'supergroup']:
         try:
-            admin = [member.user for member in 
+            admin = [member.user for member in \
                 await bot.get_chat_administrators(
-                message.chat.id) if member.status == 'creator'
-                ][0].first_name
-        except:
-             admin = u"@admin"
+                message.chat.id
+                ) if member.status == 'creator'][0].first_name
+        except IndexError:
+            pass
     return random_texts.bye(admin)
 
 async def info():

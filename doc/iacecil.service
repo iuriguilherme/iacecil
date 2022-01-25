@@ -1,0 +1,16 @@
+## Copy this file to ~/.config/systemd/user/
+## Then start with systemctl --user start iacecil.service
+## Make it start at boot with systemctl --user enable iacecil.service
+
+[Unit]
+Description=ia.cecil daemon
+After=network.target nss-lookup.target
+
+[Service]
+Type=simple
+ExecStart=/home/user/.local/bin/pipenv run iacecil
+WorkingDirectory=/home/user/iacecil/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

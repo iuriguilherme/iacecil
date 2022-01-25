@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.9
 
 WORKDIR /app
 
@@ -6,8 +6,8 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-RUN mkdir instance && cp doc/default_env .env && cp doc/default_config.py instance/config.py
+RUN mkdir instance && cp doc/default_config.py instance/config.py
 
 EXPOSE 5000/tcp
 
-CMD python3 app.py
+CMD python3 start.py quart iacecil

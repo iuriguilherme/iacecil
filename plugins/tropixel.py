@@ -1,7 +1,7 @@
 # vim:fileencoding=utf-8
 #  Plugin tropixel para ia.cecil: Comandos para o Tropixel Café 
 #  @tropixelcafe
-#  Copyleft (C) 2020-2021 Iuri Guilherme <https://iuri.neocities.org/>
+#  Copyleft (C) 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
