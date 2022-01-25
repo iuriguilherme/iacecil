@@ -1,21 +1,22 @@
 # vim:fileencoding=utf-8
-#    Plugin log para ia.cecil: Logging/debugging
-#    Copyleft (C) 2016-2021 Iuri Guilherme <https://iuri.neocities.org/>
-#    
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
-#    GNU General Public License for more details.
-#    
-#    You should have received a copy of the GNU General Public License
-#    along with this program.    If not, see <http://www.gnu.org/licenses/>.
+#  Plugin log para ia.cecil: Logging/debugging
+#  Copyleft (C) 2016-2022 Iuri Guilherme <https://iuri.neocities.org/>
+#  
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime, json, logging, socket
+import BTrees.OOBTree, datetime, json, logging, socket, transaction, \
+    ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
     types,
@@ -26,6 +27,7 @@ from aiogram.utils.markdown import (
 )
 
 ## Telepot
+## FIXME Deprecated
 class log_str():
     def __init__(self):
         pass
@@ -95,49 +97,6 @@ async def tecido_logger(texto: str = ''):
         await sock.close()
         return 0
 
-## TODO: Descobrir tipo de update (era types.Message)
-async def info_logger(
-    update: types.Update,
-    descriptions: list = ['none'],
-):
-    dispatcher = Dispatcher.get_current()
-    bot = dispatcher.bot
-    url = ''
-    if hasattr(update, 'chat') and update.chat.type != "private":
-        # ~ url = update.url
-        url = update.link('link', as_html = False)
-    text = list()
-    text.append(
-        u" ".join([
-            u" ".join([escape_md("#" + d) for d in descriptions]),
-            url,
-        ])
-    )
-    text.append('')
-    if update is not None:
-        if not isinstance(update, str):
-            try:
-                text.append(pre(
-                    json.dumps(update.to_python(), indent=2)
-                ))
-            except AttributeError:
-                text.append(pre(json.dumps(update, indent=2)))
-        else:
-            text.append(pre(json.dumps(update, indent=2)))
-    try:
-        ## TelegramTextoTecidoTabelas
-        # ~ await tecido_logger(getattr(update, 'text', ''))
-        await bot.send_message(
-            chat_id = bot.users['special']['info'],
-            text = '\n'.join(text),
-            disable_notification = True,
-            parse_mode = "MarkdownV2",
-        )
-    except KeyError:
-        logging.debug(key_error)
-    except Exception as e:
-        logging.critical(repr(e))
-
 async def debug_logger(
     error: str = u"Alguma coisa deu errado",
     message: types.Message = None,
@@ -168,15 +127,21 @@ async def debug_logger(
                     str.maketrans('', '', '\\')
                 )
                 message['text'] = original_text
-            text.append(pre(json.dumps(message.to_python(), indent=2)))
+            text.append(pre(json.dumps(message.to_python(), indent = 2,
+                ensure_ascii = False))
+            )
         except AttributeError:
             message = str(message).translate(
                 str.maketrans('', '', '\\')
             )
-            text.append(pre(json.dumps(message, indent=2)))
+            text.append(pre(json.dumps(message, indent = 2,
+                ensure_ascii = False))
+            )
         text.append('')
     if exception is not None:
-        text.append(pre(json.dumps(repr(exception), indent=2)))
+        text.append(pre(json.dumps(repr(exception), indent = 2,
+            ensure_ascii = False))
+        )
         text.append('')
     text.append(escape_md(error))
     try:
@@ -204,7 +169,9 @@ async def exception_logger(
         ])
     )
     text.append('')
-    text.append(pre(json.dumps(repr(exception), indent=2)))
+    text.append(pre(json.dumps(repr(exception), indent = 2,
+        ensure_ascii = False))
+    )
     try:
         await bot.send_message(
             chat_id = bot.users['special']['debug'],
@@ -216,3 +183,92 @@ async def exception_logger(
         logging.debug(key_error)
     except Exception as e:
         logging.critical(repr(e))
+
+async def zodb_callback(message):
+    dispatcher = Dispatcher.get_current()
+    try:
+        storage = ZODB.FileStorage.FileStorage(
+            'instance/zodb/{}.fs'.format(dispatcher.bot.id))
+        db = ZODB.DB(storage)
+        # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+        # ~ db = ZODB.DB(compressed_storage)
+        try:
+            connection = db.open()
+            root = connection.root
+            p_chats = None
+            p_chat = None
+            try:
+                p_chats = root.chats
+            except AttributeError:
+                root.chats = BTrees.OOBTree.BTree()
+                p_chats = root.chats
+            try:
+                p_chat = p_chats[message.chat.id]
+            except KeyError:
+                p_chats[message.chat.id] = PersistentChat()
+                p_chat = p_chats[message.chat.id]
+            await p_chat.add_message(message.to_python())
+            transaction.commit()
+        except Exception as exception:
+            transaction.abort()
+            await error_logger(
+                u"Message NOT added to database",
+                message,
+                exception,
+                ['log', 'zodb', 'exception'],
+            )
+        finally:
+            db.close()
+    except Exception as exception:
+        await exception_logger(
+            exception,
+            ['log', 'zodb'],
+        )
+
+## TODO: Descobrir tipo de update (era types.Message)
+async def info_logger(
+    update: types.Update,
+    descriptions: list = ['none'],
+):
+    await zodb_callback(update)
+    # ~ dispatcher = Dispatcher.get_current()
+    # ~ bot = dispatcher.bot
+    # ~ url = ''
+    # ~ if hasattr(update, 'chat') and update.chat.type != "private":
+        ## url = update.url
+        # ~ url = update.link('link', as_html = False)
+    # ~ text = list()
+    # ~ text.append(
+        # ~ u" ".join([
+            # ~ u" ".join([escape_md("#" + d) for d in descriptions]),
+            # ~ url,
+        # ~ ])
+    # ~ )
+    # ~ text.append('')
+    # ~ if update is not None:
+        # ~ if not isinstance(update, str):
+            # ~ try:
+                # ~ text.append(pre(json.dumps(update.to_python(),
+                    # ~ indent = 2, ensure_ascii = False))
+                # ~ )
+            # ~ except AttributeError:
+                # ~ text.append(pre(json.dumps(update, indent = 2,
+                    # ~ ensure_ascii = False))
+                # ~ )
+        # ~ else:
+            # ~ text.append(pre(json.dumps(update, indent = 2,
+                # ~ ensure_ascii = False))
+            # ~ )
+    # ~ try:
+        # ~ ## TelegramTextoTecidoTabelas
+        ##await tecido_logger(getattr(update, 'text', ''))
+        # ~ await bot.send_message(
+            # ~ chat_id = bot.users['special']['info'],
+            # ~ text = '\n'.join(text),
+            # ~ disable_notification = True,
+            # ~ parse_mode = "MarkdownV2",
+        # ~ )
+    # ~ except KeyError:
+        # ~ logging.debug(key_error)
+    # ~ except Exception as e:
+        # ~ logging.critical(repr(e))
