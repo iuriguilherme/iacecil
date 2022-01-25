@@ -120,19 +120,13 @@ async def add_handlers(dispatcher: Dispatcher):
         await plugin_archive.add_handlers(dispatcher)
     ## Plugins mais que especiais
     if dispatcher.bot.info.get('personalidade', None) in [
-        'default',
         'metarec',
         'matebot',
-        'iacecil',
     ]:
         try:
             await plugin_welcome.add_handlers(dispatcher)
         except KeyError:
             logging.warning(u"plugin welcome não configurado")
-        try:
-            await plugin_garimpo.add_handlers(dispatcher)
-        except KeyError:
-            logging.warning(u"plugin garimpo não configurado")
         try:
             await plugin_tropixel.add_handlers(dispatcher)
         except KeyError:
@@ -153,6 +147,16 @@ async def add_handlers(dispatcher: Dispatcher):
     await plugin_admin.add_handlers(dispatcher)
     await plugin_ytdl.add_handlers(dispatcher)
     await plugin_default.add_handlers(dispatcher)
+    if dispatcher.bot.info.get('personalidade', None) in [
+        'default',
+        'metarec',
+        'matebot',
+        'iacecil',
+    ]:
+        try:
+            await plugin_garimpo.add_handlers(dispatcher)
+        except KeyError:
+            logging.warning(u"plugin garimpo não configurado")
     ## Todas updates que não forem tratadas por handlers anteriores
     dispatcher.register_message_handler(
         any_message_callback,

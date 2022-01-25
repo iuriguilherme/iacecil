@@ -34,13 +34,16 @@ async def message_callback(
     message: types.Message,
     descriptions: list = ['message'],
 ):
-    await zodb_logger(descriptions)
+    if message is not None:
+        setattr(message, 'tags', descriptions)
+        await zodb_logger(message)
 
 async def command_callback(
     message: types.Message,
     descriptions: list = ['command'],
 ):
-    await info_logger(message, ['command'] + descriptions)
+    if message is not None:
+        await info_logger(message, ['command'] + descriptions)
 
 async def error_callback(
     error: str = u"Erro",
@@ -57,7 +60,6 @@ async def exception_callback(
     await exception_logger(exception, descriptions)
 
 async def any_message_callback(message: types.Message):
-    await varre_link(message)
     await zodb_logger(message)
 
 async def any_edited_message_callback(message: types.Message):

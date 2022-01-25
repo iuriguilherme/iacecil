@@ -19,10 +19,12 @@ import logging, validators
 from aiogram import (
     Dispatcher,
     filters,
+    types,
 )
 from plugins.log import (
     info_logger,
     debug_logger,
+    zodb_logger,
 )
 
 async def varre_link(message):
@@ -35,8 +37,6 @@ async def varre_link(message):
             'iacecil',
         ]:
             url = None
-            command = u"Não deu certo..."
-            ## Será que é link?
             if message.entities is not None:
                 for entity in message.entities:
                     if entity['type'] == "url":
@@ -44,14 +44,6 @@ async def varre_link(message):
                             entity['offset']:entity['length'] + \
                             entity['offset']
                         ]
-            if not url and message.reply_to_message is not None:
-                for entity in message.reply_to_message.entities:
-                    if entity['type'] == "url":
-                        url = message.reply_to_message.text[
-                            entity['offset']:entity['length'] + \
-                                entity['offset']
-                        ]
-                        message = message.reply_to_message
             if url and validators.url(url):
                 pass
             else:
@@ -69,9 +61,13 @@ async def varre_link(message):
 async def add_handlers(dispatcher):
     ## Salva link em outro grupo
     @dispatcher.message_handler(
-        commands = ['g', 'garimpo', 'garimpa', 'salva', 'verdepois',
-            'vouver'
-        ],
+        filters.Command([
+            'g', 'garimpo', 'garimpa', 'salva', 'verdepois', 'vouver',
+        ])
+         # ~ or filters.Text([
+            # ~ 'depois eu vejo', 'um dia eu vejo', 'uma hora eu vejo',
+            # ~ 'vou ver', 'já vejo', 'salva', 'garimpo', 'garimpa',
+        # ~ ])
     )
     async def garimpo_callback(message):
         await info_logger(message, ['garimpo', message.chat.type])
@@ -80,21 +76,28 @@ async def add_handlers(dispatcher):
             message.chat.type],
         )
 
-    @dispatcher.message_handler(filters.Text([
-        'depois eu vejo',
-        'um dia eu vejo',
-        'uma hora eu vejo',
-        'vou ver',
-        'já vejo',
-        'salva',
-        'garimpo',
-        'garimpa',
-    ]))
-    async def procastinacao_callback(message):
-        await info_logger(message, ['procastinacao',
-            message.chat.type])
-        if message.reply_to_message is not None:
-            command = await varre_link(message)
-            await info_logger(command, ['command', 'procastinacao',
-                message.chat.type]
-            )
+    # ~ @dispatcher.message_handler(filters.Text([
+        # ~ 'depois eu vejo',
+        # ~ 'um dia eu vejo',
+        # ~ 'uma hora eu vejo',
+        # ~ 'vou ver',
+        # ~ 'já vejo',
+        # ~ 'salva',
+        # ~ 'garimpo',
+        # ~ 'garimpa',
+    # ~ ]))
+    # ~ async def procastinacao_callback(message):
+        # ~ await info_logger(message, ['procastinacao',
+            # ~ message.chat.type])
+        # ~ if message.reply_to_message is not None:
+            # ~ command = await varre_link(message.reply_to_message)
+            # ~ await info_logger(command, ['command', 'procastinacao',
+                # ~ message.chat.type]
+            # ~ )
+
+    @dispatcher.message_handler(filters.ContentTypeFilter(
+        types.message.ContentType.ANY
+    ))
+    async def garimpa_tudo_callback(message):
+        await zodb_logger(message)
+        await varre_link(message)
