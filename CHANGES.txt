@@ -74,4 +74,4 @@ v0.1.7.4, 2021-11-27 -- Interface web inicial
 v0.1.8.0, 2022-01-13 -- Portaria
 v0.1.8.2, 2022-01-18 -- Envio de mensagens via web
 v0.1.9.0, 2022-01-25 -- Armazenamento em ZODB local (primeiro banco de dados)
-v0.1.9.1, 2202-01-25 -- Serviço de garimpo de links
+v0.1.9.2, 2202-01-25 -- Serviço de garimpo de links

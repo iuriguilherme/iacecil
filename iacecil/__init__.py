@@ -21,7 +21,7 @@
 #  
 
 ### Meta
-__version__ = '0.1.9.1'
+__version__ = '0.1.9.2'
 name = 'iacecil'
 version = __version__
 ## Actual Name (tm)
