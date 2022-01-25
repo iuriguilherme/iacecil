@@ -60,21 +60,19 @@ async def varre_link(message):
 
 async def add_handlers(dispatcher):
     ## Salva link em outro grupo
-    @dispatcher.message_handler(
-        filters.Command([
-            'g', 'garimpo', 'garimpa', 'salva', 'verdepois', 'vouver',
-        ])
-         # ~ or filters.Text([
-            # ~ 'depois eu vejo', 'um dia eu vejo', 'uma hora eu vejo',
-            # ~ 'vou ver', 'já vejo', 'salva', 'garimpo', 'garimpa',
-        # ~ ])
-    )
-    async def garimpo_callback(message):
-        await info_logger(message, ['garimpo', message.chat.type])
-        command = await varre_link(message)
-        await info_logger(command, ['command', 'garimpo',
-            message.chat.type],
-        )
+
+    ## FIXME implementar garimpo total (garimpa_tudo_callback) com
+    ## filtro de chat_id em grupos exclusivos, e estes dois outros
+    ## filtros em todos grupos
+    # ~ @dispatcher.message_handler(filters.Command([
+        # ~ 'g', 'garimpo', 'garimpa', 'salva', 'verdepois', 'vouver',
+    # ~ ]))
+    # ~ async def garimpo_callback(message):
+        # ~ await info_logger(message, ['garimpo', message.chat.type])
+        # ~ command = await varre_link(message)
+        # ~ await info_logger(command, ['command', 'garimpo',
+            # ~ message.chat.type],
+        # ~ )
 
     # ~ @dispatcher.message_handler(filters.Text([
         # ~ 'depois eu vejo',
@@ -95,6 +93,7 @@ async def add_handlers(dispatcher):
                 # ~ message.chat.type]
             # ~ )
 
+    ## TODO garimpa todos links de todos grupos pra estas personalidades
     @dispatcher.message_handler(filters.ContentTypeFilter(
         types.message.ContentType.ANY
     ))
