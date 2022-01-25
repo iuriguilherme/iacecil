@@ -152,12 +152,11 @@ ge')""",
                 'not_found': "BadRequest('Replied message not found')",
             }
             reason = u"I don't know what just happened"
-            reply = self.command
             if repr(exception) == descriptions['rights']:
                 reason = None
                 logging.info(
                     u"Bot has no rights in {}, skipping...".format(
-                        reply['chat']['id'],
+                        self.command.chat.id,
                 ))
             elif repr(exception) == descriptions['not_found']:
                 reason = u"Probably message has been erased already"

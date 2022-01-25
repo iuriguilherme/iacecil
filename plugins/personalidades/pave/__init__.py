@@ -43,10 +43,14 @@ async def welcome(message):
     admin = message.from_user.first_name
     count = await bot.get_chat_members_count(message.chat.id)
     if message.chat.type in ['group', 'supergroup']:
-        admin = [member.user for member in \
-            await bot.get_chat_administrators(
-            message.chat.id
-            ) if member.status == 'creator'][0].first_name or u"@admin"
+        admin = u"@admin"
+        try:
+            admin = [member.user for member in \
+                await bot.get_chat_administrators(
+                message.chat.id
+                ) if member.status == 'creator'][0].first_name
+        except IndexError:
+            pass
     return random_texts.welcome(message, count, admin)
 
 async def info():
