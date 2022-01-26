@@ -76,7 +76,18 @@ async def any_update_callback(update):
 
 async def any_error_callback(update, error):
     if update:
-        await debug_logger(u"Erro não tratado de {}\
-        ".format(str(__name__)), update, error, ['error', 'unhandled'])
+        if repr(error) in [
+            """BotKicked('Forbidden: bot was kicked from \
+the supergroup chat')""",
+            "Forbidden: bot was kicked from the supergroup chat",
+        ]:
+            await debug_logger(u"We were kicked from {} ({})".format(
+                update.message.chat.id,
+                update.message.chat.title,
+            ), update, error, ['BotKicked', 'exception'])
+        else:
+            await debug_logger(u"Erro não tratado:", update, error,
+                ['error', 'unhandled']
+            )
     else:
         await exception_logger(error, ['error', 'unhandled'])

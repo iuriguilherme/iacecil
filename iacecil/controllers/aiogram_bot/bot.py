@@ -49,76 +49,23 @@ class IACecilBot(Bot):
         self.command = None
         super().__init__(*args, **kwargs)
 
-    async def send_photo(self, *args, **kwargs):
+    async def exception_handler(
+        self,
+        funcion,
+        function_name,
+        super_function,
+        *args,
+        **kwargs,
+    ):
         self.command = None
         try:
-            self.command = await super().send_voice(*args, **kwargs)
+            self.command = await super_function(*args, **kwargs)
             return self.command
         except exceptions.RetryAfter as exception:
             logging.info(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
-            return await self.send_photo(*args, **kwargs)
-        except Exception as exception:
-            try:
-                await exception_callback(
-                    exception,
-                    ['sendPhoto'],
-                )
-            except Exception as e:
-                logging.critical(repr(e))
-        return self.command
-
-    async def send_voice(self, *args, **kwargs):
-        self.command = None
-        try:
-            self.command = await super().send_voice(*args, **kwargs)
-            return self.command
-        except exceptions.RetryAfter as exception:
-            logging.info(u"Flood control: waiting {} seconds...\
-            ".format(exception.timeout))
-            await asyncio.sleep(exception.timeout)
-            return await self.send_voice(*args, **kwargs)
-        except Exception as exception:
-            try:
-                await exception_callback(
-                    exception,
-                    ['sendVoice'],
-                )
-            except Exception as e:
-                logging.critical(repr(e))
-        return self.command
-
-    async def send_video(self, *args, **kwargs):
-        self.command = None
-        try:
-            self.command = await super().send_video(*args, **kwargs)
-            return self.command
-        except exceptions.RetryAfter as exception:
-            logging.info(u"Flood control: waiting {} seconds...\
-            ".format(exception.timeout))
-            await asyncio.sleep(exception.timeout)
-            return await self.send_video(*args, **kwargs)
-        except Exception as exception:
-            try:
-                await exception_callback(
-                    exception,
-                    ['sendVideo'],
-                )
-            except Exception as e:
-                logging.critical(repr(e))
-        return self.command
-
-    async def send_message(self, *args, **kwargs):
-        self.command = None
-        try:
-            self.command = await super().send_message(*args, **kwargs)
-            return self.command
-        except exceptions.RetryAfter as exception:
-            logging.info(u"Flood control: waiting {} seconds...\
-            ".format(exception.timeout))
-            await asyncio.sleep(exception.timeout)
-            return await self.send_message(*args, **kwargs)
+            return await function(*args, **kwargs)
         except exceptions.BotKicked as exception:
             if kwargs['chat_id'] in [
                 self.users['special']['debug'],
@@ -134,13 +81,13 @@ logging groups. Exiting...""")
                         u"Probably kicked from this group",
                         str(self.command),
                         exception,
-                        ['sendMessage', 'BotKicked', 'exception'],
+                        [function_str, 'BotKicked', 'exception'],
                     )
                 except Exception as e:
                     try:
                         await exception_callback(
                             e,
-                            ['sendMessage', 'BotKicked'],
+                            [function_name, 'BotKicked'],
                         )
                     except Exception as e:
                         logging.warning(repr(e))
@@ -184,7 +131,7 @@ ge')""",
                             u"#thread ({}/{}):\n\n".format(count, 
                             len(chunks))
                         ) + markdown.pre(chunk)
-                        await self.send_message(*args, **kwargs)
+                        await self.function(*args, **kwargs)
                 self.command['text'] = u"empty"
                 return self.command
             if reason is not None:
@@ -193,14 +140,14 @@ ge')""",
                         reason,
                         self.command,
                         exception,
-                        ['sendMessage', 'TelegramAPIError',
+                        [function_name, 'TelegramAPIError',
                             'exception'],
                     )
                 except Exception as e:
                     try:
                         await exception_callback(
                             e,
-                            ['sendMessage', 'TelegramAPIError'],
+                            [function_name, 'TelegramAPIError'],
                         )
                     except Exception as e:
                         logging.critical(repr(e))
@@ -210,13 +157,13 @@ ge')""",
                     u"Probably blocked by this user",
                     self.command,
                     exception,
-                    ['sendMessage', 'BotBlocked', 'exception'],
+                    [function_name, 'BotBlocked', 'exception'],
                 )
             except Exception as e:
                 try:
                     await exception_callback(
                         e,
-                        ['sendMessage', 'BotBlocked'],
+                        [function_name, 'BotBlocked'],
                     )
                 except Exception as e:
                     logging.warning(repr(e))
@@ -226,13 +173,13 @@ ge')""",
                     u"Probably group pressed the red button",
                     self.command,
                     exception,
-                    ['sendMessage', 'ChatNotFound', 'exception'],
+                    [function_name, 'ChatNotFound', 'exception'],
                 )
             except Exception as e:
                 try:
                     await exception_callback(
                         e,
-                        ['sendMessage', 'ChatNotFound'],
+                        [function_name, 'ChatNotFound'],
                     )
                 except Exception as e:
                     logging.critical(repr(e))
@@ -242,13 +189,13 @@ ge')""",
                     u"Probably the user pressed the red button",
                     self.command,
                     exception,
-                    ['sendMessage', 'UserDeactivated', 'exception'],
+                    [function_name, 'UserDeactivated', 'exception'],
                 )
             except Exception as e:
                 try:
                     await exception_callback(
                         e,
-                        ['sendMessage', 'UserDeactivated'],
+                        [function_name, 'UserDeactivated'],
                     )
                 except Exception as e:
                     logging.warning(repr(e))
@@ -259,8 +206,44 @@ sewhere!\n{}""".format(repr(exception)))
             try:
                 await exception_callback(
                     exception,
-                    ['sendMessage', 'NotTelegram'],
+                    [function_name, 'NotTelegram'],
                 )
             except Exception as e:
                 logging.warning(repr(e))
         return self.command
+
+    async def send_photo(self, *args, **kwargs):
+        return await self.exception_handler(
+            self.send_photo,
+            'sendPhoto',
+            super().send_photo,
+            *args,
+            **kwargs,
+        )
+
+    async def send_voice(self, *args, **kwargs):
+        return await self.exception_handler(
+            self.send_voice,
+            'sendVoice',
+            super().send_voice,
+            *args,
+            **kwargs,
+        )
+
+    async def send_video(self, *args, **kwargs):
+        return await self.exception_handler(
+            self.send_video,
+            'sendVideo',
+            super().send_video,
+            *args,
+            **kwargs,
+        )
+
+    async def send_message(self, *args, **kwargs):
+        return await self.exception_handler(
+            self.send_message,
+            'sendMessage',
+            super().send_message,
+            *args,
+            **kwargs,
+        )

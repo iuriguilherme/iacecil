@@ -88,6 +88,7 @@ def quart_startup(dispatchers):
             except Exception as e:
                 logging.critical(u"logs not configured properly: {}\
                 ".format(e))
+                raise
         loop.create_task(add_blueprints())
     @quart_app.after_serving
     async def quart_after_serving():
@@ -102,4 +103,5 @@ def quart_startup(dispatchers):
             except Exception as e:
                 logging.critical(u"logs not configured properly: {}\
                 ".format(e))
+                raise
     return quart_app
