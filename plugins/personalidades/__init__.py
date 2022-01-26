@@ -25,12 +25,13 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 )
 
 from plugins.personalidades import (
-    default,
-    metarec,
-    pave,
-    pacume,
     cryptoforex,
+    default,
     iacecil,
+    matebot,
+    metarec,
+    pacume,
+    pave,
 )
 
 async def gerar_comando(command, bot, message):

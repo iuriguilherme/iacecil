@@ -21,7 +21,7 @@
 #  
 
 ### Meta
-__version__ = '0.1.9.2'
+__version__ = '0.1.9.3'
 name = 'iacecil'
 version = __version__
 ## Actual Name (tm)
@@ -54,7 +54,10 @@ except Exception as e:
     raise
 
 app = quart_startup(aiogram_startup(config, [
+    'cryptoforexbot',
     'iacecil',
+    'mate_obot',
+    's28paybot',
     'tiodochurrasbot',
     'tiozao_bot',
     'tropixelbot',
