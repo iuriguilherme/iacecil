@@ -15,9 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import copy, datetime, json, logging, pytz, ZODB, ZODB.FileStorage, \
-    BTrees, transaction, persistent.mapping
-# ~ import zc.zlibstorage
+import BTrees, copy, datetime, json, logging, persistent.mapping, pytz,\
+    transaction, zc.zlibstorage, ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
     filters,
@@ -55,6 +54,33 @@ def cmd_tz(args):
         'multi': False,
         'parse_mode': None,
     }
+
+async def persistence(chat_id):
+    dispatcher = Dispatcher.get_current()
+    try:
+        storage = ZODB.FileStorage.FileStorage(
+            'instance/zodb/{}.{}.fs'.format(
+            dispatcher.bot.id,
+            chat_id,
+        ))
+        # ~ db = ZODB.DB(storage)
+        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+        db = ZODB.DB(compressed_storage)
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            pm = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return db, pms
+        except:
+            raise
+    except:
+        raise
 
 ## Aiogram
 async def add_handlers(dispatcher):
@@ -155,7 +181,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         )
         await command_callback(command, ['tz', message.chat.type])
 
-    ## Persistence
+    ## ZODB
     @dispatcher.message_handler(
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
@@ -166,26 +192,10 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['gravar', 'record'],
     )
     async def persistence_write_callback(message):
-        dispatcher = Dispatcher.get_current()
+        db = None
         try:
-            storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.{}.admin.fs'.format(
-                dispatcher.bot.id,
-                message.chat.id,
-            ))
-            db = ZODB.DB(storage)
-            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-            # ~ db = ZODB.DB(compressed_storage)
+            db, pms = await persistence(message)
             try:
-                connection = db.open()
-                root = connection.root
-                pms = None
-                pm = None
-                try:
-                    pms = root.messages
-                except AttributeError:
-                    root.messages = BTrees.IOBTree.IOBTree()
-                    pms = root.messages
                 try:
                     pm = pms[message.message_id]
                 except KeyError:
@@ -203,7 +213,14 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ['admin', 'write', 'zodb', 'exception'],
                 )
             finally:
-                db.close()
+                try:
+                    db.close()
+                except Exception as exception:
+                    logging.warning(
+                        u"db was never created on {}: {}".format(
+                        __name__,
+                        repr(exception),
+                    ))
         except Exception as exception:
             await exception_callback(
                 exception,
@@ -220,26 +237,10 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['recuperar', 'retrieve'],
     )
     async def persistence_read_callback(message):
-        dispatcher = Dispatcher.get_current()
+        db = None
         try:
-            storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.{}.admin.fs'.format(
-                dispatcher.bot.id,
-                message.chat.id,
-            ))
-            db = ZODB.DB(storage)
-            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-            # ~ db = ZODB.DB(compressed_storage)
+            db, pms = await persistence(str(message.chat.id) + '.admin')
             try:
-                connection = db.open()
-                root = connection.root
-                pms = None
-                pm = None
-                try:
-                    pms = root.messages
-                except AttributeError:
-                    root.messages = BTrees.IOBTree.IOBTree()
-                    pms = root.messages
                 await message.reply('\n'.join([
                     pre(json.dumps({k:v for (k,v) in pm.items()},
                     indent = 2,
@@ -254,7 +255,14 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ['admin', 'retrieve', 'zodb', 'exception'],
                 )
             finally:
-                db.close()
+                try:
+                    db.close()
+                except Exception as exception:
+                    logging.warning(
+                        u"db was never created on {}: {}".format(
+                        __name__,
+                        repr(exception),
+                    ))
         except Exception as exception:
             await exception_callback(
                 exception,
@@ -271,27 +279,13 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['count'],
     )
     async def persistence_count_callback(message):
-        dispatcher = Dispatcher.get_current()
+        db = None
         try:
-            chat_id = message.get_args()
-            storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.{}.fs'.format(
-                dispatcher.bot.id,
-                chat_id,
-            ))
-            db = ZODB.DB(storage)
-            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-            # ~ db = ZODB.DB(compressed_storage)
+            if message.get_args() != '':
+                db, pms = await persistence(message.get_args())
+            else:
+                db, pms = await persistence(message.chat.id)
             try:
-                connection = db.open()
-                root = connection.root
-                pms = None
-                pm = None
-                try:
-                    pms = root.messages
-                except AttributeError:
-                    root.messages = BTrees.IOBTree.IOBTree()
-                    pms = root.messages
                 await message.reply(len(pms))
             except Exception as exception:
                 await error_callback(
@@ -301,9 +295,14 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ['admin', 'count', 'zodb', 'exception'],
                 )
             finally:
-                db.close()
-        except IndexError:
-            await message.reply(u"which chat?")
+                try:
+                    db.close()
+                except Exception as exception:
+                    logging.warning(
+                        u"db was never created on {}: {}".format(
+                        __name__,
+                        repr(exception),
+                    ))
         except Exception as exception:
             await exception_callback(
                 exception,
@@ -320,27 +319,13 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['dump'],
     )
     async def persistence_dump_callback(message):
-        dispatcher = Dispatcher.get_current()
+        db = None
         try:
-            chat_id = message.get_args()
-            storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.{}.fs'.format(
-                dispatcher.bot.id,
-                chat_id,
-            ))
-            db = ZODB.DB(storage)
-            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-            # ~ db = ZODB.DB(compressed_storage)
+            if message.get_args() != '':
+                db, pms = await persistence(message.get_args())
+            else:
+                db, pms = await persistence(message.chat.id)
             try:
-                connection = db.open()
-                root = connection.root
-                pms = None
-                pm = None
-                try:
-                    pms = root.messages
-                except AttributeError:
-                    root.messages = BTrees.IOBTree.IOBTree()
-                    pms = root.messages
                 await message.reply('\n'.join([
                     pre(json.dumps({k:v for (k,v) in pm.items()},
                     indent = 2,
@@ -355,9 +340,14 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ['admin', 'dump', 'zodb', 'exception'],
                 )
             finally:
-                db.close()
-        except IndexError:
-            await message.reply(u"which chat?")
+                try:
+                    db.close()
+                except Exception as exception:
+                    logging.warning(
+                        u"db was never created on {}: {}".format(
+                        __name__,
+                        repr(exception),
+                    ))
         except Exception as exception:
             await exception_callback(
                 exception,

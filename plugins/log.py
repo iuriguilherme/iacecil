@@ -16,7 +16,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import BTrees, datetime, json, logging, socket, transaction, \
-    ZODB, ZODB.FileStorage
+    zc.zlibstorage, ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
     types,
@@ -190,15 +190,16 @@ async def exception_logger(
 
 async def zodb_logger(message):
     dispatcher = Dispatcher.get_current()
+    db = None
     try:
         storage = ZODB.FileStorage.FileStorage(
             'instance/zodb/{}.{}.fs'.format(
             dispatcher.bot.id,
             message.chat.id,
         ))
-        db = ZODB.DB(storage)
-        # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        # ~ db = ZODB.DB(compressed_storage)
+        # ~ db = ZODB.DB(storage)
+        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+        db = ZODB.DB(compressed_storage)
         try:
             connection = db.open()
             root = connection.root
@@ -227,7 +228,14 @@ async def zodb_logger(message):
             )
             raise
         finally:
-            db.close()
+            try:
+                db.close()
+            except Exception as exception:
+                logging.warning(
+                    u"db was never created on {}: {}".format(
+                    __name__,
+                    repr(exception),
+                ))
     except Exception as exception:
         await exception_logger(
             exception,
@@ -239,7 +247,6 @@ async def info_logger(
     update: types.Update,
     descriptions: list = ['none'],
 ):
-    # ~ await zodb_callback(update)
     dispatcher = Dispatcher.get_current()
     bot = dispatcher.bot
     url = ''
