@@ -51,7 +51,7 @@ class IACecilBot(Bot):
 
     async def exception_handler(
         self,
-        funcion,
+        function,
         function_name,
         super_function,
         *args,
@@ -131,7 +131,7 @@ ge')""",
                             u"#thread ({}/{}):\n\n".format(count, 
                             len(chunks))
                         ) + markdown.pre(chunk)
-                        await self.function(*args, **kwargs)
+                        await function(*args, **kwargs)
                 self.command['text'] = u"empty"
                 return self.command
             if reason is not None:

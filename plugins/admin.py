@@ -16,18 +16,22 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy, datetime, json, logging, pytz, ZODB, ZODB.FileStorage, \
-    BTrees.OOBTree, transaction, persistent.mapping
+    BTrees, transaction, persistent.mapping
 # ~ import zc.zlibstorage
 from aiogram import (
+    Dispatcher,
     filters,
 )
 from aiogram.utils.markdown import code, pre
+from iacecil import (
+    name,
+    version,
+)
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
-)
-from iacecil.models import (
-    PersistentChat,
+    error_callback,
+    exception_callback,
 )
 
 ## TODO migrar para aiogram - este código era do telepot
@@ -162,44 +166,49 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['gravar', 'record'],
     )
     async def persistence_write_callback(message):
-        # ~ await message_callback(message, ['persistence',
-            # ~ message.chat.type])
-        command = None
+        dispatcher = Dispatcher.get_current()
         try:
             storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.fs'.format(dispatcher.bot.id))
+                'instance/zodb/{}.{}.admin.fs'.format(
+                dispatcher.bot.id,
+                message.chat.id,
+            ))
             db = ZODB.DB(storage)
             # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
             # ~ db = ZODB.DB(compressed_storage)
             try:
                 connection = db.open()
                 root = connection.root
-                p_chats = None
-                p_chat = None
+                pms = None
+                pm = None
                 try:
-                    p_chats = root.chats
+                    pms = root.messages
                 except AttributeError:
-                    root.chats = BTrees.OOBTree.BTree()
-                    p_chats = root.chats
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
                 try:
-                    p_chat = p_chats[message.chat.id]
+                    pm = pms[message.message_id]
                 except KeyError:
-                    p_chats[message.chat.id] = PersistentChat()
-                    p_chat = p_chats[message.chat.id]
-                await p_chat.add_message(message.to_python())
+                    pms[message.message_id] = BTrees.OOBTree.OOBTree()
+                    pm = pms[message.message_id]
+                pm.update(message)
+                pm['version'] = version
                 transaction.commit()
-                await message.reply(u"Message added to database!")
-            except Exception as e:
+            except Exception as exception:
                 transaction.abort()
-                await message.reply(
-                    u"Message NOT added to database: {}".format(repr(e))
+                await error_callback(
+                    u"Message NOT added to database",
+                    message,
+                    exception,
+                    ['admin', 'write', 'zodb', 'exception'],
                 )
             finally:
                 db.close()
-        except Exception as e:
-            logging.critical(repr(e))
-        # ~ await command_callback(command, ['persistence',
-            # ~ message.chat.type])
+        except Exception as exception:
+            await exception_callback(
+                exception,
+                ['admin', 'write', 'zodb'],
+            )
 
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -211,41 +220,146 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         commands = ['recuperar', 'retrieve'],
     )
     async def persistence_read_callback(message):
-        # ~ await message_callback(message, ['persistence',
-            # ~ message.chat.type])
-        command = None
+        dispatcher = Dispatcher.get_current()
         try:
             storage = ZODB.FileStorage.FileStorage(
-                'instance/zodb/{}.fs'.format(dispatcher.bot.id))
+                'instance/zodb/{}.{}.admin.fs'.format(
+                dispatcher.bot.id,
+                message.chat.id,
+            ))
             db = ZODB.DB(storage)
             # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
             # ~ db = ZODB.DB(compressed_storage)
             try:
                 connection = db.open()
                 root = connection.root
-                p_chats = None
-                p_chat = None
+                pms = None
+                pm = None
                 try:
-                    p_chats = root.chats
+                    pms = root.messages
                 except AttributeError:
-                    root.chats = BTrees.OOBTree.BTree()
-                    p_chats = root.chats
-                try:
-                    p_chat = p_chats[message.chat.id]
-                except KeyError:
-                    p_chats[message.chat.id] = PersistentChat()
-                    p_chat = p_chats[message.chat.id]
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
                 await message.reply('\n'.join([
-                    pre(json.dumps(m,
+                    pre(json.dumps({k:v for (k,v) in pm.items()},
                     indent = 2,
                     ensure_ascii = False,
-                    )) for m in p_chat.messages
+                    )) for pm in pms.values()
                 ]), parse_mode = "MarkdownV2")
-            except Exception as e:
-                logging.critical(repr(e))
+            except Exception as exception:
+                await error_callback(
+                    u"Message NOT retrieved from database",
+                    message,
+                    exception,
+                    ['admin', 'retrieve', 'zodb', 'exception'],
+                )
             finally:
                 db.close()
-        except Exception as e:
-            logging.critical(repr(e))
-        # ~ await command_callback(command, ['persistence',
-            # ~ message.chat.type])
+        except Exception as exception:
+            await exception_callback(
+                exception,
+                ['admin', 'retrieve', 'zodb'],
+            )
+
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+            chat_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['count'],
+    )
+    async def persistence_count_callback(message):
+        dispatcher = Dispatcher.get_current()
+        try:
+            chat_id = message.get_args()
+            storage = ZODB.FileStorage.FileStorage(
+                'instance/zodb/{}.{}.fs'.format(
+                dispatcher.bot.id,
+                chat_id,
+            ))
+            db = ZODB.DB(storage)
+            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+            # ~ db = ZODB.DB(compressed_storage)
+            try:
+                connection = db.open()
+                root = connection.root
+                pms = None
+                pm = None
+                try:
+                    pms = root.messages
+                except AttributeError:
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
+                await message.reply(len(pms))
+            except Exception as exception:
+                await error_callback(
+                    u"Message NOT retrieved from database",
+                    message,
+                    exception,
+                    ['admin', 'count', 'zodb', 'exception'],
+                )
+            finally:
+                db.close()
+        except IndexError:
+            await message.reply(u"which chat?")
+        except Exception as exception:
+            await exception_callback(
+                exception,
+                ['admin', 'count', 'zodb'],
+            )
+
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+            chat_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['dump'],
+    )
+    async def persistence_dump_callback(message):
+        dispatcher = Dispatcher.get_current()
+        try:
+            chat_id = message.get_args()
+            storage = ZODB.FileStorage.FileStorage(
+                'instance/zodb/{}.{}.fs'.format(
+                dispatcher.bot.id,
+                chat_id,
+            ))
+            db = ZODB.DB(storage)
+            # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+            # ~ db = ZODB.DB(compressed_storage)
+            try:
+                connection = db.open()
+                root = connection.root
+                pms = None
+                pm = None
+                try:
+                    pms = root.messages
+                except AttributeError:
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
+                await message.reply('\n'.join([
+                    pre(json.dumps({k:v for (k,v) in pm.items()},
+                    indent = 2,
+                    ensure_ascii = False,
+                    )) for pm in pms.values()
+                ]), parse_mode = "MarkdownV2")
+            except Exception as exception:
+                await error_callback(
+                    u"Message NOT retrieved from database",
+                    message,
+                    exception,
+                    ['admin', 'dump', 'zodb', 'exception'],
+                )
+            finally:
+                db.close()
+        except IndexError:
+            await message.reply(u"which chat?")
+        except Exception as exception:
+            await exception_callback(
+                exception,
+                ['admin', 'dump', 'zodb'],
+            )

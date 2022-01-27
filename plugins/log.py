@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BTrees.OOBTree, datetime, json, logging, socket, transaction, \
+import BTrees, datetime, json, logging, socket, transaction, \
     ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
@@ -25,7 +25,7 @@ from aiogram.utils.markdown import (
     escape_md,
     pre,
 )
-from iacecil.models import PersistentChat
+from iacecil import version
 
 ## Telepot
 ## FIXME Deprecated
@@ -189,26 +189,30 @@ async def zodb_logger(message):
     dispatcher = Dispatcher.get_current()
     try:
         storage = ZODB.FileStorage.FileStorage(
-            'instance/zodb/{}.fs'.format(dispatcher.bot.id))
+            'instance/zodb/{}.{}.fs'.format(
+            dispatcher.bot.id,
+            message.chat.id,
+        ))
         db = ZODB.DB(storage)
         # ~ compressed_storage = zc.zlibstorage.ZlibStorage(storage)
         # ~ db = ZODB.DB(compressed_storage)
         try:
             connection = db.open()
             root = connection.root
-            p_chats = None
-            p_chat = None
+            pms = None
+            pm = None
             try:
-                p_chats = root.chats
+                pms = root.messages
             except AttributeError:
-                root.chats = BTrees.OOBTree.BTree()
-                p_chats = root.chats
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
             try:
-                p_chat = p_chats[message.chat.id]
+                pm = pms[message.message_id]
             except KeyError:
-                p_chats[message.chat.id] = PersistentChat()
-                p_chat = p_chats[message.chat.id]
-            await p_chat.add_message(message.to_python())
+                pms[message.message_id] = BTrees.OOBTree.OOBTree()
+                pm = pms[message.message_id]
+            pm.update(message)
+            pm['version'] = version
             transaction.commit()
         except Exception as exception:
             transaction.abort()
@@ -218,6 +222,7 @@ async def zodb_logger(message):
                 exception,
                 ['log', 'zodb', 'exception'],
             )
+            raise
         finally:
             db.close()
     except Exception as exception:

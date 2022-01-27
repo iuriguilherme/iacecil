@@ -19,15 +19,3 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 #  
-
-import logging
-import persistent, persistent.list, persistent.mapping
-from iacecil import __version__
-
-class PersistentChat(persistent.Persistent):
-    def __init__(self, *args, **kwargs):
-        setattr(self, '_ic_version', __version__)
-        self.messages = persistent.list.PersistentList()
-        super().__init__(*args, **kwargs)
-    async def add_message(self, message):
-        return self.messages.append(message)
