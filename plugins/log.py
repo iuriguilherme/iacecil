@@ -25,7 +25,10 @@ from aiogram.utils.markdown import (
     escape_md,
     pre,
 )
-from iacecil import version
+from iacecil import (
+    name,
+    version,
+)
 
 ## Telepot
 ## FIXME Deprecated
@@ -212,7 +215,7 @@ async def zodb_logger(message):
                 pms[message.message_id] = BTrees.OOBTree.OOBTree()
                 pm = pms[message.message_id]
             pm.update(message)
-            pm['version'] = version
+            pm[name] = version
             transaction.commit()
         except Exception as exception:
             transaction.abort()

@@ -192,7 +192,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     pms[message.message_id] = BTrees.OOBTree.OOBTree()
                     pm = pms[message.message_id]
                 pm.update(message)
-                pm['version'] = version
+                pm[name] = version
                 transaction.commit()
             except Exception as exception:
                 transaction.abort()
