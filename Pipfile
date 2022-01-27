@@ -43,7 +43,7 @@ flask-wtf = "*"
 starlette-wtf = "*"
 uvicorn = "*"
 ZODB = "*"
-zc = {zlibstorage = "*"}
+"zc.zlibstorage" = "*"
 
 [requires]
 python_version = "3.9"
