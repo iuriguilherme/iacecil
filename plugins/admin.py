@@ -187,8 +187,8 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            # ~ chat_id = dispatcher.bot.users['alpha'] + \
+                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['gravar', 'record'],
     )
@@ -206,6 +206,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 pm[name + '_version'] = version
                 pm[name + '_commit'] = commit
                 transaction.commit()
+                message.reply(u"ok")
             except Exception as exception:
                 transaction.abort()
                 await error_callback(
@@ -233,8 +234,8 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            # ~ chat_id = dispatcher.bot.users['alpha'] + \
+                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['recuperar', 'retrieve'],
     )
@@ -275,8 +276,8 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            # ~ chat_id = dispatcher.bot.users['alpha'] + \
+                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['count'],
     )
@@ -315,8 +316,8 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            # ~ chat_id = dispatcher.bot.users['alpha'] + \
+                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['dump'],
     )
