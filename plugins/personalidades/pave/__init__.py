@@ -267,10 +267,9 @@ async def add_handlers(dispatcher):
         )
         admin = message.from_user.first_name
         if message.chat.type in ['group', 'supergroup']:
-            admin = u"@admin"
             try:
                 admin = [member.user for member in \
-                    await bot.get_chat_administrators(
+                    await dispatcher.bot.get_chat_administrators(
                     message.chat.id
                     ) if member.status == 'creator'][0].first_name
             except IndexError:

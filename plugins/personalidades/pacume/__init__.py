@@ -59,20 +59,6 @@ async def welcome(message):
             pass
     return random_texts.welcome(message, count, admin)
 
-async def welcome(message):
-    bot = Dispatcher.get_current().bot
-    admin = u"@admin"
-    count = await bot.get_chat_members_count(message.chat.id)
-    if message.chat.type in ['group', 'supergroup']:
-        try:
-            admin = [member.user for member in \
-                await bot.get_chat_administrators(
-                message.chat.id
-                ) if member.status == 'creator'][0].first_name
-        except IndexError:
-            pass
-    return random_texts.welcome(message, count, admin)
-
 async def portaria(message):
     return u"Puta que pariu, entrou esse filho da puta aqui ó @admin"
 
@@ -105,32 +91,32 @@ async def add_handlers(dispatcher):
         await add_instance_handlers(dispatcher)
     except Exception as e:
         logging.warning("Não achei o arquivo: {}".format(e))
-    ## Saúda com trollada
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            ## Somente grupos configurados pra receber novas pessoas com
-            ## pegadinha
-            ## Atualmente só o @ZaffariPoa
-            chat_id = dispatcher.bot.users.get('pegadinha', -1),
-        ),
-        content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
-    )
-    async def welcome_pegadinha_callback(message: types.Message):
-        command_type = 'welcome'
-        await message_callback(message, [command_type, 'pegadinha',
-            message.chat.type],
-        )
-        if str(message['new_chat_member']['first_name']).lower() in \
-            [unwant.lower() for unwant in \
-            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
-            text = await portaria(message)
-            command_type = 'portaria'
-            command = await message.reply(text)
-        else:
-            command = await pave.pegadinha(message)
-        await command_callback(command, [command_type, 'pegadinha',
-            message.chat.type],
-        )
+    # ~ ## Saúda com trollada
+    # ~ @dispatcher.message_handler(
+        # ~ filters.IDFilter(
+            # ~ ## Somente grupos configurados pra receber novas pessoas com
+            # ~ ## pegadinha
+            # ~ ## Atualmente só o @ZaffariPoa
+            # ~ chat_id = dispatcher.bot.users.get('pegadinha', -1),
+        # ~ ),
+        # ~ content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
+    # ~ )
+    # ~ async def welcome_pegadinha_callback(message: types.Message):
+        # ~ command_type = 'welcome'
+        # ~ await message_callback(message, [command_type, 'pegadinha',
+            # ~ message.chat.type],
+        # ~ )
+        # ~ if str(message['new_chat_member']['first_name']).lower() in \
+            # ~ [unwant.lower() for unwant in \
+            # ~ dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            # ~ text = await portaria(message)
+            # ~ command_type = 'portaria'
+            # ~ command = await message.reply(text)
+        # ~ else:
+            # ~ command = await pave.pegadinha(message)
+        # ~ await command_callback(command, [command_type, 'pegadinha',
+            # ~ message.chat.type],
+        # ~ )
 
     ## Seja mau vindo
     @dispatcher.message_handler(
@@ -264,10 +250,9 @@ async def add_handlers(dispatcher):
         )
         admin = message.from_user.first_name
         if message.chat.type in ['group', 'supergroup']:
-            admin = u"@admin"
             try:
                 admin = [member.user for member in \
-                    await bot.get_chat_administrators(
+                    await dispatcher.bot.get_chat_administrators(
                     message.chat.id
                     ) if member.status == 'creator'][0].first_name
             except IndexError:
