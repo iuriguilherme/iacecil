@@ -42,6 +42,7 @@ from wtforms import (
 from jinja2 import TemplateNotFound
 from iacecil import (
     actual_name,
+    commit,
     version,
 )
 from functools import partial, wraps
@@ -56,9 +57,10 @@ async def show(page):
     try:
         return await render_template(
             '{0}.html'.format(page),
+            canonical = current_app.canonical,
+            commit = commit,
             title = actual_name,
             version = version,
-            canonical = current_app.canonical,
         )
     except TemplateNotFound as e:
         logger.warning(u"Template not found for {}".format(str(page)))
@@ -78,11 +80,12 @@ async def status():
         ), 'info')
     return await render_template(
         "status.html",
-        title = actual_name,
-        version = version,
-        names = names,
-        users = users,
         canonical = current_app.canonical,
+        commit = commit,
+        names = names,
+        title = actual_name,
+        users = users,
+        version = version,
     )
 
 @blueprint.route("/send_message", methods=['GET', 'POST'])
@@ -145,11 +148,12 @@ async def send_message():
     logging.debug(str(form))
     return await render_template(
         "send_message.html",
+        canonical = current_app.canonical,
+        commit = commit,
+        form = form,
+        message = message,
         title = actual_name,
         version = version,
-        message = message,
-        form = form,
-        canonical = current_app.canonical,
     )
 
 # ~ @blueprint.route("/updates")

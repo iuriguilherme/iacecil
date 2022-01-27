@@ -26,6 +26,7 @@ from aiogram.utils.markdown import (
     pre,
 )
 from iacecil import (
+    commit,
     name,
     version,
 )
@@ -216,7 +217,8 @@ async def zodb_logger(message):
                 pms[message.message_id] = BTrees.OOBTree.OOBTree()
                 pm = pms[message.message_id]
             pm.update(message)
-            pm[name] = version
+            pm[name + '_version'] = version
+            pm[name + '_commit'] = commit
             transaction.commit()
         except Exception as exception:
             transaction.abort()
