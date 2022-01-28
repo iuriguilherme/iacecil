@@ -15,8 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BTrees, copy, datetime, json, logging, persistent.mapping, pytz,\
-    transaction, zc.zlibstorage, ZODB, ZODB.FileStorage
+import BTrees, datetime, json, logging, pytz, transaction, ZODB
 from aiogram import (
     Dispatcher,
     filters,
@@ -33,6 +32,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
+from iacecil.controllers.zodb_orm import get_messages
 
 ## TODO migrar para aiogram - este código era do telepot
 ## Testar timezone do servidor
@@ -56,33 +56,6 @@ def cmd_tz(args):
         'parse_mode': None,
     }
 
-async def persistence(chat_id):
-    dispatcher = Dispatcher.get_current()
-    try:
-        storage = ZODB.FileStorage.FileStorage(
-            'instance/zodb/{}.{}.fs'.format(
-            dispatcher.bot.id,
-            chat_id,
-        ))
-        # ~ db = ZODB.DB(storage)
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
-        try:
-            connection = db.open()
-            root = connection.root
-            pms = None
-            pm = None
-            try:
-                pms = root.messages
-            except AttributeError:
-                root.messages = BTrees.IOBTree.IOBTree()
-                pms = root.messages
-            return db, pms
-        except:
-            raise
-    except:
-        raise
-
 ## Aiogram
 async def add_handlers(dispatcher):
     ## Testar o bot. Ecoa o texto enviado ou produz um erro se não
@@ -90,8 +63,6 @@ async def add_handlers(dispatcher):
     @dispatcher.message_handler(
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
         commands = ['teste', 'test'],
@@ -105,8 +76,6 @@ async def add_handlers(dispatcher):
     @dispatcher.message_handler(
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
         commands = ['enviar', 'send']
@@ -124,8 +93,6 @@ async def add_handlers(dispatcher):
     @dispatcher.message_handler(
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
         commands = ['responder', 'reply']
@@ -145,8 +112,6 @@ async def add_handlers(dispatcher):
     @dispatcher.message_handler(
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
         commands = ['admin'],
@@ -187,15 +152,13 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            # ~ chat_id = dispatcher.bot.users['alpha'] + \
-                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['gravar', 'record'],
     )
     async def persistence_write_callback(message):
         db = None
         try:
-            db, pms = await persistence(message)
+            db, pms = await get_messages(str(message.chat.id) + '.admin')
             try:
                 try:
                     pm = pms[message.message_id]
@@ -206,7 +169,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 pm[name + '_version'] = version
                 pm[name + '_commit'] = commit
                 transaction.commit()
-                message.reply(u"ok")
+                await message.reply(u"ok")
             except Exception as exception:
                 transaction.abort()
                 await error_callback(
@@ -234,15 +197,13 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            # ~ chat_id = dispatcher.bot.users['alpha'] + \
-                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['recuperar', 'retrieve'],
     )
     async def persistence_read_callback(message):
         db = None
         try:
-            db, pms = await persistence(str(message.chat.id) + '.admin')
+            db, pms = await get_messages(str(message.chat.id) + '.admin')
             try:
                 await message.reply('\n'.join([
                     pre(json.dumps({k:v for (k,v) in pm.items()},
@@ -276,8 +237,6 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            # ~ chat_id = dispatcher.bot.users['alpha'] + \
-                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['count'],
     )
@@ -285,9 +244,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         db = None
         try:
             if message.get_args() != '':
-                db, pms = await persistence(message.get_args())
+                db, pms = await get_messages(message.get_args())
             else:
-                db, pms = await persistence(message.chat.id)
+                db, pms = await get_messages(message.chat.id)
             try:
                 await message.reply(len(pms))
             except Exception as exception:
@@ -316,8 +275,6 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         filters.IDFilter(
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
-            # ~ chat_id = dispatcher.bot.users['alpha'] + \
-                # ~ dispatcher.bot.users['beta'],
         ),
         commands = ['dump'],
     )
@@ -325,9 +282,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         db = None
         try:
             if message.get_args() != '':
-                db, pms = await persistence(message.get_args())
+                db, pms = await get_messages(message.get_args())
             else:
-                db, pms = await persistence(message.chat.id)
+                db, pms = await get_messages(message.chat.id)
             try:
                 await message.reply('\n'.join([
                     pre(json.dumps({k:v for (k,v) in pm.items()},

@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.9.6'
+__version__ = '0.1.9.7'
 name = 'iacecil'
 version = __version__
 commit = 0

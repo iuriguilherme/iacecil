@@ -83,14 +83,14 @@ logging groups. Exiting...""")
                         exception,
                         [function_str, 'BotKicked', 'exception'],
                     )
-                except Exception as e:
+                except Exception as e1:
                     try:
                         await exception_callback(
-                            e,
+                            e1,
                             [function_name, 'BotKicked'],
                         )
-                    except Exception as e:
-                        logging.warning(repr(e))
+                    except Exception as e2:
+                        logging.warning(repr(e2))
         except exceptions.TelegramAPIError as exception:
             descriptions = {
                 'too_long': "MessageIsTooLong('Message is too long')",
@@ -143,14 +143,14 @@ ge')""",
                         [function_name, 'TelegramAPIError',
                             'exception'],
                     )
-                except Exception as e:
+                except Exception as e1:
                     try:
                         await exception_callback(
-                            e,
+                            e1,
                             [function_name, 'TelegramAPIError'],
                         )
-                    except Exception as e:
-                        logging.critical(repr(e))
+                    except Exception as e2:
+                        logging.critical(repr(e2))
         except exceptions.BotBlocked as exception:
             try:
                 await error_callback(
@@ -159,14 +159,14 @@ ge')""",
                     exception,
                     [function_name, 'BotBlocked', 'exception'],
                 )
-            except Exception as e:
+            except Exception as e1:
                 try:
                     await exception_callback(
-                        e,
+                        e1,
                         [function_name, 'BotBlocked'],
                     )
-                except Exception as e:
-                    logging.warning(repr(e))
+                except Exception as e2:
+                    logging.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
             try:
                 await error_callback(
@@ -175,14 +175,14 @@ ge')""",
                     exception,
                     [function_name, 'ChatNotFound', 'exception'],
                 )
-            except Exception as e:
+            except Exception as e1:
                 try:
                     await exception_callback(
-                        e,
+                        e1,
                         [function_name, 'ChatNotFound'],
                     )
-                except Exception as e:
-                    logging.critical(repr(e))
+                except Exception as e2:
+                    logging.critical(repr(e2))
         except exceptions.UserDeactivated as exception:
             try:
                 await error_callback(
@@ -191,14 +191,14 @@ ge')""",
                     exception,
                     [function_name, 'UserDeactivated', 'exception'],
                 )
-            except Exception as e:
+            except Exception as e1:
                 try:
                     await exception_callback(
-                        e,
+                        e1,
                         [function_name, 'UserDeactivated'],
                     )
-                except Exception as e:
-                    logging.warning(repr(e))
+                except Exception as e2:
+                    logging.warning(repr(e2))
         except exceptions.TerminatedByOtherGetUpdates as exception:
             logging.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))

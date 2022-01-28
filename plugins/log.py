@@ -15,8 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BTrees, datetime, json, logging, socket, transaction, \
-    zc.zlibstorage, ZODB, ZODB.FileStorage
+# ~ import BTrees, datetime, json, logging, socket, transaction, \
+    # ~ zc.zlibstorage, ZODB, ZODB.FileStorage
+import BTrees, datetime, json, logging, socket, transaction, ZODB
 from aiogram import (
     Dispatcher,
     types,
@@ -30,6 +31,7 @@ from iacecil import (
     name,
     version,
 )
+from iacecil.controllers.zodb_orm import get_messages
 
 ## Telepot
 ## FIXME Deprecated
@@ -190,59 +192,57 @@ async def exception_logger(
         logging.critical(repr(e))
 
 async def zodb_logger(message):
-    dispatcher = Dispatcher.get_current()
     db = None
+    pm = None
     try:
-        storage = ZODB.FileStorage.FileStorage(
-            'instance/zodb/{}.{}.fs'.format(
-            dispatcher.bot.id,
-            message.chat.id,
-        ))
-        # ~ db = ZODB.DB(storage)
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
+        db, pms = await get_messages(message.chat.id)
         try:
-            connection = db.open()
-            root = connection.root
-            pms = None
-            pm = None
+            pm = pms[message.message_id]
+            await debug_logger(
+                u"Message already on database",
+                message,
+                None,
+                ['log', 'zodb'],
+            )
+        except KeyError:
             try:
-                pms = root.messages
-            except AttributeError:
-                root.messages = BTrees.IOBTree.IOBTree()
-                pms = root.messages
-            try:
-                pm = pms[message.message_id]
-            except KeyError:
                 pms[message.message_id] = BTrees.OOBTree.OOBTree()
                 pm = pms[message.message_id]
-            pm.update(message)
-            pm[name + '_version'] = version
-            pm[name + '_commit'] = commit
-            transaction.commit()
-        except Exception as exception:
-            transaction.abort()
-            await debug_logger(
-                u"Message NOT added to database",
-                message,
-                exception,
-                ['log', 'zodb', 'exception'],
-            )
-            raise
-        finally:
-            try:
-                db.close()
-            except Exception as exception:
-                logging.warning(
-                    u"db was never created on {}: {}".format(
-                    __name__,
-                    repr(exception),
-                ))
-    except Exception as exception:
+                pm.update(message)
+                pm[name + '_version'] = version
+                pm[name + '_commit'] = commit
+                transaction.commit()
+            except Exception as e1:
+                try:
+                    transaction.abort()
+                except Exception as e2:
+                    logging.warning(
+                        u"transaction was never created on {}: {}".format(
+                        __name__,
+                        repr(e2),
+                    ))
+                await debug_logger(
+                    u"Message NOT added to database",
+                    message,
+                    e1,
+                    ['log', 'zodb', 'exception'],
+                )
+                raise
+            finally:
+                try:
+                    db.close()
+                except Exception as e3:
+                    logging.warning(
+                        u"db was never created on {}: {}".format(
+                        __name__,
+                        repr(e3),
+                    ))
+    except Exception as e4:
         await exception_logger(
-            exception,
+            e4,
             ['log', 'zodb'],
         )
+        raise
 
 ## TODO: Descobrir tipo de update (era types.Message)
 async def info_logger(

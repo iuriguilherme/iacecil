@@ -15,15 +15,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging, validators
+import BTrees, logging, transaction, validators, ZODB
 from aiogram import (
     Dispatcher,
     filters,
     types,
 )
+from aiogram.utils.markdown import escape_md
+from iacecil import (
+    commit,
+    name,
+    version,
+)
+from iacecil.controllers.zodb_orm import get_messages
 from plugins.log import (
     info_logger,
     debug_logger,
+    exception_logger,
     zodb_logger,
 )
 
@@ -37,6 +45,7 @@ async def varre_link(message):
             'iacecil',
         ]:
             url = None
+            garimpo_id = dispatcher.bot.users['special']['garimpo']
             if message.entities is not None:
                 for entity in message.entities:
                     if entity['type'] == "url":
@@ -45,20 +54,54 @@ async def varre_link(message):
                             entity['offset']
                         ]
             if url and validators.url(url):
-                pass
-            else:
-                url = None
-            if url:
-                await message.send_copy(
-                    chat_id = dispatcher.bot.users['special'][
-                        'garimpo'],
+                fw_message = await message.forward(
+                    chat_id = garimpo_id,
                 )
+                db = None
+                try:
+                    db, pms = await get_messages(str(garimpo_id) + \
+                        '.garimpo')
+                    try:
+                        try:
+                            pfm = pms[fw_message.message_id]
+                        except KeyError:
+                            pms[fw_message.message_id] = \
+                                BTrees.OOBTree.OOBTree()
+                            pfm = pms[fw_message.message_id]
+                        pfm[name + '_version'] = version
+                        pfm[name + '_commit'] = commit
+                        pfm['chat_id'] = message.chat.id
+                        pfm['reply_to_message_id'] = message.message_id
+                        transaction.commit()
+                    except Exception as e1:
+                        transaction.abort()
+                        await debug_logger(
+                            u"Message NOT added to database",
+                            message,
+                            e1,
+                            ['garimpo', 'varre_links', 'zodb',
+                                'exception'],
+                        )
+                    finally:
+                        try:
+                            db.close()
+                        except Exception as e2:
+                            logging.warning(u"""db was never created on\
+{}: {}""".format(__name__, repr(e2),))
+                except Exception as e3:
+                    await exception_logger(
+                        e3,
+                        ['garimpo', 'varre_links', 'zodb'],
+                    )
+                return fw_message
     except Exception as exception:
         await debug_logger(u"Erro tentando garimpar link", message,
             exception, ['garimpo', 'exception'],
         )
 
 async def add_handlers(dispatcher):
+    garimpo_id = dispatcher.bot.users['special']['garimpo']
+
     ## Salva link em outro grupo
 
     ## FIXME implementar garimpo total (garimpa_tudo_callback) com
@@ -93,10 +136,65 @@ async def add_handlers(dispatcher):
                 # ~ message.chat.type]
             # ~ )
 
+    ## Encaminha respostas para links
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            chat_id = garimpo_id,
+        ),
+    )
+    async def forward_reply_callback(message):
+        await zodb_logger(message)
+        if 'reply_to_message' in message \
+            and message.reply_to_message.is_forward:
+                db = None
+                try:
+                    db, pms = await get_messages(str(garimpo_id) + \
+                        '.garimpo')
+                    try:
+                        pfm = pms[
+                            message.reply_to_message.message_id]
+                        await dispatcher.bot.send_message(
+                            chat_id = pfm['chat_id'],
+                            text = f"""[{message.from_user.first_name}]\
+(tg://user?id={message.from_user.id}) disse: {escape_md(message.text)}\
+""",
+                            reply_to_message_id = pfm[
+                                'reply_to_message_id'],
+                            parse_mode = 'MarkdownV2',
+                            allow_sending_without_reply = True,
+                        )
+                    except KeyError:
+                        pass
+                    except Exception as e1:
+                        await debug_logger(
+                            u"Message NOT retreived from database",
+                            message,
+                            e1,
+                            ['garimpo', 'forward_reply', 'zodb',
+                                'exception'],
+                        )
+                    finally:
+                        try:
+                            db.close()
+                        except Exception as e2:
+                            logging.warning(u"""db was never created on\
+{}: {}""".format(__name__, repr(e2),))
+                except Exception as exception:
+                    await exception_logger(
+                        exception,
+                        ['garimpo', 'forward_reply', 'zodb'],
+                    )
+
     ## TODO garimpa todos links de todos grupos pra estas personalidades
     @dispatcher.message_handler(filters.ContentTypeFilter(
-        types.message.ContentType.ANY
+        types.message.ContentType.TEXT
     ))
     async def garimpa_tudo_callback(message):
         await zodb_logger(message)
-        await varre_link(message)
+        command = await varre_link(message)
+        if command is not None:
+            await info_logger(
+                command,
+                ['command', 'garimpo', message.chat.type],
+            )
+
