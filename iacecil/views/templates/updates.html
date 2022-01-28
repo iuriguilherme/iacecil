@@ -1,28 +1,47 @@
 {% extends "default_layout.html" %}
 {% block body %}
-<h1>Information about current iteration of {{ title }}</h1>
-<div class="row">
-<input type="text" id="message">
-<button>Send</button>
-<ul name="alvo"></ul>
-<script type="text/javascript">
-    var ws = new WebSocket('ws://' + document.domain + ':' + location.port + '/ws');
-    ws.onmessage = function (event) {
-        var messages_dom = document.getElementsByName('alvo')[0];
-        var message_dom = document.createElement('li');
-        var content_dom = document.createTextNode('Received: ' + event.data);
-        message_dom.appendChild(content_dom);
-        messages_dom.appendChild(message_dom);
-    };
-
-    var button = document.getElementsByTagName('button')[0];
-    button.onclick = function() {
-        var content = document.getElementsByTagName('input')[0].value;
-        ws.send(content);
-    };
-</script>
-</div>
+<h3>List messages from group</h3>
+<p>Select bot and group from lists</p>
 <hr>
-<p>Par&aacute;grafo</p>
+<form action="" method="post">
+<!--
+    <p>bot_id: <input type="text" size="30" name="bot_id">
+    <p>chat_id: <input type="text" size="30" name="chat_id">
+    <p>text: <textarea name="text" rows="5" cols="40"></textarea>
+    <p><input type="submit" value="Send">
+-->
+    {{ form.bot_id_field.label }}<br>
+    {% for subfield in form.bot_id_field %}
+        <div class="form-check">
+        {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+        </div>
+    {% endfor %}
+    {% for error in form.bot_id_field.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+    <p>
+    {{ form.chat_id_field.label }}<br>
+    {% for subfield in form.chat_id_field %}
+        <div class="form-check">
+        {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+        </div>
+    {% endfor %}
+    {% for error in form.chat_id_field.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+    </p>
+    <p>{{ form.submit(class="btn btn-primary") }}</p>
+    </dl>
+</form>
+<hr>
+{% if messages %}
+<h3>Last {{ count }} messages:</h3>
+<ul>
+{% for message in messages %}
+<li><pre>{{ message }}</pre></li>
+{% endfor %}
+</ul>
+<hr>
+{% endif %}
 <p>&nbsp;</p>
 {% endblock %}

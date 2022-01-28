@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-import logging
+import BTrees, logging, glob, transaction, os, ZODB
 from quart import (
     abort,
     Blueprint,
@@ -40,16 +40,40 @@ from wtforms import (
     TextAreaField,
 )
 from jinja2 import TemplateNotFound
+# ~ from functools import partial, wraps
 from iacecil import (
     actual_name,
     commit,
     version,
 )
-from functools import partial, wraps
+from iacecil.controllers.aiogram_bot.callbacks import (
+    error_callback,
+    exception_callback,
+)
+from iacecil.controllers.zodb_orm import (
+    get_messages,
+    get_bot_messages,
+)
 
 logger = logging.getLogger('blueprints.root')
-
 blueprint = Blueprint('root', 'index')
+
+_Auto = object()
+class SubFlaskForm(Form):
+    def __init__(self, formdata = _Auto, **kwargs):
+        super().__init__(formdata = formdata, **kwargs)
+    # ~ def __init__(self, *args, **kwargs):
+        # ~ super().__init__(*args, **kwargs)
+    # ~ async def wrap_formdata(self, form, formdata):
+        # ~ return super().wrap_formdata(self, form, formdata)
+    # ~ async def is_submitted(self):
+        # ~ return super().is_submitted(self)
+    # ~ async def validate_on_submit(self):
+        # ~ return super().validate_on_submit(self)
+    # ~ async def hidden_tag(self, *fields):
+        # ~ return super().hidden_tag(self, *fields)
+    # ~ async def _is_submitted():
+        # ~ return super()._is_submitted()
 
 @blueprint.route('/', defaults={'page': 'index'})
 @blueprint.route('/<page>')
@@ -96,22 +120,6 @@ async def send_message():
         user in [await dispatcher.bot.get_me() for
         dispatcher in current_app.dispatchers]
     ]
-    _Auto = object()
-    class SubFlaskForm(Form):
-        def __init__(self, formdata = _Auto, **kwargs):
-            super().__init__(formdata = formdata, **kwargs)
-        # ~ def __init__(self, *args, **kwargs):
-            # ~ super().__init__(*args, **kwargs)
-        # ~ async def wrap_formdata(self, form, formdata):
-            # ~ return super().wrap_formdata(self, form, formdata)
-        # ~ async def is_submitted(self):
-            # ~ return super().is_submitted(self)
-        # ~ async def validate_on_submit(self):
-            # ~ return super().validate_on_submit(self)
-        # ~ async def hidden_tag(self, *fields):
-            # ~ return super().hidden_tag(self, *fields)
-        # ~ async def _is_submitted():
-            # ~ return super()._is_submitted()
     class SendMessageForm(SubFlaskForm):
         bot_id_field = RadioField(
             u"select bot id",
@@ -124,15 +132,10 @@ async def send_message():
             u"Text",
         )
         submit = SubmitField(u"Send")
-    # ~ logging.debug('1: {}'.format(str(form)))
     form = SendMessageForm(formdata = await request.form)
-    # ~ form = SendMessageForm()
-    logging.debug('2: {}'.format(str(form)))
     if request.method == "POST":
         try:
-            logging.debug('3: {}'.format(str(form)))
             # ~ form = await request.form
-            logging.debug('4: {}'.format(str(form)))
             dispatcher = [dispatcher for 
                 dispatcher in current_app.dispatchers if 
                 int(form['bot_id_field'].data) == int((
@@ -145,7 +148,6 @@ async def send_message():
             )
         except Exception as e:
             return jsonify(repr(e))
-    logging.debug(str(form))
     return await render_template(
         "send_message.html",
         canonical = current_app.canonical,
@@ -156,9 +158,96 @@ async def send_message():
         version = version,
     )
 
-# ~ @blueprint.route("/updates")
-# ~ async def updates():
-    # ~ return await render_template('updates.html')
+@blueprint.route("/updates", methods = ['GET', 'POST'])
+async def updates():
+    messages = u"No messages to show"
+    count = 0
+    bots = [
+        {'select': (user['id'], user['first_name'])} for
+        user in [await dispatcher.bot.get_me() for
+        dispatcher in current_app.dispatchers]
+    ]
+    for bot in bots:
+        chats = set([chat.strip('instance/zodb/').split('.')[
+            1] for chat in glob.glob('instance/zodb/{}.*.fs'.format(
+            bot['select'][0]))])
+        bot['chats'] = [(int(chat), str(chat)) for chat in chats]
+    class UpdatesForm(SubFlaskForm):
+        bot_id_field = RadioField(
+            u"select bot id",
+            choices = [bot['select'] for bot in bots],
+        )
+        ## TODO Use only this bot's chats
+        chat_id_field = RadioField(
+            u"select chat id",
+            choices = [b for b in bot['chats'] for bot in bots],
+        )
+        submit = SubmitField(u"Send")
+    form = UpdatesForm(formdata = await request.form)
+    if request.method == "POST":
+        try:
+            db = None
+            try:
+                logger.debug('6: {} {}'.format(
+                    form['bot_id_field'].data,
+                    form['chat_id_field'].data,
+                ))
+                db, pms = await get_bot_messages(
+                    form['bot_id_field'].data,
+                    form['chat_id_field'].data,
+                )
+                try:
+                    logger.debug('7: {}'.format(pms))
+                    count = len(pms)
+                    messages = [{k:v for (k,v) in pm.items()
+                        } for pm in pms.values()]
+                    return await render_template(
+                        "updates.html",
+                        canonical = current_app.canonical,
+                        commit = commit,
+                        count = count,
+                        form = form,
+                        messages = messages,
+                        title = actual_name,
+                        version = version,
+                    )
+                except Exception as e1:
+                    await error_callback(
+                        u"Message NOT retrieved from database",
+                        message,
+                        e1,
+                        ['quart', 'root', 'updates', 'zodb',
+                            'exception'],
+                    )
+                    raise
+                finally:
+                    try:
+                        db.close()
+                    except Exception as e2:
+                        logging.warning(
+                            u"db was never created on {}: {}".format(
+                            __name__,
+                            repr(e2),
+                        ))
+                        raise
+            except Exception as e3:
+                await exception_callback(
+                    e3,
+                    ['quart', 'root', 'updates', 'zodb'],
+                )
+                raise
+        except Exception as exception:
+            return jsonify(repr(exception))
+    return await render_template(
+        "updates.html",
+        canonical = current_app.canonical,
+        commit = commit,
+        count = count,
+        form = form,
+        messages = messages,
+        title = actual_name,
+        version = version,
+    )
 
 # ~ @blueprint.websocket("/ws")
 # ~ async def ws():

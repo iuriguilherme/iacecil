@@ -48,6 +48,9 @@
           <a class="nav-link" href="./{% if canonical %}{{ canonical }}{% endif %}{{ url_for('root.send_message') }}">Send Message</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="./{% if canonical %}{{ canonical }}{% endif %}{{ url_for('root.updates') }}">Updates</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link disabled">v{{ version }} (<i>commit {{ commit }}</i>)</a>
         </li>
       </ul>
