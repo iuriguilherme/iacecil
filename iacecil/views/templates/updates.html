@@ -20,6 +20,7 @@
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
     <p>
+    {% if form.bot_id_field %}
     {{ form.chat_id_field.label }}<br>
     {% for subfield in form.chat_id_field %}
         <div class="form-check">
@@ -29,6 +30,7 @@
     {% for error in form.chat_id_field.errors %}
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
+    {% endif %}
     </p>
     <p>{{ form.submit(class="btn btn-primary") }}</p>
     </dl>
@@ -42,6 +44,8 @@
 {% endfor %}
 </ul>
 <hr>
+{% else %}
+<p>No messages&excl;</p>
 {% endif %}
 <p>&nbsp;</p>
 {% endblock %}

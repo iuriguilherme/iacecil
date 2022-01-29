@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-import BTrees, logging, glob, transaction, os, ZODB
+import BTrees, logging, glob, itertools, transaction, os, ZODB
 from quart import (
     abort,
     Blueprint,
@@ -160,7 +160,7 @@ async def send_message():
 
 @blueprint.route("/updates", methods = ['GET', 'POST'])
 async def updates():
-    messages = u"No messages to show"
+    messages = [u"No messages to show"]
     count = 0
     bots = [
         {'select': (user['id'], user['first_name'])} for
@@ -172,6 +172,27 @@ async def updates():
             1] for chat in glob.glob('instance/zodb/{}.*.fs'.format(
             bot['select'][0]))])
         bot['chats'] = [(int(chat), str(chat)) for chat in chats]
+    # ~ logger.debug(list(itertools.chain([[
+            # ~ {
+                # ~ 'chat': (
+                    # ~ int(chat),
+                    # ~ str(chat),
+                # ~ ),
+                # ~ 'user': (
+                    # ~ user['id'],
+                    # ~ user['first_name'],
+                # ~ )
+            # ~ } for chat in [
+                # ~ chat.strip('instance/zodb/').split('.')[1] for chat in glob.glob(
+                    # ~ 'instance/zodb/{}.*.fs'.format(
+                        # ~ user['id']
+                    # ~ )
+                # ~ )
+            # ~ ]
+        # ~ ] for user in [
+            # ~ await dispatcher.bot.get_me() for dispatcher in current_app.dispatchers
+        # ~ ]]))
+    # ~ )
     class UpdatesForm(SubFlaskForm):
         bot_id_field = RadioField(
             u"select bot id",
@@ -180,7 +201,8 @@ async def updates():
         ## TODO Use only this bot's chats
         chat_id_field = RadioField(
             u"select chat id",
-            choices = [b for b in bot['chats'] for bot in bots],
+            choices = set([(int(bot[0]), str(bot[0])) for bot in list(
+                itertools.chain(*[bot['chats'] for bot in bots]))]),
         )
         submit = SubmitField(u"Send")
     form = UpdatesForm(formdata = await request.form)
@@ -188,16 +210,11 @@ async def updates():
         try:
             db = None
             try:
-                logger.debug('6: {} {}'.format(
-                    form['bot_id_field'].data,
-                    form['chat_id_field'].data,
-                ))
                 db, pms = await get_bot_messages(
                     form['bot_id_field'].data,
                     form['chat_id_field'].data,
                 )
                 try:
-                    logger.debug('7: {}'.format(pms))
                     count = len(pms)
                     messages = [{k:v for (k,v) in pm.items()
                         } for pm in pms.values()]
@@ -224,7 +241,7 @@ async def updates():
                     try:
                         db.close()
                     except Exception as e2:
-                        logging.warning(
+                        logger.warning(
                             u"db was never created on {}: {}".format(
                             __name__,
                             repr(e2),
