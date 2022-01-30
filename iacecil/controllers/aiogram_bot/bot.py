@@ -81,7 +81,7 @@ logging groups. Exiting...""")
                         u"Probably kicked from this group",
                         str(self.command),
                         exception,
-                        [function_str, 'BotKicked', 'exception'],
+                        [function_name, 'BotKicked', 'exception'],
                     )
                 except Exception as e1:
                     try:
@@ -91,66 +91,6 @@ logging groups. Exiting...""")
                         )
                     except Exception as e2:
                         logging.warning(repr(e2))
-        except exceptions.TelegramAPIError as exception:
-            descriptions = {
-                'too_long': "MessageIsTooLong('Message is too long')",
-                'rights': """BadRequest('Have no rights to send a messa\
-ge')""",
-                'not_found': "BadRequest('Replied message not found')",
-            }
-            reason = u"I don't know what just happened"
-            if repr(exception) == descriptions['rights']:
-                reason = None
-                chat_id = 0
-                try:
-                    chat_id = self.command.chat.id
-                except AttributeError:
-                    pass
-                logging.info(
-                    u"Bot has no rights in {}, skipping...".format(
-                        str(chat_id),
-                ))
-            elif repr(exception) == descriptions['not_found']:
-                reason = u"Probably message has been erased already"
-            elif repr(exception) == descriptions['too_long']:
-                reason = u"Message is too long"
-                limit = 2048 # Telegram limit is 4096
-                text = kwargs.get('text', u"empty")
-                if len(text) >= limit:
-                    logging.info(
-                        u"Message is too long, stripping...",
-                    )
-                    chunks = [text[i:i+limit] for i in range(
-                        0, len(text), limit)
-                    ]
-                    for count, chunk in enumerate(chunks, start = 1):
-                        chunk = chunk.translate(
-                            str.maketrans('', '', '\\`')
-                        )
-                        kwargs['text'] = markdown.escape_md(
-                            u"#thread ({}/{}):\n\n".format(count, 
-                            len(chunks))
-                        ) + markdown.pre(chunk)
-                        await function(*args, **kwargs)
-                self.command['text'] = u"empty"
-                return self.command
-            if reason is not None:
-                try:
-                    await error_callback(
-                        reason,
-                        self.command,
-                        exception,
-                        [function_name, 'TelegramAPIError',
-                            'exception'],
-                    )
-                except Exception as e1:
-                    try:
-                        await exception_callback(
-                            e1,
-                            [function_name, 'TelegramAPIError'],
-                        )
-                    except Exception as e2:
-                        logging.critical(repr(e2))
         except exceptions.BotBlocked as exception:
             try:
                 await error_callback(
@@ -202,6 +142,70 @@ ge')""",
         except exceptions.TerminatedByOtherGetUpdates as exception:
             logging.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))
+        except exceptions.TelegramAPIError as exception:
+            descriptions = {
+                'too_long': "MessageIsTooLong('Message is too long')",
+                'rights': """BadRequest('Have no rights to send a messa\
+ge')""",
+                'not_found': "BadRequest('Replied message not found')",
+                'deactivated': """UserDeactivated('Forbidden: user is d\
+eactivated')""",
+            }
+            reason = u"I don't know what just happened"
+            if repr(exception) == descriptions['rights']:
+                reason = None
+                chat_id = 0
+                try:
+                    chat_id = self.command.chat.id
+                except AttributeError:
+                    pass
+                logging.info(
+                    u"Bot has no rights in {}, skipping...".format(
+                        str(chat_id),
+                ))
+            elif repr(exception) == descriptions['not_found']:
+                reason = u"Probably message has been erased already"
+            elif repr(exception) == descriptions['deactivated']:
+                reason = u"Probably user no longer exists"
+            elif repr(exception) == descriptions['too_long']:
+                reason = u"Message is too long"
+                limit = 2048 # Telegram limit is 4096
+                text = kwargs.get('text', u"empty")
+                if len(text) >= limit:
+                    logging.info(
+                        u"Message is too long, stripping...",
+                    )
+                    chunks = [text[i:i+limit] for i in range(
+                        0, len(text), limit)
+                    ]
+                    for count, chunk in enumerate(chunks, start = 1):
+                        chunk = chunk.translate(
+                            str.maketrans('', '', '\\`')
+                        )
+                        kwargs['text'] = markdown.escape_md(
+                            u"#thread ({}/{}):\n\n".format(count, 
+                            len(chunks))
+                        ) + markdown.pre(chunk)
+                        await function(*args, **kwargs)
+                self.command['text'] = u"empty"
+                return self.command
+            if reason is not None:
+                try:
+                    await error_callback(
+                        reason,
+                        self.command,
+                        exception,
+                        [function_name, 'TelegramAPIError',
+                            'exception'],
+                    )
+                except Exception as e1:
+                    try:
+                        await exception_callback(
+                            e1,
+                            [function_name, 'TelegramAPIError'],
+                        )
+                    except Exception as e2:
+                        logging.critical(repr(e2))
         except Exception as exception:
             try:
                 await exception_callback(
