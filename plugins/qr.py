@@ -15,37 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import pyqrcode
-import tempfile
-from aiogram.utils.markdown import escape_md, pre
+import logging
+logger = logging.getLogger('plugins.qr')
+import os, pyqrcode, tempfile
+from aiogram.utils.markdown import pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
     message_callback,
 )
-
-def cmd_qr(args):
-    try:
-        return {
-            'status': True,
-            'type': "image",
-            'response': create_qrcode(' '.join(args['command_list'])),
-            'debug': u"QR code bem sucedido",
-            'multi': False,
-            'parse_mode': None,
-            'reply_to_message_id': args['message_id'],
-        }
-    except Exception as e:
-        return {
-            'status': False,
-            'type': "erro",
-            'response':    u"Não consegui gerar um qr code com %s\nOs desenvolvedores devem ter sido avisados já, eu acho." % (str(args['command_list'])),
-            'debug': u"QR code erro\nExceção: %s" % (e),
-            'multi': False,
-            'parse_mode': None,
-            'reply_to_message_id': args['message_id'],
-        }
 
 def create_qrcode(text):
     photo = tempfile.mkstemp(suffix='.png')
@@ -69,25 +47,25 @@ async def add_handlers(dispatcher):
                 photo = open(str(
                     create_qrcode(message.get_args())['photo'][1],
                 ), 'rb')
+                command = await message.reply_photo(
+                    photo = photo,
+                    caption = message.get_args(),
+                )
             except Exception as exception:
-                command = await message.reply(u"""Não consegui gerar qr\
- code, avisei o pessoal do desenvolvimento...""")
                 await error_callback(
                     u"Falha ao gerar qr code",
                     message,
                     exception,
                     ['command', 'qr', 'exception'],
                 )
-            command = await message.reply_photo(
-                photo = photo,
-                caption = message.get_args(),
-            )
+                command = await message.reply(u"""Não consegui gerar qr\
+ code, avisei o pessoal do desenvolvimento...""")
         else:
             command = await message.reply(pre(u"""\nO comando {comando}\
  serve pra gerar um qr code a partir de um texto. Digite "{comando} tex\
 to" para usar (dê um espaço entre o comando e o texto). Por exemplo, pa\
 ra gerar o qr code de um rick roll:\n\n{comando} https://youtube.com/wa\
-tch?v=dQw4w9WgXcQ""".format(comando = message.get_command()),
+tch?v=dQw4w9WgXcQ""".format(comando = message.get_command())),
                 parse_mode = "MarkdownV2",
             )
         await command_callback(command, ['qr', message.chat.type])

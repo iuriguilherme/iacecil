@@ -17,7 +17,6 @@ verify_ssl = true
 #hypercorn = "*"
 #pyinstaller = "*"
 #PyMySQL = "*"
-#pypng = "*"
 #python-dotenv = "*"
 #python-telegram-bot = "*"
 #telepot = "*"
@@ -44,6 +43,7 @@ starlette-wtf = "*"
 uvicorn = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
+pypng = "*"
 
 [requires]
 python_version = "3.9"
