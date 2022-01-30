@@ -155,9 +155,11 @@ async def add_handlers(dispatcher):
                             message.reply_to_message.message_id]
                         await dispatcher.bot.send_message(
                             chat_id = pfm['chat_id'],
-                            text = f"""[{message.from_user.first_name}]\
-(tg://user?id={message.from_user.id}) disse: {escape_md(message.text)}\
-""",
+                            # ~ text = f"""[{message.from_user.first_name}]\
+# ~ (tg://user?id={message.from_user.id}) disse: {escape_md(message.text)}\
+# ~ """,
+                            text = f"""{message.from_user.first_name}\
+disse: {escape_md(message.text)}""",
                             reply_to_message_id = pfm[
                                 'reply_to_message_id'],
                             parse_mode = 'MarkdownV2',
