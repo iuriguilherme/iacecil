@@ -18,9 +18,10 @@
 import os
 import pyqrcode
 import tempfile
-from aiogram.utils.markdown import escape_md
+from aiogram.utils.markdown import escape_md, pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
+    error_callback,
     message_callback,
 )
 
@@ -64,16 +65,29 @@ async def add_handlers(dispatcher):
     async def qr_callback(message):
         await message_callback(message, ['qr', message.chat.type])
         if message.get_args():
+            try:
+                photo = open(str(
+                    create_qrcode(message.get_args())['photo'][1],
+                ), 'rb')
+            except Exception as exception:
+                command = await message.reply(u"""Não consegui gerar qr\
+ code, avisei o pessoal do desenvolvimento...""")
+                await error_callback(
+                    u"Falha ao gerar qr code",
+                    message,
+                    exception,
+                    ['command', 'qr', 'exception'],
+                )
             command = await message.reply_photo(
-                photo = open(str(create_qrcode(message.get_args())['photo'][1]), 'rb'),
+                photo = photo,
                 caption = message.get_args(),
             )
         else:
-            command = await message.reply(
-                u"""```\nO comando {comando} serve pra gerar um qr code a partir de um \
-texto. Digite "{comando} texto" para usar (dê um espaço entre o comando e o tex\
-to). Por exemplo, para gerar o qr code de um rick roll:\n\n{comando} https://yo\
-utube.com/watch?v=dQw4w9WgXcQ```""".format(comando = message.get_command()),
+            command = await message.reply(pre(u"""\nO comando {comando}\
+ serve pra gerar um qr code a partir de um texto. Digite "{comando} tex\
+to" para usar (dê um espaço entre o comando e o texto). Por exemplo, pa\
+ra gerar o qr code de um rick roll:\n\n{comando} https://youtube.com/wa\
+tch?v=dQw4w9WgXcQ""".format(comando = message.get_command()),
                 parse_mode = "MarkdownV2",
             )
         await command_callback(command, ['qr', message.chat.type])
