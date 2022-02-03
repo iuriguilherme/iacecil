@@ -20,7 +20,10 @@
 #  MA 02110-1301, USA.
 #  
 
-import asyncio, logging, re, sys
+import logging
+logger = logging.getLogger(__name__)
+
+import asyncio, re, sys
 from textwrap import wrap
 from aiogram import (
     Bot,
@@ -62,7 +65,7 @@ class IACecilBot(Bot):
             self.command = await super_function(*args, **kwargs)
             return self.command
         except exceptions.RetryAfter as exception:
-            logging.info(u"Flood control: waiting {} seconds...\
+            logger.info(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
             return await function(*args, **kwargs)
@@ -72,9 +75,9 @@ class IACecilBot(Bot):
                 self.users['special']['info']
             ]:
                 sys.exit(u"""\n***TERMINATED***\nBot was kicked from th\
-e logging groups! Fix this before continuing! Either change the ids fro\
+e logger groups! Fix this before continuing! Either change the ids fro\
 m the log  groups in the config file, or ensure the bot is part of the \
-logging groups. Exiting...""")
+logger groups. Exiting...""")
             else:
                 try:
                     await error_callback(
@@ -90,7 +93,7 @@ logging groups. Exiting...""")
                             [function_name, 'BotKicked'],
                         )
                     except Exception as e2:
-                        logging.warning(repr(e2))
+                        logger.warning(repr(e2))
         except exceptions.BotBlocked as exception:
             try:
                 await error_callback(
@@ -106,7 +109,7 @@ logging groups. Exiting...""")
                         [function_name, 'BotBlocked'],
                     )
                 except Exception as e2:
-                    logging.warning(repr(e2))
+                    logger.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
             try:
                 await error_callback(
@@ -122,7 +125,7 @@ logging groups. Exiting...""")
                         [function_name, 'ChatNotFound'],
                     )
                 except Exception as e2:
-                    logging.critical(repr(e2))
+                    logger.critical(repr(e2))
         except exceptions.UserDeactivated as exception:
             try:
                 await error_callback(
@@ -138,10 +141,17 @@ logging groups. Exiting...""")
                         [function_name, 'UserDeactivated'],
                     )
                 except Exception as e2:
-                    logging.warning(repr(e2))
+                    logger.warning(repr(e2))
         except exceptions.TerminatedByOtherGetUpdates as exception:
-            logging.critical(u"""Trying to login with the same token el\
+            logger.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))
+        except exceptions.MessageToReplyNotFound as exception:
+            logging.warning(
+                u"Attempting to resend message without reply",
+            )
+            kwargs['allow_sending_without_reply'] = True
+            self.command = await function(*args, **kwargs)
+            return self.command
         except exceptions.TelegramAPIError as exception:
             descriptions = {
                 'too_long': "MessageIsTooLong('Message is too long')",
@@ -159,20 +169,20 @@ eactivated')""",
                     chat_id = self.command.chat.id
                 except AttributeError:
                     pass
-                logging.info(
+                logger.info(
                     u"Bot has no rights in {}, skipping...".format(
                         str(chat_id),
                 ))
-            elif repr(exception) == descriptions['not_found']:
-                reason = u"Probably message has been erased already"
             elif repr(exception) == descriptions['deactivated']:
                 reason = u"Probably user no longer exists"
+            elif repr(exception) == descriptions['not_found']:
+                reason = u"Probably message has been erased already"
             elif repr(exception) == descriptions['too_long']:
                 reason = u"Message is too long"
                 limit = 2048 # Telegram limit is 4096
                 text = kwargs.get('text', u"empty")
                 if len(text) >= limit:
-                    logging.info(
+                    logger.info(
                         u"Message is too long, stripping...",
                     )
                     chunks = [text[i:i+limit] for i in range(
@@ -205,7 +215,7 @@ eactivated')""",
                             [function_name, 'TelegramAPIError'],
                         )
                     except Exception as e2:
-                        logging.critical(repr(e2))
+                        logger.critical(repr(e2))
         except Exception as exception:
             try:
                 await exception_callback(
@@ -213,7 +223,7 @@ eactivated')""",
                     [function_name, 'NotTelegram'],
                 )
             except Exception as e:
-                logging.warning(repr(e))
+                logger.warning(repr(e))
         return self.command
 
     async def send_photo(self, *args, **kwargs):
