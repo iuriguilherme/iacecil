@@ -6,51 +6,52 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+aiodns = "*"
+aiogram = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
 #Babel = "*"
+brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #cchardet = "*"
 #dataset = "*"
 #fastapi = {extras = ["all"], version = "*"}
 #flair = "*"
 #flask = "*"
+flask-sqlalchemy = "*"
+flask-wtf = "*"
 #flup = "*"
 #gunicorn = "*"
 #hypercorn = "*"
+pydantic = "*"
 #pyinstaller = "*"
 #PyMySQL = "*"
+pypng = "*"
+pyqrcode = "*"
 #python-dotenv = "*"
 #python-telegram-bot = "*"
+pytz = "*"
+quart = "*"
+requests = "*"
+#starlette-wtf = "*"
 #telepot = "*"
 #torch = "*"
 #torchaudio = "*"
 #torchvision = "*"
 #totalvoice = "*"
-#urllib3 = "*"
-aiodns = "*"
-aiogram = "*"
-aiohttp = {extras = ["speedups"],version = "*"}
-brotlipy = {version = "*", sys_platform = "!= 'win32'"}
-pydantic = "*"
-pyqrcode = "*"
-pytz = "*"
-quart = "*"
-requests = "*"
 ujson = {version = "*", sys_platform = "!= 'win32'"}
+#urllib3 = "*"
 uvloop = {version = "*", sys_platform = "!= 'win32'"}
+uvicorn = "*"
 validators = "*"
 youtube-dl = "*"
-flask-wtf = "*"
-starlette-wtf = "*"
-uvicorn = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
-pypng = "*"
 
 [requires]
 python_version = "3.9"
 
 [scripts]
-iacecil = 'python start.py quart iacecil'
-quart = 'python start.py quart iacecil 8000 127.0.0.1 info'
-test = 'python start.py quart testing'
-dev = 'python start.py dev'
-socket = 'python start.py socket tiozao_bot,tiodochurrasbot,tropixelbot,mate_obot,cryptoforexbot,s28paybot,iacecil 38000 127.0.0.1 debug 0'
+iacecil = 'python start.py info quart iacecil'
+quart = 'python start.py info quart iacecil 8000 127.0.0.1'
+test = 'python start.py debug quart testing'
+dev = 'python start.py debug dev development 8000 127.0.0.1 True'
+socket = 'python start.py debug socket tiozao_bot,tiodochurrasbot,tropixelbot,mate_obot,cryptoforexbot,s28paybot,iacecil 38000 127.0.0.1 0'

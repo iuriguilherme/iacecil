@@ -73,10 +73,16 @@ app = quart_startup(aiogram_startup(config, [
     'tiodochurrasbot',
     'tiozao_bot',
     'tropixelbot',
-]))
+], 'INFO'), 'INFO')
 
-def get_app(bots):
-    return quart_startup(aiogram_startup(config, bots))
+def get_app(bots, log_level):
+    return quart_startup(
+        aiogram_startup(config, bots, log_level),
+        log_level,
+    )
 
 def run_app(quart_app):
+    logging.getLogger(__name__).setLevel(
+        getattr(logging, quart_app.log_level),
+    )
     quart_app.run()
