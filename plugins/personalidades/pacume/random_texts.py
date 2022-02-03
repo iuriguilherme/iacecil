@@ -22,12 +22,17 @@
 ## de dados e machine learning vai diminuir o trabalho manual, mas também vai
 ## criar resultados potencialmente indesejados (por razões óbvias).
 
+import logging
+logger = logging.getLogger(__name__)
+
 import random
 
 try:
-    import instance.random_texts_pave as pave
-except:
+    import instance.personalidades.pave import random_texts as pave
+except Exception as exception:
     import plugins.personalidades.pave.random_texts as pave
+    logger.debug(u"Não consegui achar o arquivo: {}".format(
+        repr(exception)))
 
 def bebidas():
     return pave.bebidas()

@@ -18,7 +18,10 @@
 
 ### Personalidade do Tiozão do Pavê @tiozao_bot
 
-import logging, random
+import logging
+logger = logging.getLogger(__name__)
+
+import random
 from aiogram import (
     Dispatcher,
     filters,
@@ -32,8 +35,10 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
     from instance.personalidades.pave import random_texts
-except:
+except Exception as exception:
     from plugins.personalidades.pave import random_texts
+    logger.debug(u"Não consegui achar o arquivo: {}".format(
+        repr(exception)))
 
 async def start(message):
     return random_texts.start(message)

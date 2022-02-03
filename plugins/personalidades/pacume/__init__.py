@@ -19,7 +19,10 @@
 ### AVISO: Personalidade ácida, agressiva e ofensiva. Se não souber o 
 ### que está fazendo, não teste.
 
-import logging, random
+import logging
+logger = logging.getLogger(__name__)
+
+import random
 from aiogram import (
     Dispatcher,
     filters,

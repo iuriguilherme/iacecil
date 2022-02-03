@@ -22,8 +22,10 @@
 ## de dados e machine learning vai diminuir o trabalho manual, mas também vai
 ## criar resultados potencialmente indesejados (por razões óbvias).
 
-import random
+import logging
+logger = logging.getLogger(__name__)
 
+import random
 from aiogram.utils.markdown import escape_md
 
 def bebidas():
@@ -53,6 +55,11 @@ def respostas_bebida():
         u"tu que tá botando pá nois bebê?",
         u"agora sim falou o que interessa!",
         u"pudim de trago",
+        u"cu de bêbado não tem dono",
+        u"""o orifício circular corrugado, localizado na parte ínfero-l\
+ombar da região glútea de um indivíduo em alto grau etílico, deixa de e\
+star em consonância com os ditames referentes ao direito individual de \
+propriedade""",
     ])
 
 def respostas_quanto():
