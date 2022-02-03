@@ -15,6 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+logger = logging.getLogger(__name__)
+
 from aiogram import types
 
 async def add_handlers(dispatcher):

@@ -15,7 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from aiogram.utils.markdown import escape_md
+import logging
+logger = logging.getLogger(__name__)
 
 def fofices():
     return random.choice([

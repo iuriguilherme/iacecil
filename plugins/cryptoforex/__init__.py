@@ -16,7 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime, locale, logging
+import logging
+logger = logging.getLogger(__name__)
+
+import datetime, locale
+from iacecil.controllers.aiogram_bot.callbacks import (
+    command_callback,
+    error_callback,
+    message_callback,
+)
+from plugins.cryptoforex.api_coinmarketcap import price_v1\
+    as coinmarketcap_price
+
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 except:
@@ -26,16 +37,7 @@ except:
         try:
             locale.setlocale(locale.LC_ALL, 'C')
         except Exception as e:
-            logging.warning(repr(e))
-
-from iacecil.controllers.aiogram_bot.callbacks import (
-    command_callback,
-    error_callback,
-    message_callback,
-)
-
-from plugins.cryptoforex.api_coinmarketcap import price_v1\
-    as coinmarketcap_price
+            logger.warning(repr(e))
 
 async def price(dispatcher, message, converts, comando):
     # Presumindo bitcoin quando não há argumentos
@@ -46,8 +48,8 @@ async def price(dispatcher, message, converts, comando):
     try:
         resposta = await coinmarketcap_price(
             dispatcher.bot.info['coinmarketcap_token'], moeda, converts)
-        logging.info(resposta)
-        logging.info(type(resposta))
+        logger.info(resposta)
+        logger.info(type(resposta))
         if resposta['status']['error_code'] > 0:
             await error_callback(resposta['status']['error_message'],
                                  message, None,

@@ -20,6 +20,9 @@
 #  MA 02110-1301, USA.
 #  
 
+import logging
+logger = logging.getLogger(__name__)
+
 from aiogram import types
 from iacecil import config
 from plugins.log import (

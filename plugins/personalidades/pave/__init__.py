@@ -77,7 +77,7 @@ async def pegadinha1(message):
             'rb',
         ))
     except Exception as e:
-        logging.warning(u"Arquivo não encontrado: {}".format(repr(e)))
+        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
         return await message.reply_photo(open(
             'doc/assets/photo_2017-06-24_22-16-38.jpg',
             'rb',
@@ -89,7 +89,7 @@ async def pegadinha2(message):
             'rb',
         ))
     except Exception as e:
-        logging.warning(u"Arquivo não encontrado: {}".format(repr(e)))
+        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
         return await message.reply_photo(open(
             'doc/assets/photo_2017-06-24_22-16-38.jpg',
             'rb',
@@ -101,7 +101,7 @@ async def pegadinha3(message):
             'rb',
         ))
     except Exception as e:
-        logging.warning(u"Arquivo não encontrado: {}".format(repr(e)))
+        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
         return await message.reply_photo(open(
             'doc/assets/photo_2017-06-24_22-16-38.jpg',
             'rb',

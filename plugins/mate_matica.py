@@ -16,6 +16,9 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #  
 
+import logging
+logger = logging.getLogger(__name__)
+
 import math, binascii, os
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,

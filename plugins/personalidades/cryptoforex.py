@@ -15,8 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-### Personalidade investidora forex do @cryptoforexbot
+import logging
+logger = logging.getLogger(__name__)
 
+### Personalidade investidora forex do @cryptoforexbot
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,

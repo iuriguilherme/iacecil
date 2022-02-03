@@ -20,17 +20,14 @@
 #  MA 02110-1301, USA.
 #  
 
-import os
-### Logging
 import logging
-# ~ logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.9.9'
+__version__ = '0.1.9.10'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -40,11 +37,11 @@ try:
         with open('.git/' + git_head.read().strip('\n')) as git_ref:
             commit = git_ref.read(7)
 except Exception as exception:
-    logging.warning(u"git repository not found: {}".format(exception))
+    logger.warning(u"git repository not found: {}".format(exception))
 ## Actual Name (tm)
 actual_name = "ia.cecil"
 
-logging.info(u"Starting {} v{} commit {}".format(
+logger.info(u"Starting {} v{} commit {}".format(
     actual_name,
     version,
     commit,

@@ -21,9 +21,9 @@
 #  
 
 import logging
-logger = logging.getLogger('zodb_orm')
-import BTrees, logging, transaction, zc.zlibstorage, ZODB, \
-    ZODB.FileStorage
+logger = logging.getLogger(__name__)
+
+import BTrees, transaction, zc.zlibstorage, ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
 )

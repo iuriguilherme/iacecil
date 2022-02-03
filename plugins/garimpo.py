@@ -15,7 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BTrees, logging, transaction, validators, ZODB
+import logging
+logger = logging.getLogger(__name__)
+
+import BTrees, transaction, validators, ZODB
 from aiogram import (
     Dispatcher,
     filters,
@@ -86,7 +89,7 @@ async def varre_link(message):
                         try:
                             db.close()
                         except Exception as e2:
-                            logging.warning(u"""db was never created on\
+                            logger.warning(u"""db was never created on\
 {}: {}""".format(__name__, repr(e2),))
                 except Exception as e3:
                     await exception_logger(
@@ -179,7 +182,7 @@ disse: {escape_md(message.text)}""",
                         try:
                             db.close()
                         except Exception as e2:
-                            logging.warning(u"""db was never created on\
+                            logger.warning(u"""db was never created on\
 {}: {}""".format(__name__, repr(e2),))
                 except Exception as exception:
                     await exception_logger(

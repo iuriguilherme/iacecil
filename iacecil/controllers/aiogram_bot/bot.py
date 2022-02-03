@@ -146,7 +146,7 @@ logger groups. Exiting...""")
             logger.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))
         except exceptions.MessageToReplyNotFound as exception:
-            logging.warning(
+            logger.warning(
                 u"Attempting to resend message without reply",
             )
             kwargs['allow_sending_without_reply'] = True

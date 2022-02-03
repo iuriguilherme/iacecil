@@ -17,6 +17,9 @@
 
 ## Ponto Greatful
 
+import logging
+logger = logging.getLogger(__name__)
+
 import dataset, datetime, pytz, random, sqlite3
 
 ## Avisa que chegou na Fábrica do Futuro

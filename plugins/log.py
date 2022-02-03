@@ -1,5 +1,5 @@
 # vim:fileencoding=utf-8
-#  Plugin log para ia.cecil: Logging/debugging
+#  Plugin log para ia.cecil: logger/debugging
 #  Copyleft (C) 2016-2022 Iuri Guilherme <https://iuri.neocities.org/>
 #  
 #  This program is free software: you can redistribute it and/or modify
@@ -15,9 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# ~ import BTrees, datetime, json, logging, socket, transaction, \
+import logging
+logger = logging.getLogger(__name__)
+
+# ~ import BTrees, datetime, json, logger, socket, transaction, \
     # ~ zc.zlibstorage, ZODB, ZODB.FileStorage
-import BTrees, datetime, json, logging, socket, transaction, ZODB
+import BTrees, datetime, json, socket, transaction, ZODB
 from aiogram import (
     Dispatcher,
     types,
@@ -58,8 +61,8 @@ em grupos de telegram, coloque o bot em um grupo e use o chat_id do gru\
 po no arquivo de configuração."""
 
 async def tecido_logger(texto: str = ''):
-    logger = logging.getLogger('tecido')
-    logger.setLevel(logging.DEBUG)
+    logger = logger.getLogger('tecido')
+    logger.setLevel(logger.DEBUG)
     dispatcher = Dispatcher.get_current()
     bot = dispatcher.bot
     ## https://pymotw.com/3/socket/tcp.html
@@ -159,9 +162,9 @@ async def debug_logger(
             parse_mode = "MarkdownV2",
         )
     except KeyError:
-        logging.debug(key_error)
+        logger.debug(key_error)
     except Exception as e:
-        logging.critical(repr(e))
+        logger.critical(repr(e))
 
 async def exception_logger(
     exception: Exception = None,
@@ -187,9 +190,9 @@ async def exception_logger(
             parse_mode = "MarkdownV2",
         )
     except KeyError:
-        logging.debug(key_error)
+        logger.debug(key_error)
     except Exception as e:
-        logging.critical(repr(e))
+        logger.critical(repr(e))
 
 async def zodb_logger(message):
     db = None
@@ -216,7 +219,7 @@ async def zodb_logger(message):
                 try:
                     transaction.abort()
                 except Exception as e2:
-                    logging.warning(
+                    logger.warning(
                         u"transaction was never created on {}: {}".format(
                         __name__,
                         repr(e2),
@@ -232,7 +235,7 @@ async def zodb_logger(message):
                 try:
                     db.close()
                 except Exception as e3:
-                    logging.warning(
+                    logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
                         repr(e3),
@@ -287,6 +290,6 @@ async def info_logger(
             parse_mode = "MarkdownV2",
         )
     except KeyError:
-        logging.debug(key_error)
+        logger.debug(key_error)
     except Exception as e:
-        logging.critical(repr(e))
+        logger.critical(repr(e))

@@ -17,6 +17,9 @@
 
 ## Agenda hebdomadária
 
+import logging
+logger = logging.getLogger(__name__)
+
 import dataset, datetime, pytz, random, sqlite3
 
 ## Acrescenta relatório do dia na agenda hebdomadária

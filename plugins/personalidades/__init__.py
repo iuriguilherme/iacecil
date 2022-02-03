@@ -16,14 +16,13 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+logger = logging.getLogger(__name__)
 
 from aiogram import types
-
 from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-
 from plugins.personalidades import (
     cryptoforex,
     default,
@@ -40,7 +39,7 @@ async def gerar_comando(command, bot, message):
             globals()[bot.info.get('personalidade', 'default')],
                 command)(message)
     except AttributeError as exception:
-        logging.info(repr(exception))
+        logger.info(repr(exception))
         try:
             return await getattr(globals()['default'], command)(message)
         except Exception as exception:
@@ -63,7 +62,7 @@ async def gerar_texto(command, bot, message):
             'personalidade', 'default')],
             command)(message)
     except AttributeError as exception:
-        logging.info(repr(exception))
+        logger.info(repr(exception))
         try:
             return await getattr(globals()['default'], command)(message)
         except Exception as exception:
@@ -84,10 +83,10 @@ async def add_handlers(dispatcher):
         await getattr(globals()[dispatcher.bot.info.get('personalidade',
             'default')], 'add_handlers')(dispatcher)
     except AttributeError as exception:
-        logging.info(repr(exception))
+        logger.info(repr(exception))
         await getattr(globals()['default'], 'add_handlers')(dispatcher)
     except Exception as exception:
-        logging.warning(repr(exception))
+        logger.warning(repr(exception))
         await exception_callback(
             exception,
             ['personalidades', 'add_handlers'],

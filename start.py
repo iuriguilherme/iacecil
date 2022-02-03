@@ -21,12 +21,7 @@
 #  MA 02110-1301, USA.
 #  
 
-### Importing
-import iacecil, logging, sys, uvicorn
-
-### Logging
-# ~ logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+import iacecil, logger, sys, uvicorn
 logger = logging.getLogger(iacecil.name)
 
 if __name__ == '__main__':
@@ -74,6 +69,7 @@ if __name__ == '__main__':
         logger.warning(u"Operation mode not informed, assuming {}\
             ".format(mode))
     ### Running scripts
+    logger.basicConfig(level = log_level)
     if mode == 'quart':
         try:
             logger.info(u"Starting {}".format(iacecil.actual_name))

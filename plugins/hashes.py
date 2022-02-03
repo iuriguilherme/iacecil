@@ -18,8 +18,10 @@
 
 ## Documentação do hashlib - https://docs.python.org/3/library/hashlib.html
 
-import hashlib
+import logging
+logger = logging.getLogger(__name__)
 
+import hashlib
 from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,

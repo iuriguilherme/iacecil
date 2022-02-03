@@ -17,6 +17,9 @@
 
 ## Atividades paralelas
 
+import logging
+logger = logging.getLogger(__name__)
+
 import dataset, datetime, pytz, random, sqlite3
 
 ## Avisa que tomou água

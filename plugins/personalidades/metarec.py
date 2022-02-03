@@ -15,13 +15,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-### Personalidade metarec https://metareciclagem.github.io/
+import logging
+logger = logging.getLogger(__name__)
 
+### Personalidade metarec https://metareciclagem.github.io/
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-
 from plugins.personalidades.default import (
     info,
     start,

@@ -15,8 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-### Personalidade padrão do @mate_obot
+import logging
+logger = logging.getLogger(__name__)
 
+### Personalidade padrão do @mate_obot
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,

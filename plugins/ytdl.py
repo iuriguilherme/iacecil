@@ -15,7 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging, os, random, validators, youtube_dl
+import logging
+logger = logging.getLogger(__name__)
+
+import os, random, validators, youtube_dl
 from aiogram.utils.markdown import escape_md, pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,

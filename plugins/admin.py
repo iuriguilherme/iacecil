@@ -15,7 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import BTrees, datetime, json, logging, pytz, transaction, ZODB
+import logging
+logger = logging.getLogger(__name__)
+
+import BTrees, datetime, json, pytz, transaction, ZODB
 from aiogram import (
     Dispatcher,
     filters,
@@ -182,7 +185,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 try:
                     db.close()
                 except Exception as exception:
-                    logging.warning(
+                    logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
                         repr(exception),
@@ -222,7 +225,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 try:
                     db.close()
                 except Exception as exception:
-                    logging.warning(
+                    logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
                         repr(exception),
@@ -260,7 +263,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 try:
                     db.close()
                 except Exception as exception:
-                    logging.warning(
+                    logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
                         repr(exception),
@@ -303,7 +306,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 try:
                     db.close()
                 except Exception as exception:
-                    logging.warning(
+                    logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
                         repr(exception),

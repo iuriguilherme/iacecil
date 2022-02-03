@@ -19,6 +19,9 @@
 ## welcome estava distribuído pelas personalidades e este plugin acabou
 ## se tornando várias linhas de código redundantes em todos eles.
 
+import logging
+logger = logging.getLogger(__name__)
+
 from aiogram import types
 from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (

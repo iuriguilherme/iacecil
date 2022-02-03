@@ -42,7 +42,7 @@ try:
         add_instance_handlers,
     )
 except Exception as e:
-    logging.warning("Não achei o arquivo: {}".format(e))
+    logger.warning("Não achei o arquivo: {}".format(e))
     from plugins.personalidades.pacume import random_texts
 
 async def start(message):
@@ -93,7 +93,7 @@ async def add_handlers(dispatcher):
     try:
         await add_instance_handlers(dispatcher)
     except Exception as e:
-        logging.warning("Não achei o arquivo: {}".format(e))
+        logger.warning("Não achei o arquivo: {}".format(e))
     # ~ ## Saúda com trollada
     # ~ @dispatcher.message_handler(
         # ~ filters.IDFilter(

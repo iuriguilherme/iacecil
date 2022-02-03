@@ -21,6 +21,8 @@
 #  
 
 import logging
+logger = logging.getLogger(__name__)
+
 from quart import (
     abort,
     Blueprint,
@@ -30,8 +32,6 @@ from quart import (
 )
 from jinja2 import TemplateNotFound
 from iacecil import name
-
-logger = logging.getLogger('blueprints.admin')
 
 blueprint = Blueprint('admin', 'admin')
 

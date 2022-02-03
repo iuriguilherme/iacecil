@@ -16,7 +16,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-logger = logging.getLogger('plugins.qr')
+logger = logging.getLogger(__name__)
+
 import os, pyqrcode, tempfile
 from aiogram.utils.markdown import pre
 from iacecil.controllers.aiogram_bot.callbacks import (

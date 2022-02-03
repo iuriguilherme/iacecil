@@ -20,10 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 
-### Logging
 import logging
-# ~ logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 ### Aiogram
@@ -126,11 +123,11 @@ async def add_handlers(dispatcher: Dispatcher):
         try:
             await plugin_welcome.add_handlers(dispatcher)
         except KeyError:
-            logging.warning(u"plugin welcome não configurado")
+            logger.warning(u"plugin welcome não configurado")
         try:
             await plugin_tropixel.add_handlers(dispatcher)
         except KeyError:
-            logging.warning(u"plugin tropixel não configurado")
+            logger.warning(u"plugin tropixel não configurado")
     if dispatcher.bot.info.get('personalidade') in [
         'cryptoforex',
         'iacecil',
@@ -138,7 +135,7 @@ async def add_handlers(dispatcher: Dispatcher):
         try:
             await plugin_cryptoforex.add_handlers(dispatcher)
         except KeyError:
-            logging.warning(u"plugin cryptoforex não configurado")
+            logger.warning(u"plugin cryptoforex não configurado")
     ## Plugins gerais
     await plugin_hashes.add_handlers(dispatcher)
     await plugin_matematica.add_handlers(dispatcher)
@@ -156,7 +153,7 @@ async def add_handlers(dispatcher: Dispatcher):
         try:
             await plugin_garimpo.add_handlers(dispatcher)
         except KeyError:
-            logging.warning(u"plugin garimpo não configurado")
+            logger.warning(u"plugin garimpo não configurado")
     ## Todas updates que não forem tratadas por handlers anteriores
     dispatcher.register_message_handler(
         any_message_callback,

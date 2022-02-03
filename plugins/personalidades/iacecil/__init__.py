@@ -15,15 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+logger = logging.getLogger(__name__)
+
 ### Personalidade fofa
-
 import random
-
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-
 from plugins.personalidades.default import start, help, welcome, info
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
