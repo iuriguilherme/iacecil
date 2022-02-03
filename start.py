@@ -21,7 +21,7 @@
 #  MA 02110-1301, USA.
 #  
 
-import iacecil, logger, sys, uvicorn
+import iacecil, logging, sys, uvicorn
 logger = logging.getLogger(iacecil.name)
 
 if __name__ == '__main__':
