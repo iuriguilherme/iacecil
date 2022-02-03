@@ -74,8 +74,7 @@ from iacecil.controllers.aiogram_bot.filters import (
     WhoJoinedFilter,
 )
 
-def aiogram_startup(config, names, log_level):
-    logging.getLogger(__name__).setLevel(getattr(logging, log_level))
+def aiogram_startup(config, names):
     logger.info(u"Starting up Aiogram...")
     dispatchers = list()
     for name in names:

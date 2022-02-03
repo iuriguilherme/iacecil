@@ -27,6 +27,9 @@ try:
         log_level = 'info'
         if len(sys.argv) > 1:
             log_level = sys.argv[1]
+        else:
+            logger.warning(u"""Logging level not informed, assuming {}\
+""".format(log_level))
         logging.basicConfig(level = getattr(logging, log_level.upper()))
         logger = logging.getLogger(iacecil.name)
         
@@ -40,54 +43,46 @@ try:
         canonical = None
         
         ### Args parsing
-        if len(sys.argv) > 1:
-            log_level = sys.argv[1]
-            logger.info(u"Setting LOG level to {}\
-            ".format(log_level))
-            if len(sys.argv) > 2:
-                mode = sys.argv[2]
-                logger.info(u"Setting operation MODE to {}".format(
-                    mode)
-                )
-                if len(sys.argv) > 3:
-                    bot = sys.argv[3]
-                    logger.info(u"""Using configuration from BOT "{}" f\
+        if len(sys.argv) > 2:
+            mode = sys.argv[2]
+            logger.info(u"Setting operation MODE to {}".format(
+                mode)
+            )
+            if len(sys.argv) > 3:
+                bot = sys.argv[3]
+                logger.info(u"""Using configuration from BOT "{}" f\
 rom config file.""".format(bot))
-                    if len(sys.argv) > 4:
-                        port = sys.argv[4]
-                        logger.info(u"Setting PORT to {}".format(port))
-                        if len(sys.argv) > 5:
-                            host = sys.argv[5]
-                            logger.info(u"Setting HOST to {}".format(
-                                host)
-                            )
-                            if len(sys.argv) > 6:
-                                reload = bool(sys.argv[6])
-                                logger.info(u"Setting RELOAD to {}\
-                                ".format(str(reload)))
-                                if len(sys.argv) > 7:
-                                    canonical = str(sys.argv[7])
-                                    logger.info(
-                                        u"Setting CANONICAL to {}\
-                                        ".format(str(canonical))
-                                    )
-                else:
-                    logger.warning(u"BOT name not informed, assuming {}\
-                        ".format(bot))
+                if len(sys.argv) > 4:
+                    port = sys.argv[4]
+                    logger.info(u"Setting PORT to {}".format(port))
+                    if len(sys.argv) > 5:
+                        host = sys.argv[5]
+                        logger.info(u"Setting HOST to {}".format(
+                            host)
+                        )
+                        if len(sys.argv) > 6:
+                            reload = bool(sys.argv[6])
+                            logger.info(u"Setting RELOAD to {}\
+                            ".format(str(reload)))
+                            if len(sys.argv) > 7:
+                                canonical = str(sys.argv[7])
+                                logger.info(
+                                    u"Setting CANONICAL to {}\
+                                    ".format(str(canonical))
+                                )
             else:
-                logger.warning(
-                    u"Operation MODE not informed, assuming {}".format(
-                        mode)
-                )
+                logger.warning(u"BOT name not informed, assuming {}\
+                    ".format(bot))
         else:
-            logger.warning(u"Logging level not informed, assuming {}\
-                ".format(log_level))
+            logger.warning(
+                u"Operation MODE not informed, assuming {}".format(
+                    mode)
+            )
         ### Running scripts
         if mode == 'quart':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','), log_level.upper())
-                setattr(app, 'log_level', log_level.upper())
+                app = iacecil.get_app(bot.split(','))
                 setattr(app, 'canonical', canonical)
                 uvicorn.run(
                     app,
@@ -104,8 +99,7 @@ rom config file.""".format(bot))
         elif mode == 'socket':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','), log_level.upper())
-                setattr(app, 'log_level', log_level.upper())
+                app = iacecil.get_app(bot.split(','))
                 setattr(app, 'canonical', canonical)
                 uvicorn.run(
                     app,
@@ -124,8 +118,7 @@ rom config file.""".format(bot))
         elif mode == 'block':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','), log_level.upper())
-                setattr(app, 'log_level', log_level.upper())
+                app = iacecil.get_app(bot.split(','))
                 setattr(app, 'canonical', canonical)
                 iacecil.run_app(app)
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
@@ -152,6 +145,7 @@ rom config file.""".format(bot))
                 raise
         else:
             logger.info(u"Wrong operation mode. RTFM will you please. Bye.")
-except:
+except Exception as exception:
     print(u"RTFM")
+    print(repr(exception))
     raise
