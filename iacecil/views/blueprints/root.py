@@ -20,7 +20,10 @@
 #  MA 02110-1301, USA.
 #  
 
-import BTrees, logging, glob, itertools, transaction, os, ZODB
+import logging
+logger = logging.getLogger(__name__)
+
+import BTrees, glob, transaction, ZODB
 from quart import (
     abort,
     Blueprint,
@@ -34,6 +37,8 @@ from quart import (
 from flask_wtf import FlaskForm
 from wtforms import (
     Form,
+    IntegerField,
+    SelectField,
     StringField,
     SubmitField,
     RadioField,
@@ -54,8 +59,11 @@ from iacecil.controllers.zodb_orm import (
     get_messages,
     get_bot_messages,
 )
+# ~ from iacecil.models import (
+    # ~ FormBot,
+    # ~ FormChat,
+# ~ )
 
-logger = logging.getLogger('blueprints.root')
 blueprint = Blueprint('root', 'index')
 
 _Auto = object()
@@ -122,14 +130,14 @@ async def send_message():
     ]
     class SendMessageForm(SubFlaskForm):
         bot_id_field = RadioField(
-            u"select bot id",
+            u"select bot",
             choices = bots,
         )
         chat_id_field = StringField(
-            u"select chat id",
+            u"type a valid chat_id",
         )
         text_field = TextAreaField(
-            u"Text",
+            u"message",
         )
         submit = SubmitField(u"Send")
     form = SendMessageForm(formdata = await request.form)
@@ -158,54 +166,45 @@ async def send_message():
         version = version,
     )
 
+async def get_chats(bot):
+    return [(1, '1'), (2, '2')]
+
 @blueprint.route("/updates", methods = ['GET', 'POST'])
 async def updates():
-    messages = [u"No messages to show"]
-    count = 0
+    messages = None
+    chats = None
+    count = {'total': 0, 'current': 0}
     bots = [
         {'select': (user['id'], user['first_name'])} for
         user in [await dispatcher.bot.get_me() for
         dispatcher in current_app.dispatchers]
     ]
-    for bot in bots:
-        chats = set([chat.strip('instance/zodb/').split('.')[
-            1] for chat in glob.glob('instance/zodb/{}.*.fs'.format(
-            bot['select'][0]))])
-        bot['chats'] = [(int(chat), str(chat)) for chat in chats]
-    # ~ logger.debug(list(itertools.chain([[
-            # ~ {
-                # ~ 'chat': (
-                    # ~ int(chat),
-                    # ~ str(chat),
-                # ~ ),
-                # ~ 'user': (
-                    # ~ user['id'],
-                    # ~ user['first_name'],
-                # ~ )
-            # ~ } for chat in [
-                # ~ chat.strip('instance/zodb/').split('.')[1] for chat in glob.glob(
-                    # ~ 'instance/zodb/{}.*.fs'.format(
-                        # ~ user['id']
-                    # ~ )
-                # ~ )
-            # ~ ]
-        # ~ ] for user in [
-            # ~ await dispatcher.bot.get_me() for dispatcher in current_app.dispatchers
-        # ~ ]]))
-    # ~ )
     class UpdatesForm(SubFlaskForm):
         bot_id_field = RadioField(
-            u"select bot id",
+            u"select bot",
             choices = [bot['select'] for bot in bots],
         )
-        ## TODO Use only this bot's chats
         chat_id_field = RadioField(
-            u"select chat id",
-            choices = set([(int(bot[0]), str(bot[0])) for bot in list(
-                itertools.chain(*[bot['chats'] for bot in bots]))]),
+            u"select chat",
+            choices = [],
+        )
+        limit_field = IntegerField(
+            'limit',
+            default = 30,
+        )
+        offset_field = IntegerField(
+            'offset',
+            default = 0,
         )
         submit = SubmitField(u"Send")
     form = UpdatesForm(formdata = await request.form)
+    if form['bot_id_field'].data:
+        chats = set([chat.strip('instance/zodb/').split('.')[1] \
+            for chat in glob.glob('instance/zodb/{}.*.fs'.format(
+            form['bot_id_field'].data))]
+        )
+        form['chat_id_field'].choices = [(int(chat), str(chat)) for \
+            chat in chats]
     if request.method == "POST":
         try:
             db = None
@@ -214,39 +213,34 @@ async def updates():
                     form['bot_id_field'].data,
                     form['chat_id_field'].data,
                 )
-                try:
-                    count = len(pms)
-                    messages = [{k:v for (k,v) in pm.items()
-                        } for pm in pms.values()]
-                    return await render_template(
-                        "updates.html",
-                        canonical = current_app.canonical,
-                        commit = commit,
-                        count = count,
-                        form = form,
-                        messages = messages,
-                        title = actual_name,
-                        version = version,
-                    )
-                except Exception as e1:
-                    await error_callback(
-                        u"Message NOT retrieved from database",
-                        message,
-                        e1,
-                        ['quart', 'root', 'updates', 'zodb',
-                            'exception'],
-                    )
-                    raise
-                finally:
+                if db and pms:
                     try:
-                        db.close()
-                    except Exception as e2:
-                        logger.warning(
-                            u"db was never created on {}: {}".format(
-                            __name__,
-                            repr(e2),
-                        ))
+                        count['total'] = len(pms)
+                        messages = [{k:v for (k,v) in pm.items()
+                            } for pm in pms.values()][
+                                form['offset_field'].data:form[
+                                'limit_field'].data+form['offset_field'
+                                ].data]
+                        count['current'] = len(messages)
+                    except Exception as e1:
+                        await error_callback(
+                            u"Message NOT retrieved from database",
+                            message,
+                            e1,
+                            ['quart', 'root', 'updates', 'zodb',
+                                'exception'],
+                        )
                         raise
+                    finally:
+                        try:
+                            db.close()
+                        except Exception as e2:
+                            logger.warning(
+                                u"db was never created on {}: {}".format(
+                                __name__,
+                                repr(e2),
+                            ))
+                            raise
             except Exception as e3:
                 await exception_callback(
                     e3,
@@ -260,6 +254,8 @@ async def updates():
         canonical = current_app.canonical,
         commit = commit,
         count = count,
+        bots = bots,
+        chats = chats,
         form = form,
         messages = messages,
         title = actual_name,

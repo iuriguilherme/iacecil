@@ -20,13 +20,16 @@
 #  MA 02110-1301, USA.
 #  
 
-import asyncio, json, logging, secrets
+import logging
+logger = logging.getLogger(__name__)
+
+import asyncio, json, secrets
 from quart import (
     Quart,
     current_app,
+    flask_patch,
     jsonify,
     render_template,
-    # ~ websocket,
 )
 from aiogram import (
     Bot,
@@ -41,11 +44,6 @@ from iacecil.views.blueprints import (
     admin,
     root,
 )
-# ~ from functools import partial, wraps
-
-# ~ logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 async def add_blueprints():
     current_app.register_blueprint(
@@ -86,7 +84,7 @@ def quart_startup(dispatchers):
                     disable_notification = True,
                 )
             except Exception as e:
-                logging.critical(u"logs not configured properly: {}\
+                logger.critical(u"logs not configured properly: {}\
                 ".format(e))
                 raise
         loop.create_task(add_blueprints())
@@ -101,7 +99,7 @@ def quart_startup(dispatchers):
                     disable_notification = True,
                 )
             except Exception as e:
-                logging.critical(u"logs not configured properly: {}\
+                logger.critical(u"logs not configured properly: {}\
                 ".format(e))
                 raise
     return quart_app

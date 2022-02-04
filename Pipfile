@@ -16,7 +16,7 @@ brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #fastapi = {extras = ["all"], version = "*"}
 #flair = "*"
 #flask = "*"
-flask-sqlalchemy = "*"
+#flask-sqlalchemy = "*"
 flask-wtf = "*"
 #flup = "*"
 #gunicorn = "*"

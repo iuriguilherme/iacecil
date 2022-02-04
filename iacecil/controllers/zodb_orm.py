@@ -29,50 +29,56 @@ from aiogram import (
 )
 
 async def get_messages(chat_id):
-    dispatcher = Dispatcher.get_current()
-    try:
-        storage = ZODB.FileStorage.FileStorage(
-            'instance/zodb/{}.{}.fs'.format(
-            dispatcher.bot.id,
-            chat_id,
-        ))
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
+    if chat_id is not None:
+        dispatcher = Dispatcher.get_current()
         try:
-            connection = db.open()
-            root = connection.root
-            pms = None
+            storage = ZODB.FileStorage.FileStorage(
+                'instance/zodb/{}.{}.fs'.format(
+                dispatcher.bot.id,
+                chat_id,
+            ))
+            compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+            db = ZODB.DB(compressed_storage)
             try:
-                pms = root.messages
-            except AttributeError:
-                root.messages = BTrees.IOBTree.IOBTree()
-                pms = root.messages
-            return db, pms
+                connection = db.open()
+                root = connection.root
+                pms = None
+                try:
+                    pms = root.messages
+                except AttributeError:
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
+                return db, pms
+            except:
+                raise
         except:
             raise
-    except:
-        raise
+    else:
+        return False, False
 
 async def get_bot_messages(bot_id, chat_id):
-    try:
-        storage = ZODB.FileStorage.FileStorage(
-            'instance/zodb/{}.{}.fs'.format(
-            bot_id,
-            chat_id,
-        ))
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
+    if bot_id is not None and chat_id is not None:
         try:
-            connection = db.open()
-            root = connection.root
-            pms = None
+            storage = ZODB.FileStorage.FileStorage(
+                'instance/zodb/{}.{}.fs'.format(
+                bot_id,
+                chat_id,
+            ))
+            compressed_storage = zc.zlibstorage.ZlibStorage(storage)
+            db = ZODB.DB(compressed_storage)
             try:
-                pms = root.messages
-            except AttributeError:
-                root.messages = BTrees.IOBTree.IOBTree()
-                pms = root.messages
-            return db, pms
+                connection = db.open()
+                root = connection.root
+                pms = None
+                try:
+                    pms = root.messages
+                except AttributeError:
+                    root.messages = BTrees.IOBTree.IOBTree()
+                    pms = root.messages
+                return db, pms
+            except:
+                raise
         except:
             raise
-    except:
-        raise
+    else:
+        return False, False

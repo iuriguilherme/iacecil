@@ -4,12 +4,6 @@
 <p>Make sure you have the correct user id, deleting messages is <b>not</b> yet implemented.</p>
 <hr>
 <form action="" method="post">
-<!--
-    <p>bot_id: <input type="text" size="30" name="bot_id">
-    <p>chat_id: <input type="text" size="30" name="chat_id">
-    <p>text: <textarea name="text" rows="5" cols="40"></textarea>
-    <p><input type="submit" value="Send">
--->
     {% for subfield in form.bot_id_field %}
         <div class="form-check">
         {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
@@ -22,7 +16,7 @@
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
     </p>
-    <p>{{ form.text_field }}</p>
+    <p>{{ form.text_field.label }}<br />{{ form.text_field }}</p>
     <p>{{ form.submit(class="btn btn-primary") }}</p>
     </dl>
 </form>

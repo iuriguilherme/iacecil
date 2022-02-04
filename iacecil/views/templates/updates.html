@@ -19,8 +19,8 @@
     {% for error in form.bot_id_field.errors %}
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
+    {% if chats %}
     <p>
-    {% if form.bot_id_field %}
     {{ form.chat_id_field.label }}<br>
     {% for subfield in form.chat_id_field %}
         <div class="form-check">
@@ -30,14 +30,20 @@
     {% for error in form.chat_id_field.errors %}
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
-    {% endif %}
     </p>
-    <p>{{ form.submit(class="btn btn-primary") }}</p>
+    {% endif %}
+    <p>{{ form.limit_field.label }}<br>{{ form.limit_field }}</p>
+    <p>{{ form.offset_field.label }}<br>{{ form.offset_field }}</p>
+    <p>{{ form.submit(class="btn btn-warning") }}</p>
     </dl>
 </form>
 <hr>
 {% if messages %}
-<h3>Last {{ count }} messages:</h3>
+<h4>bot {{ form.bot_id_field.data }}</h4>
+<h4>chat {{ form.chat_id_field.data }}</h4>
+<h4>limit {{ form.limit_field.data }}</h4>
+<h4>offset {{ form.offset_field.data }}</h4>
+<h3>Last {{ count['current'] }} messages of {{ count['total'] }}:</h3>
 <ul>
 {% for message in messages %}
 <li><pre>{{ message }}</pre></li>
