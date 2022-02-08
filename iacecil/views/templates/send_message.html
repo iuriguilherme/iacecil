@@ -9,21 +9,70 @@
         {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
         </div>
     {% endfor %}
-    <p>
-    {{ form.chat_id_field.label }}<br>
-    {{ form.chat_id_field(size=5, placeholder = form.chat_id_field.description) }}<br>
-    {% for error in form.chat_id_field.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-    {% endfor %}
-    </p>
-    <p>{{ form.text_field.label }}<br />{{ form.text_field }}</p>
-    <p>{{ form.submit(class="btn btn-primary") }}</p>
+    {% if form.bot_id_field.data %}
+        <p>
+        {{ form.chat_id_field.label }}<br>
+        {{ form.chat_id_field(size=5, placeholder = form.chat_id_field.description) }}<br>
+        {% for error in form.chat_id_field.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+        </p>
+        <p>{{ form.text_field.label }}<br />{{ form.text_field }}</p>
+    {% endif %}
+    <p>{{ form.submit(class="btn btn-warning") }}</p>
     </dl>
 </form>
 <hr>
 {% if message %}
 <h3>Last message:</h3>
-<pre>{{ message }}</pre>
+<div class="container">
+<div class="row">
+<div class="col">
+<div class="card bg-warning text-dark mb-3 shadow-sm">
+<div class="card-body">
+<table class="table table-striped">
+<tbody>
+{% for item in message.items() %}
+    {% if item[0] in ['from', 'chat'] %}
+        <tr>
+        <td>
+        <div class="container">
+        <div class="row">
+        <div class="col">
+        <div class="card bg-info text-dark mb-3 shadow-sm">
+        <div class="card-header">{{ item[0] }}</div>
+        <div class="card-body">
+        <table class="table table-striped">
+        <tbody>
+        {% for subitem in item[1].items() %}
+            <tr>
+                <td>{{ subitem[0] }}</td>
+                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </div> <!-- card-body -->
+        </div> <!-- card -->
+        </div> <!-- col -->
+        </div> <!-- row -->
+        </div> <!-- container -->
+        </td>
+        </tr>
+    {% else %}
+        <tr>
+        <td>{{ item[0] }}</td>
+        <td><span class="badge bg-dark text-light text-wrap text-break">{{ item[1] }}</span></td>
+        </tr>
+    {% endif %}
+{% endfor %}
+</tbody>
+</table>
+</div> <!-- card-body -->
+</div> <!-- card -->
+</div> <!-- col -->
+</div> <!-- row -->
+</div> <!-- container -->
 <hr>
 {% endif %}
 <p>&nbsp;</p>

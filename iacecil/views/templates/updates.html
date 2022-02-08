@@ -4,12 +4,6 @@
 <p>Select bot and group from lists</p>
 <hr>
 <form action="" method="post">
-<!--
-    <p>bot_id: <input type="text" size="30" name="bot_id">
-    <p>chat_id: <input type="text" size="30" name="chat_id">
-    <p>text: <textarea name="text" rows="5" cols="40"></textarea>
-    <p><input type="submit" value="Send">
--->
     {{ form.bot_id_field.label }}<br>
     {% for subfield in form.bot_id_field %}
         <div class="form-check">
@@ -20,22 +14,21 @@
         <span style="color: red;">[{{ error }}]</span>
     {% endfor %}
     {% if chats %}
-    <p>
-    {{ form.chat_id_field.label }}<br>
-    {% for subfield in form.chat_id_field %}
-        <div class="form-check">
-        {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
-        </div>
-    {% endfor %}
-    {% for error in form.chat_id_field.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-    {% endfor %}
-    </p>
+        <p>
+        {{ form.chat_id_field.label }}<br>
+        {% for subfield in form.chat_id_field %}
+            <div class="form-check">
+            {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+            </div>
+        {% endfor %}
+        {% for error in form.chat_id_field.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+        </p>
+        <p>{{ form.limit_field.label }}<br>{{ form.limit_field }}</p>
+        <p>{{ form.offset_field.label }}<br>{{ form.offset_field }}</p>
     {% endif %}
-    <p>{{ form.limit_field.label }}<br>{{ form.limit_field }}</p>
-    <p>{{ form.offset_field.label }}<br>{{ form.offset_field }}</p>
     <p>{{ form.submit(class="btn btn-warning") }}</p>
-    </dl>
 </form>
 <hr>
 {% if messages %}
@@ -43,7 +36,8 @@
 <h4>chat {{ form.chat_id_field.data }}</h4>
 <h4>limit {{ form.limit_field.data }}</h4>
 <h4>offset {{ form.offset_field.data }}</h4>
-<h3>Last {{ count['current'] }} messages of {{ count['total'] }}:</h3>
+<h3>Last {{ count['current'] }} messages out of {{ count['total'] }}:</h3>
+<hr>
 <div class="container">
 <div class="row">
 {% for message in messages %}
@@ -80,7 +74,7 @@
                 {% for subsubitem in subitem[1].items() %}
                     <tr>
                         <td>{{ subsubitem[0] }}</td>
-                        <td><span class="badge bg-dark text-light text-wrap">{{ subsubitem[1] }}</span></td>
+                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -107,9 +101,35 @@
                     {% for subsubsubitem in subsubitem.items() %}
                         <tr>
                         <td>{{ subsubsubitem[0] }}</td>
-                        <td><span class="badge bg-dark text-light text-wrap">{{ subsubsubitem[1] }}</span></td>
+                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubsubitem[1] }}</span></td>
                         </tr>
                     {% endfor %}
+                {% endfor %}
+                </tbody>
+                </table>
+                </div> <!-- card-body -->
+                </div> <!-- card -->
+                </div> <!-- col -->
+                </div> <!-- row -->
+                </div> <!-- container -->
+                </td>
+                </tr>
+            {% elif subitem[0] in ['forward_from'] %}
+                <tr>
+                <td>
+                <div class="container">
+                <div class="row">
+                <div class="col">
+                <div class="card bg-success text-dark mb-3 shadow-sm">
+                <div class="card-header">{{ subitem[0] }}</div>
+                <div class="card-body">
+                <table class="table table-striped">
+                <tbody>
+                {% for subsubitem in subitem[1].items() %}
+                    <tr>
+                        <td>{{ subsubitem[0] }}</td>
+                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
+                    </tr>
                 {% endfor %}
                 </tbody>
                 </table>
@@ -123,7 +143,7 @@
             {% else %}
                 <tr>
                     <td>{{ subitem[0] }}</td>
-                    <td><span class="badge bg-dark text-light text-wrap">{{ subitem[1] }}</span></td>
+                    <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
                 </tr>
             {% endif %}
         {% endfor %}
@@ -136,7 +156,7 @@
         </div> <!-- container -->
         </td>
         </tr>
-    {% elif item[0] in ['entities', 'photo'] %}
+    {% elif item[0] in ['entities', 'photo', 'new_chat_members'] %}
         <tr>
         <td>
         <div class="container">
@@ -147,14 +167,39 @@
         <div class="card-body">
         <table class="table table-striped">
         <tbody>
-        <tr><td>{{ item[0] }}</td></tr>
         {% for subitem in item[1] %}
             {% for subsubitem in subitem.items() %}
                 <tr>
                 <td>{{ subsubitem[0] }}</td>
-                <td><span class="badge bg-dark text-light text-wrap">{{ subsubitem[1] }}</span></td>
+                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
                 </tr>
             {% endfor %}
+        {% endfor %}
+        </tbody>
+        </table>
+        </div> <!-- card-body -->
+        </div> <!-- card -->
+        </div> <!-- col -->
+        </div> <!-- row -->
+        </div> <!-- container -->
+        </td>
+        </tr>
+    {% elif item[0] in ['forward_from', 'left_chat_member', 'left_chat_participant', 'new_chat_member', 'new_chat_participant'] %}
+        <tr>
+        <td>
+        <div class="container">
+        <div class="row">
+        <div class="col">
+        <div class="card bg-info text-dark mb-3 shadow-sm">
+        <div class="card-header">{{ item[0] }}</div>
+        <div class="card-body">
+        <table class="table table-striped">
+        <tbody>
+        {% for subitem in item[1].items() %}
+            <tr>
+                <td>{{ subitem[0] }}</td>
+                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
+            </tr>
         {% endfor %}
         </tbody>
         </table>
@@ -168,7 +213,7 @@
     {% else %}
         <tr>
         <td>{{ item[0] }}</td>
-        <td><span class="badge bg-dark text-light text-wrap">{{ item[1] }}</span></td>
+        <td><span class="badge bg-dark text-light text-wrap text-break">{{ item[1] }}</span></td>
         </tr>
     {% endif %}
 
@@ -181,7 +226,6 @@
 {% endfor %}
 </div> <!-- row -->
 </div> <!-- container -->
-<hr>
 {% else %}
 <p>No messages&excl;</p>
 {% endif %}

@@ -43,16 +43,23 @@ from iacecil.controllers.aiogram_bot import (
 from iacecil.views.blueprints import (
     admin,
     root,
+    updates,
 )
 
 async def add_blueprints():
     current_app.register_blueprint(
         root.blueprint,
         url_prefix = '/',
+        static_folder = '../views/static',
     )
     current_app.register_blueprint(
         admin.blueprint,
         url_prefix = '/admin',
+    )
+    current_app.register_blueprint(
+        updates.blueprint,
+        url_prefix = '/updates',
+        static_folder = '../views/static',
     )
 
 def quart_startup(dispatchers):

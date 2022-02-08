@@ -135,9 +135,11 @@ async def send_message():
         )
         chat_id_field = StringField(
             u"type a valid chat_id",
+            default = 1,
         )
         text_field = TextAreaField(
             u"message",
+            default = u"Nada",
         )
         submit = SubmitField(u"Send")
     form = SendMessageForm(formdata = await request.form)
@@ -154,113 +156,110 @@ async def send_message():
                 text = str(form['text_field'].data),
                 parse_mode = None,
             )
-        except Exception as e:
-            return jsonify(repr(e))
+        except Exception as exception:
+            return jsonify(repr(exception))
     return await render_template(
         "send_message.html",
         canonical = current_app.canonical,
         commit = commit,
         form = form,
-        message = message,
+        message = message.to_python() or None,
         title = actual_name,
         version = version,
     )
 
-async def get_chats(bot):
-    return [(1, '1'), (2, '2')]
-
-@blueprint.route("/updates", methods = ['GET', 'POST'])
-async def updates():
-    messages = None
-    chats = None
-    count = {'total': 0, 'current': 0}
-    bots = [
-        {'select': (user['id'], user['first_name'])} for
-        user in [await dispatcher.bot.get_me() for
-        dispatcher in current_app.dispatchers]
-    ]
-    class UpdatesForm(SubFlaskForm):
-        bot_id_field = RadioField(
-            u"select bot",
-            choices = [bot['select'] for bot in bots],
-        )
-        chat_id_field = RadioField(
-            u"select chat",
-            choices = [],
-        )
-        limit_field = IntegerField(
-            'limit',
-            default = 30,
-        )
-        offset_field = IntegerField(
-            'offset',
-            default = 0,
-        )
-        submit = SubmitField(u"Send")
-    form = UpdatesForm(formdata = await request.form)
-    if form['bot_id_field'].data:
-        chats = set([chat.strip('instance/zodb/').split('.')[1] \
-            for chat in glob.glob('instance/zodb/{}.*.fs'.format(
-            form['bot_id_field'].data))]
-        )
-        form['chat_id_field'].choices = [(int(chat), str(chat)) for \
-            chat in chats]
-    if request.method == "POST":
-        try:
-            db = None
-            try:
-                db, pms = await get_bot_messages(
-                    form['bot_id_field'].data,
-                    form['chat_id_field'].data,
-                )
-                if db and pms:
-                    try:
-                        count['total'] = len(pms)
-                        messages = [{k:v for (k,v) in pm.items()
-                            } for pm in pms.values()][
-                                form['offset_field'].data:form[
-                                'limit_field'].data+form['offset_field'
-                                ].data]
-                        count['current'] = len(messages)
-                    except Exception as e1:
-                        await error_callback(
-                            u"Message NOT retrieved from database",
-                            message,
-                            e1,
-                            ['quart', 'root', 'updates', 'zodb',
-                                'exception'],
-                        )
-                        raise
-                    finally:
-                        try:
-                            db.close()
-                        except Exception as e2:
-                            logger.warning(
-                                u"db was never created on {}: {}".format(
-                                __name__,
-                                repr(e2),
-                            ))
-                            raise
-            except Exception as e3:
-                await exception_callback(
-                    e3,
-                    ['quart', 'root', 'updates', 'zodb'],
-                )
-                raise
-        except Exception as exception:
-            return jsonify(repr(exception))
-    return await render_template(
-        "updates.html",
-        canonical = current_app.canonical,
-        commit = commit,
-        count = count,
-        bots = bots,
-        chats = chats,
-        form = form,
-        messages = messages,
-        title = actual_name,
-        version = version,
-    )
+# ~ @blueprint.route("/updates", methods = ['GET', 'POST'])
+# ~ async def updates():
+    # ~ messages = None
+    # ~ chats = None
+    # ~ count = {'total': 0, 'current': 0}
+    # ~ bots = [
+        # ~ {'select': (user['id'], user['first_name'])} for
+        # ~ user in [await dispatcher.bot.get_me() for
+        # ~ dispatcher in current_app.dispatchers]
+    # ~ ]
+    # ~ class UpdatesForm(SubFlaskForm):
+        # ~ bot_id_field = RadioField(
+            # ~ u"select bot",
+            # ~ choices = [bot['select'] for bot in bots],
+        # ~ )
+        # ~ chat_id_field = RadioField(
+            # ~ u"select chat",
+            # ~ choices = [],
+        # ~ )
+        # ~ limit_field = IntegerField(
+            # ~ 'limit',
+            # ~ default = 30,
+        # ~ )
+        # ~ offset_field = IntegerField(
+            # ~ 'offset',
+            # ~ default = 0,
+        # ~ )
+        # ~ submit = SubmitField(u"Send")
+    # ~ form = UpdatesForm(formdata = await request.form)
+    # ~ if form['bot_id_field'].data:
+        # ~ chats = set([chat.strip('instance/zodb/').split('.')[1] \
+            # ~ for chat in glob.glob('instance/zodb/{}.*.fs'.format(
+            # ~ form['bot_id_field'].data))]
+        # ~ )
+        # ~ form['chat_id_field'].choices = [(int(chat), str(chat)) for \
+            # ~ chat in chats]
+    # ~ if request.method == "POST":
+        # ~ try:
+            # ~ db = None
+            # ~ try:
+                # ~ db, pms = await get_bot_messages(
+                    # ~ form['bot_id_field'].data,
+                    # ~ form['chat_id_field'].data,
+                # ~ )
+                # ~ if db and pms:
+                    # ~ try:
+                        # ~ count['total'] = len(pms)
+                        # ~ messages = [{k:v for (k,v) in pm.items()
+                            # ~ } for pm in pms.values()][
+                                # ~ form['offset_field'].data:form[
+                                # ~ 'limit_field'].data+form['offset_field'
+                                # ~ ].data]
+                        # ~ count['current'] = len(messages)
+                    # ~ except Exception as e1:
+                        # ~ await error_callback(
+                            # ~ u"Message NOT retrieved from database",
+                            # ~ message,
+                            # ~ e1,
+                            # ~ ['quart', 'root', 'updates', 'zodb',
+                                # ~ 'exception'],
+                        # ~ )
+                        # ~ raise
+                    # ~ finally:
+                        # ~ try:
+                            # ~ db.close()
+                        # ~ except Exception as e2:
+                            # ~ logger.warning(
+                                # ~ u"db was never created on {}: {}".format(
+                                # ~ __name__,
+                                # ~ repr(e2),
+                            # ~ ))
+                            # ~ raise
+            # ~ except Exception as e3:
+                # ~ await exception_callback(
+                    # ~ e3,
+                    # ~ ['quart', 'root', 'updates', 'zodb'],
+                # ~ )
+                # ~ raise
+        # ~ except Exception as exception:
+            # ~ return jsonify(repr(exception))
+    # ~ return await render_template(
+        # ~ "updates.html",
+        # ~ canonical = current_app.canonical,
+        # ~ commit = commit,
+        # ~ count = count,
+        # ~ bots = bots,
+        # ~ chats = chats,
+        # ~ form = form,
+        # ~ messages = messages,
+        # ~ title = actual_name,
+        # ~ version = version,
+    # ~ )
 
 # ~ @blueprint.websocket("/ws")
 # ~ async def ws():

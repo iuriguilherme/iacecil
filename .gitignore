@@ -35,3 +35,4 @@ instance/
 *.cfg
 *.csv
 *.db
+*.rdb
