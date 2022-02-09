@@ -68,7 +68,13 @@ class IACecilBot(Bot):
             logger.info(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
-            return await function(*args, **kwargs)
+            return await self.exception_handler(
+                function,
+                function_name,
+                super_function,
+                *args,
+                **kwargs,
+            )
         except exceptions.BotKicked as exception:
             if kwargs['chat_id'] in [
                 self.users['special']['debug'],
