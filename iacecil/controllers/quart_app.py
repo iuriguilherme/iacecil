@@ -43,30 +43,25 @@ from iacecil.controllers.aiogram_bot import (
 from iacecil.views.blueprints import (
     admin,
     root,
-    updates,
 )
 
 async def add_blueprints():
     current_app.register_blueprint(
         root.blueprint,
         url_prefix = '/',
-        static_folder = '../views/static',
     )
+    logging.debug(root.blueprint.template_folder)
     current_app.register_blueprint(
         admin.blueprint,
         url_prefix = '/admin',
     )
-    current_app.register_blueprint(
-        updates.blueprint,
-        url_prefix = '/updates',
-        static_folder = '../views/static',
-    )
+
 
 def quart_startup(dispatchers):
     quart_app = Quart(
         __name__,
-        template_folder = '../views/templates',
-        static_folder = '../views/static',
+        # ~ template_folder = '../views/templates',
+        # ~ static_folder = '../views/static',
     )
     quart_app.secret_key = secrets.token_urlsafe(32)
     @quart_app.before_serving

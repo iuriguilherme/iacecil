@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 import BTrees, glob, json, transaction, ZODB
 from quart import (
     abort,
-    Blueprint,
     current_app,
     flash,
     jsonify,
@@ -37,8 +36,11 @@ from flask_wtf import FlaskForm
 from wtforms import (
     Form,
     IntegerField,
+    SelectField,
+    StringField,
     SubmitField,
     RadioField,
+    TextAreaField,
 )
 from jinja2 import TemplateNotFound
 from iacecil import (
@@ -55,15 +57,12 @@ from iacecil.controllers.zodb_orm import (
     get_bot_messages,
 )
 
-blueprint = Blueprint('updates', 'index')
-
 _Auto = object()
 class SubFlaskForm(Form):
     def __init__(self, formdata = _Auto, **kwargs):
         super().__init__(formdata = formdata, **kwargs)
 
-@blueprint.route("/", methods = ['GET', 'POST'])
-async def index():
+async def updates():
     messages = None
     chats = None
     count = {'total': 0, 'current': 0}
@@ -165,6 +164,53 @@ async def index():
         chats = chats,
         form = form,
         messages = messages,
+        title = actual_name,
+        version = version,
+    )
+
+async def send_message():
+    message = None
+    bots = [
+        (user['id'], user['first_name']) for
+        user in [await dispatcher.bot.get_me() for
+        dispatcher in current_app.dispatchers]
+    ]
+    class SendMessageForm(SubFlaskForm):
+        bot_id_field = RadioField(
+            u"select bot",
+            choices = bots,
+        )
+        chat_id_field = StringField(
+            u"type a valid chat_id",
+            default = 1,
+        )
+        text_field = TextAreaField(
+            u"message",
+            default = u"Nada",
+        )
+        submit = SubmitField(u"Send")
+    form = SendMessageForm(formdata = await request.form)
+    if request.method == "POST":
+        try:
+            # ~ form = await request.form
+            dispatcher = [dispatcher for 
+                dispatcher in current_app.dispatchers if 
+                int(form['bot_id_field'].data) == int((
+                await dispatcher.bot.get_me())['id'])
+            ][0]
+            message = await dispatcher.bot.send_message(
+                chat_id = int(form['chat_id_field'].data),
+                text = str(form['text_field'].data),
+                parse_mode = None,
+            )
+        except Exception as exception:
+            return jsonify(repr(exception))
+    return await render_template(
+        "send_message.html",
+        canonical = current_app.canonical,
+        commit = commit,
+        form = form,
+        message = message,
         title = actual_name,
         version = version,
     )
