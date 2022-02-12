@@ -48,10 +48,6 @@ from iacecil import (
     commit,
     version,
 )
-from iacecil.controllers.aiogram_bot.callbacks import (
-    error_callback,
-    exception_callback,
-)
 from iacecil.controllers.zodb_orm import (
     get_messages,
     get_bot_messages,
@@ -122,36 +118,32 @@ async def show_updates():
                 if db and pms:
                     try:
                         count['total'] = len(pms)
+                        offset = None
+                        limit = None
+                        if form['limit_field'].data > 0:
+                            limit = -(1+form['limit_field'].data+form[
+                                'offset_field'].data)
+                        if form['offset_field'].data > 0:
+                            offset = -(1+form['offset_field'].data)
+                            limit = limit + 1
                         messages = [{k:v for (k,v) in pm.items()
-                            } for pm in pms.values()][
-                                form['offset_field'].data:form[
-                                'limit_field'].data+form['offset_field'
-                                ].data]
+                            } for pm in pms.values()][offset:limit:-1]
                         count['current'] = len(messages)
+                        logger.debug(messages)
                     except Exception as e1:
-                        await error_callback(
+                        logger.warning(
                             u"Message NOT retrieved from database",
-                            message,
-                            e1,
-                            ['quart', 'updates', 'index', 'zodb',
-                                'exception'],
                         )
                         raise
                     finally:
                         try:
                             db.close()
                         except Exception as e2:
-                            logger.warning(
-                                u"db was never created on {}: {}".format(
-                                __name__,
-                                repr(e2),
-                            ))
+                            logger.warning(u"""db was never created on \
+{}: {}""".format(__name__, repr(e2)))
                             raise
             except Exception as e3:
-                await exception_callback(
-                    e3,
-                    ['quart', 'updates', 'index', 'zodb'],
-                )
+                logger.warning(repr(e3))
                 raise
         except Exception as exception:
             return jsonify(repr(exception))
