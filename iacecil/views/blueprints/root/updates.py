@@ -94,10 +94,17 @@ async def show_updates():
                 1] for chat in glob.glob('instance/zodb/{}.*.fs'.format(
                 form['bot_id_field'].data))]
             )
-            chats_info = [chat_object for chat_object in [
-                await bot_current.get_chat(chat_id) for chat_id in \
-                chats_list]
-            ]
+            chats_info = list()
+            for chat_id in chats_list:
+                try:
+                    chats_info.append(
+                        await bot_current.get_chat(chat_id)
+                    )
+                except:
+                    chats_info.append({
+                        'id': chat_id,
+                        'title': u"Unknown",
+                    })
             chats = [{'id': chat['id'], 'desc': chat['title']
                 } if chat['title'
                 ] is not None else {'id': chat['id'], 'desc': chat[
