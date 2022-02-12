@@ -62,7 +62,7 @@ class SubFlaskForm(Form):
     def __init__(self, formdata = _Auto, **kwargs):
         super().__init__(formdata = formdata, **kwargs)
 
-async def updates():
+async def show_updates():
     messages = None
     chats = None
     count = {'total': 0, 'current': 0}

@@ -47,7 +47,7 @@ from iacecil.controllers.zodb_orm import (
     get_bot_messages,
 )
 from iacecil.views.blueprints.root.updates import (
-    updates,
+    show_updates,
     send_message,
 )
 
@@ -59,8 +59,8 @@ blueprint = Blueprint(
 )
 blueprint.add_url_rule(
     '/updates',
-    'updates',
-    updates,
+    'show_updates',
+    show_updates,
     methods = ['GET', 'POST'],
 )
 blueprint.add_url_rule(

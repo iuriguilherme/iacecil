@@ -50,7 +50,6 @@ async def add_blueprints():
         root.blueprint,
         url_prefix = '/',
     )
-    logging.debug(root.blueprint.template_folder)
     current_app.register_blueprint(
         admin.blueprint,
         url_prefix = '/admin',
@@ -61,7 +60,7 @@ def quart_startup(dispatchers):
     quart_app = Quart(
         __name__,
         # ~ template_folder = '../views/templates',
-        # ~ static_folder = '../views/static',
+        static_folder = '../views/blueprints/root/static',
     )
     quart_app.secret_key = secrets.token_urlsafe(32)
     @quart_app.before_serving
