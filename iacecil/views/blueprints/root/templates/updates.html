@@ -184,7 +184,7 @@
         </div> <!-- container -->
         </td>
         </tr>
-    {% elif item[0] in ['forward_from', 'left_chat_member', 'left_chat_participant', 'new_chat_member', 'new_chat_participant'] %}
+    {% elif item[0] in ['forward_from', 'left_chat_member', 'left_chat_participant', 'new_chat_member', 'new_chat_participant', 'via_bot', 'reply_markup', 'voice'] %}
         <tr>
         <td>
         <div class="container">
@@ -196,10 +196,42 @@
         <table class="table table-striped">
         <tbody>
         {% for subitem in item[1].items() %}
+            {% if subitem[0] in ['inline_keyboard'] %}
+                <tr>
+                <td>
+                <div class="container">
+                <div class="row">
+                <div class="col">
+                <div class="card bg-success text-dark mb-3 shadow-sm">
+                <div class="card-header">{{ subitem[0] }}</div>
+                <div class="card-body">
+                <table class="table table-striped">
+                <tbody>
+                {% for subsubitem in subitem[1] %}
+                    {% for subsubsubitem in subsubitem %}
+                        {% for subsubsubsubitem in subsubsubitem.items() %}
+                            <tr>
+                                <td>{{ subsubsubsubitem[0] }}</td>
+                                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubsubsubitem[1] }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+                </table>
+                </div> <!-- card-body -->
+                </div> <!-- card -->
+                </div> <!-- col -->
+                </div> <!-- row -->
+                </div> <!-- container -->
+                </td>
+                </tr>
+            {% else %}
             <tr>
                 <td>{{ subitem[0] }}</td>
                 <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
             </tr>
+            {% endif %}
         {% endfor %}
         </tbody>
         </table>
