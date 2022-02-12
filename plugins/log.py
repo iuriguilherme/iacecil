@@ -170,19 +170,19 @@ async def exception_logger(
     exception: Exception = None,
     descriptions: list = 'error',
 ):
-    dispatcher = Dispatcher.get_current()
-    bot = dispatcher.bot
-    text = list()
-    text.append(
-        u" ".join([
-            u" ".join([escape_md("#" + d) for d in descriptions]),
-        ])
-    )
-    text.append('')
-    text.append(pre(json.dumps(repr(exception), indent = 2,
-        ensure_ascii = False))
-    )
     try:
+        dispatcher = Dispatcher.get_current()
+        bot = dispatcher.bot
+        text = list()
+        text.append(
+            u" ".join([
+                u" ".join([escape_md("#" + d) for d in descriptions]),
+            ])
+        )
+        text.append('')
+        text.append(pre(json.dumps(repr(exception), indent = 2,
+            ensure_ascii = False))
+        )
         await bot.send_message(
             chat_id = bot.users['special']['debug'],
             text = '\n'.join(text),
