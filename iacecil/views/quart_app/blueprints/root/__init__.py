@@ -46,28 +46,33 @@ from iacecil.controllers.zodb_orm import (
     get_messages,
     get_bot_messages,
 )
-from iacecil.views.blueprints.root.updates import (
-    show_updates,
+from iacecil.views.quart_app.blueprints.root.routes import (
+    updates,
     send_message,
+    status,
 )
 
 blueprint = Blueprint(
     'root',
-    __name__,
-    static_folder = 'static',
-    template_folder = 'templates',
+    'root',
 )
 blueprint.add_url_rule(
-    '/updates',
-    'show_updates',
-    show_updates,
+    '/updates/',
+    'updates',
+    updates,
     methods = ['GET', 'POST'],
 )
 blueprint.add_url_rule(
-    '/send_message',
+    '/send_message/',
     'send_message',
     send_message,
     methods = ['GET', 'POST'],
+)
+blueprint.add_url_rule(
+    '/status/',
+    'status',
+    status,
+    methods = ['GET'],
 )
 
 @blueprint.route('/', defaults={'page': 'index'})
@@ -83,24 +88,3 @@ async def show(page):
     except TemplateNotFound as e:
         logger.warning(u"Template not found for {}".format(str(page)))
         await abort(404)
-
-@blueprint.route("/status")
-async def status():
-    users = [{
-        'user': await dispatcher.bot.get_me(),
-        'status': dispatcher.is_polling(),
-    } for dispatcher in current_app.dispatchers]
-    names = [user['user']['first_name'] for user in users]
-    await flash(
-        u"Total configured bots: {0}\nTotal running bots: {1}".format(
-            len(users),
-            len([user['status'] for user in users if user['status']]),
-        ), 'info')
-    return await render_template(
-        "status.html",
-        commit = commit,
-        names = names,
-        title = actual_name,
-        users = users,
-        version = version,
-    )

@@ -58,7 +58,7 @@ class SubFlaskForm(Form):
     def __init__(self, formdata = _Auto, **kwargs):
         super().__init__(formdata = formdata, **kwargs)
 
-async def show_updates():
+async def updates():
     messages = None
     chats = None
     count = {'total': 0, 'current': 0}
@@ -156,7 +156,6 @@ async def show_updates():
             return jsonify(repr(exception))
     return await render_template(
         "updates.html",
-        canonical = current_app.canonical,
         commit = commit,
         count = count,
         bots = bots,
@@ -206,10 +205,29 @@ async def send_message():
             return jsonify(repr(exception))
     return await render_template(
         "send_message.html",
-        canonical = current_app.canonical,
         commit = commit,
         form = form,
         message = message,
         title = actual_name,
+        version = version,
+    )
+
+async def status():
+    users = [{
+        'user': await dispatcher.bot.get_me(),
+        'status': dispatcher.is_polling(),
+    } for dispatcher in current_app.dispatchers]
+    names = [user['user']['first_name'] for user in users]
+    await flash(
+        u"Total configured bots: {0}\nTotal running bots: {1}".format(
+            len(users),
+            len([user['status'] for user in users if user['status']]),
+        ), 'info')
+    return await render_template(
+        "status.html",
+        commit = commit,
+        names = names,
+        title = actual_name,
+        users = users,
         version = version,
     )

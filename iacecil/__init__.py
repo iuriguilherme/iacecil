@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.9.13'
+__version__ = '0.1.9.14'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -59,7 +59,7 @@ except Exception as e:
 ### ia.cecil
 try:
     from iacecil.controllers.aiogram_bot import aiogram_startup
-    from iacecil.controllers.quart_app import quart_startup
+    from iacecil.views.quart_app import quart_startup
 except Exception as e:
     logger.critical(u"{} modules not properly loaded. RTFM.\n{}\
     ".format(actual_name, str(e)))
