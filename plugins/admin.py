@@ -316,3 +316,24 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 exception,
                 ['admin', 'dump', 'zodb'],
             )
+
+    ## Enviar sticker para alguém através do bot
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['sticker']
+    )
+    async def sticker_callback(message):
+        await message_callback(message, ['admin', 'sticker',
+            message.chat.type]
+        )
+        args = message.get_args().split(' ')
+        command = await dispatcher.bot.send_sticker(
+            chat_id = args[0],
+            sticker = ' '.join(args[1::1]),
+        )
+        await command_callback(command, ['admin', 'sticker',
+            message.chat.type]
+        )

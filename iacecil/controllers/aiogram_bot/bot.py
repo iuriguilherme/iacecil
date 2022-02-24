@@ -231,7 +231,7 @@ eactivated')""",
             except Exception as e:
                 logger.warning(repr(e))
         return self.command
-
+    
     async def send_photo(self, *args, **kwargs):
         return await self.exception_handler(
             self.send_photo,
@@ -240,7 +240,7 @@ eactivated')""",
             *args,
             **kwargs,
         )
-
+    
     async def send_voice(self, *args, **kwargs):
         return await self.exception_handler(
             self.send_voice,
@@ -249,7 +249,7 @@ eactivated')""",
             *args,
             **kwargs,
         )
-
+    
     async def send_video(self, *args, **kwargs):
         return await self.exception_handler(
             self.send_video,
@@ -258,12 +258,21 @@ eactivated')""",
             *args,
             **kwargs,
         )
-
+    
     async def send_message(self, *args, **kwargs):
         return await self.exception_handler(
             self.send_message,
             'sendMessage',
             super().send_message,
+            *args,
+            **kwargs,
+        )
+    
+    async def send_sticker(self, *args, **kwargs):
+        return await self.exception_handler(
+            self.send_sticker,
+            'sendSticker',
+            super().send_sticker,
             *args,
             **kwargs,
         )
