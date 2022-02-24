@@ -18,6 +18,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import random
+
 def fofices():
     return random.choice([
         u"oi!",

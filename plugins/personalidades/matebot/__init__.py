@@ -24,6 +24,12 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 
+try:
+    from instance.personalidades.matebot import random_texts
+except:
+    logger.info(f"instance não encontrada em {__name__}")
+    from plugins.personalidades.matebot import random_texts
+
 async def start(message):
     return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
  id no telegram é {telegram_id}""".format(
@@ -86,3 +92,14 @@ async def add_handlers(dispatcher):
         await message_callback(message, ['info', message.chat.type])
         command = await message.reply(await info(dispatcher.bot.info))
         await command_callback(command, ['info', message.chat.type])
+    
+    ## BOFH
+    @dispatcher.message_handler(
+        commands = ['bofh'],
+    )
+    async def bofh_callback(message):
+        await message_callback(message, ['personalidades', 'matebot',
+            'bofh', message.chat.type])
+        command = await message.reply(await random_texts.bofh())
+        await command_callback(command, ['personalidades', 'matebot',
+            'bofh', message.chat.type])
