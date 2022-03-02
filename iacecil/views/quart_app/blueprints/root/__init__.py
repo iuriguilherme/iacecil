@@ -31,7 +31,6 @@ from quart import (
     request,
     render_template,
 )
-
 from jinja2 import TemplateNotFound
 from iacecil import (
     actual_name,
@@ -47,26 +46,13 @@ from iacecil.controllers.zodb_orm import (
     get_bot_messages,
 )
 from iacecil.views.quart_app.blueprints.root.routes import (
-    updates,
-    send_message,
     status,
 )
 
 blueprint = Blueprint(
     'root',
     'root',
-)
-blueprint.add_url_rule(
-    '/updates/',
-    'updates',
-    updates,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/send_message/',
-    'send_message',
-    send_message,
-    methods = ['GET', 'POST'],
+    template_folder = 'iacecil/views/quart_app/templates/root',
 )
 blueprint.add_url_rule(
     '/status/',
@@ -80,7 +66,7 @@ blueprint.add_url_rule(
 async def show(page):
     try:
         return await render_template(
-            '{0}.html'.format(page),
+            'root/{0}.html'.format(page),
             commit = commit,
             title = actual_name,
             version = version,

@@ -27,21 +27,64 @@ from quart import (
     abort,
     Blueprint,
     current_app,
+    flash,
     jsonify,
+    request,
     render_template,
 )
 from jinja2 import TemplateNotFound
-from iacecil import name
+from iacecil import (
+    actual_name,
+    commit,
+    version,
+)
+from iacecil.controllers.aiogram_bot.callbacks import (
+    error_callback,
+    exception_callback,
+)
+from iacecil.controllers.zodb_orm import (
+    get_messages,
+    get_bot_messages,
+)
+from iacecil.views.quart_app.blueprints.admin.routes import (
+    graphic,
+    send_message,
+    updates,
+)
 
-blueprint = Blueprint('admin', 'admin')
+blueprint = Blueprint(
+    'admin',
+    'admin',
+    template_folder = 'iacecil/views/quart_app/templates/admin',
+)
+blueprint.add_url_rule(
+    '/graphic/',
+    'graphic',
+    graphic,
+    methods = ['GET'],
+)
+blueprint.add_url_rule(
+    '/send_message/',
+    'send_message',
+    send_message,
+    methods = ['GET', 'POST'],
+)
+blueprint.add_url_rule(
+    '/updates/',
+    'updates',
+    updates,
+    methods = ['GET', 'POST'],
+)
 
 @blueprint.route('/', defaults={'page': 'index'})
 @blueprint.route('/<page>')
 async def show(page):
     try:
         return await render_template(
-            '{0}.html'.format(page),
-            title = name,
+            "admin/{0}.html".format(page),
+            commit = commit,
+            title = actual_name,
+            version = version,
         )
     except TemplateNotFound as e:
         logger.warning(u"Template not found for {}".format(str(page)))

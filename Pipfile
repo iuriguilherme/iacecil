@@ -20,7 +20,12 @@ brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 flask-wtf = "*"
 #flup = "*"
 #gunicorn = "*"
+graphviz = "*"
 #hypercorn = "*"
+matplotlib = "*"
+networkx = {extras = ["default"], version = "*"}
+nltk = "*"
+numpy = "*"
 pydantic = "*"
 #pyinstaller = "*"
 #PyMySQL = "*"

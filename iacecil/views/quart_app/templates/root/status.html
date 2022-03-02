@@ -1,11 +1,11 @@
-{% extends "default_layout.html" %}
+{% extends "root/default_layout.html" %}
 {% block body %}
 <h1>Information about current iteration of {{ title }}</h1>
 <div class="container">
 <div class="row">
 {% for user in users %}
 <div class="col">
-<div class="card bg-warning text-dark mb-3 shadow-sm">
+<div class="card bg-info text-dark mb-3 shadow-sm">
 <div class="card-header">{{ user['user'].first_name }}</div>
 <div class="card-body">
 <table class="table table-striped">

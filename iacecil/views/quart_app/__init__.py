@@ -62,7 +62,13 @@ def quart_startup(dispatchers):
         template_folder = 'views/quart_app/templates',
         static_folder = 'views/quart_app/static',
     )
+    quart_app.QUART_ENV = "development"
+    quart_app.EXPLAIN_TEMPLATE_LOADING = True
+    quart_app.DEBUG = True
+    quart_app.TESTING = True
     quart_app.secret_key = secrets.token_urlsafe(32)
+    logger.debug(quart_app.root_path)
+    logger.debug(quart_app.template_folder)
     @quart_app.before_serving
     async def quart_before_serving():
         logger.info("Starting up Quart...")
