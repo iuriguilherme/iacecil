@@ -62,13 +62,16 @@ def quart_startup(dispatchers):
         template_folder = 'views/quart_app/templates',
         static_folder = 'views/quart_app/static',
     )
-    quart_app.QUART_ENV = "development"
-    quart_app.EXPLAIN_TEMPLATE_LOADING = True
-    quart_app.DEBUG = True
-    quart_app.TESTING = True
+    ## FIXME issue #2
+    ## This approach doesn't even work
+    # ~ quart_app.QUART_ENV = "development"
+    # ~ quart_app.DEBUG = True
+    # ~ quart_app.TESTING = True
     quart_app.secret_key = secrets.token_urlsafe(32)
-    logger.debug(quart_app.root_path)
-    logger.debug(quart_app.template_folder)
+    ## TODO finish testing template folders lookup
+    # ~ quart_app.EXPLAIN_TEMPLATE_LOADING = True
+    # ~ logger.debug(quart_app.root_path)
+    # ~ logger.debug(quart_app.template_folder)
     @quart_app.before_serving
     async def quart_before_serving():
         logger.info("Starting up Quart...")
@@ -90,9 +93,9 @@ def quart_startup(dispatchers):
                     text = u"Mãe tá #on",
                     disable_notification = True,
                 )
-            except Exception as e:
-                logger.critical(u"logs not configured properly: {}\
-                ".format(e))
+            except Exception as exception:
+                logger.critical(u"""logs not configured properly: {}\
+""".format(exception))
                 raise
         loop.create_task(add_blueprints())
     @quart_app.after_serving
@@ -105,8 +108,8 @@ def quart_startup(dispatchers):
                     text = u"Mãe tá #off",
                     disable_notification = True,
                 )
-            except Exception as e:
-                logger.critical(u"logs not configured properly: {}\
-                ".format(e))
+            except Exception as exception:
+                logger.critical(u"""logs not configured properly: {}\
+""".format(exception))
                 raise
     return quart_app

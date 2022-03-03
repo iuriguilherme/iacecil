@@ -48,6 +48,7 @@ logger.info(u"Starting {} v{} commit {}".format(
 ))
 
 ### Config
+## We are not using .env
 try:
     from instance.config import Config
     config = Config()
@@ -57,6 +58,8 @@ except Exception as exception:
     raise
 
 ### ia.cecil
+## Current implementation of script is using aiogram as middleware into 
+## a quart app
 try:
     from iacecil.controllers.aiogram_bot import aiogram_startup
     from iacecil.views.quart_app import quart_startup
@@ -66,10 +69,13 @@ except Exception as exception:
     )
     raise
 
+## Default when just importing
 app = quart_startup(aiogram_startup(config, ['iacecil']))
 
+## Default when defining all bot tokens on startup
 def get_app(bots):
     return quart_startup(aiogram_startup(config, bots))
 
+## Default when blocking the thread
 def run_app(quart_app):
     quart_app.run()
