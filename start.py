@@ -21,6 +21,52 @@
 #  MA 02110-1301, USA.
 #  
 
+### Arguments explanation
+### Usage: start.py log_level mode bot port host reload canonical
+### Defaults: start.py info quart iacecil 8000 127.0.0.1 True None
+###
+### log_level: Used in the logging module globally, this included 
+### imported libraries where applicable;
+###
+### mode: One of the pre defined modes of operation in the main routine 
+### at start.py. This is done because different mode of operation 
+### require different settings. For example supporting long polling and 
+### webhooks would require a huge rewrite everytime so it's easier to 
+### set up such running environments in one single file. Also 
+### development and production setups are not always a matter of 
+### running quart on development mode, but this wrapper (start.py) 
+### should take care of everything to make it simple to run easily in 
+### whichever settings;
+###
+### bot: This would be an alias (or a comma separated list of aliases) 
+### for bots already configured at instance/config.py. This allows for 
+### selection of which bot tokens will be used simultaneously in an 
+### environment where they should be selected before the script starts 
+### such as all bots running in long polling mode.
+###
+### port: TCP port for uvicorn/quart binding;
+###
+### host: fqdn, ipv4 or localhost hostname for uvicorn/quart binding;
+###
+### reload: uvicorn specific development option;
+###
+### canonical: (currently unused) gambiarra to make routes work in 
+### subdirectories. Spoiler alert: it never worked;
+###
+
+### This file exists and it's expected to have dozens of lines because 
+### this software has been historically been rewritten from scratch to 
+### support / test / experiment with multiple technologies while not 
+### breaking old versions of the running scripts. It is desirable to 
+### add new controllers at iacecil/controllers and import them from 
+### this file / command line calling than to refactor all code to force 
+### the whole software to stick to one way of working. This versatility 
+### feature comes from years of experience rewriting thousands of lines 
+### of code, also inspired by plugin based similar software which in 
+### itself probably has yet more decades of experience. So if you think 
+### you have a better idea or feel an urge to "clean up" by removing 
+### unused ancient code, fork the repository and have fun.
+
 try:
     if __name__ == '__main__':
         import iacecil, logging, sys, uvicorn
@@ -50,8 +96,8 @@ try:
             )
             if len(sys.argv) > 3:
                 bot = sys.argv[3]
-                logger.info(u"""Using configuration from BOT "{}" f\
-rom config file.""".format(bot))
+                logger.info(u"""Using configuration from BOT "{}" from \
+config file.""".format(bot))
                 if len(sys.argv) > 4:
                     port = sys.argv[4]
                     logger.info(u"Setting PORT to {}".format(port))
@@ -144,7 +190,8 @@ rom config file.""".format(bot))
                 ".format(iacecil.actual_name))
                 raise
         else:
-            logger.info(u"Wrong operation mode. RTFM will you please. Bye.")
+            logger.info(u"""Wrong operation mode. RTFM will you please.\
+ Bye.""")
 except Exception as exception:
     print(u"RTFM")
     print(repr(exception))

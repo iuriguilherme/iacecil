@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.9.14'
+__version__ = '0.1.9.15'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -51,29 +51,22 @@ logger.info(u"Starting {} v{} commit {}".format(
 try:
     from instance.config import Config
     config = Config()
-except Exception as e:
-    logger.critical(u"Config file not found or somehow wrong. RTFM.\n{}\
-    ".format(str(e)))
+except Exception as exception:
+    logger.critical(u"""{} config file not found or somehow wrong. RTFM\
+.\n{}""".format(actual_name, str(exception)))
     raise
 
 ### ia.cecil
 try:
     from iacecil.controllers.aiogram_bot import aiogram_startup
     from iacecil.views.quart_app import quart_startup
-except Exception as e:
-    logger.critical(u"{} modules not properly loaded. RTFM.\n{}\
-    ".format(actual_name, str(e)))
+except Exception as exception:
+    logger.critical(u"{} modules not properly loaded. RTFM.\n{}".format(
+        actual_name, str(exception))
+    )
     raise
 
-app = quart_startup(aiogram_startup(config, [
-    'cryptoforexbot',
-    'iacecil',
-    'mate_obot',
-    's28paybot',
-    'tiodochurrasbot',
-    'tiozao_bot',
-    'tropixelbot',
-]))
+app = quart_startup(aiogram_startup(config, ['iacecil']))
 
 def get_app(bots):
     return quart_startup(aiogram_startup(config, bots))
