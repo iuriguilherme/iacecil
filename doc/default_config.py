@@ -34,7 +34,7 @@ class Config(BaseSettings):
         ### Informações exibidas em alguns comandos do bot
         'info': {
             'website': "https://matehackers.org",
-            'repository': "https://github.com/matehackers/matebot",
+            'repository': "https://github.com/iuriguilherme/iacecil",
             'group': "https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q",
             'channel': "@matebotnews",
             'admin': "@desobedientecivil",
@@ -42,6 +42,16 @@ class Config(BaseSettings):
             ## Plugin donate - doações
             'donate': {
                 'btc': "1AG2SX3n9iFQiZExiyS3M5qCuZT5GhArn",
+                'crypto': [
+                    "BCH: `1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL`",
+                    "BTC: `1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2`",
+                    "DOGE: `DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D`",
+                    "ETH: `0x083652085dc46ab2d6146fbb329db0cde48eea81`",
+                    "FLO: `F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp`",
+                    "LTC: `LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3`",
+                    "PIVX: `D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC`",
+                    "TRX: `TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e`",
+                ],
             },
             ## Plugin tropixel - colar os links aqui no lugar de "Não sei !"
             'tropixel': {
@@ -51,42 +61,68 @@ class Config(BaseSettings):
             ## Plugin personalidades
             'personalidade': 'default',
             ## Plugin cryptoforex
-            'coinmarketcap_token': '00000000-0000-0000-0000-000000000000'
+            'coinmarketcap_token': '00000000-0000-0000-0000-000000000000',
+            ## Plugin TecidoTextoPalavra
+            'tecido': {
+                'host': '127.0.0.1',
+                'port': 3000,
+            },
         }, # info
+        ## Webhook padrão
+        'webhook': {
+            'host': 'https://denise.matehackers.org',
+            'path': '/telegram',
+            'webapp': 'https://denise.matehackers.org/telegram',
+            'port': 8443,
+        }, # webhook
         
         ### Níveis de permissão (inspirados no Brave New World):
         ###
-        ### Os usuários e grupos cujos ids estão na lista bot.users['alpha'] só
-        ### vão ter acesso aos comandos que fazem parte dos plugins da lista
-        ### bot.plugins['alpha']. Assim como a lista bot.users['beta'] é relativa à
-        ### lista bot.plugins['beta'], e assim por diante. Esta é a única regra.
+        ### Os usuários e grupos cujos ids estão na lista 
+        ### bot.users['alpha'] só vão ter acesso aos comandos que fazem 
+        ### parte dos plugins da lista bot.plugins['alpha']. Assim como 
+        ### a lista bot.users['beta'] é relativa à lista 
+        ### bot.plugins['beta'], e assim por diante. Esta é a única 
+        ### regra.
         ###
-        ### Sinta-se livre para liberar o acesso a todos os comandos para qualquer
-        ### pessoa ou grupo, ou para criar ainda mais níveis de controle de acesso.
+        ### Sinta-se livre para liberar o acesso a todos os comandos 
+        ### para qualquer pessoa ou grupo, ou para criar ainda mais 
+        ### níveis de controle de acesso.
         ###
-        ### Se isto não estiver claro, veja os exemplos no arquivo README.md ou peça
-        ### ajuda no grupo: https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q
+        ### Se isto não estiver claro, veja os exemplos no arquivo 
+        ### README.md ou peça ajuda no grupo: 
+        ### https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q
         ###
-        ### A lista bot.plugins['omega'] é especial e serve para dar acesso a 
-        ### comandos para toda e qualquer pessoa ou grupo.
+        ### A lista bot.plugins['omega'] é especial e serve para dar 
+        ### acesso a comandos para toda e qualquer pessoa ou grupo.
         ###
         'plugins': {
-            ## Lista de plugins disponíveis somente para bot.users['alpha']
+            ## Lista de plugins disponíveis somente para 
+            ## bot.users['alpha']
             ## Sugestão de uso: pessoa que criou o bot, etc.
             'alpha': ["admin",],
-            ## Lista de plugins disponíveis somente para bot.users['beta']
+            ## Lista de plugins disponíveis somente para 
+            ## bot.users['beta']
             ## Sugestão de uso: administradora(e)s, moderadora(e)s, etc.
             'beta': ["admin",],
-            ## Lista de plugins disponíveis somente para bot.users['gamma']
-            ## Sugestão de uso: grupos e canais onde quem administra tem controle
+            ## Lista de plugins disponíveis somente para 
+            ## bot.users['gamma']
+            ## Sugestão de uso: grupos e canais onde quem administra 
+            ## tem controle
             'gamma': ["donate",],
-            ## Lista de plugins disponíveis somente para bot.users['delta']
-            ## Sugestão de uso: grupos e canais onde quem administra acompanha mas não
+            ## Lista de plugins disponíveis somente para 
+            ## bot.users['delta']
+            ## Sugestão de uso: grupos e canais onde quem administra 
+            ## acompanha mas não
             ## controla
             'delta': ["personalidades", "feedback", "welcome",],
-            ## Lista de plugins disponíveis somente para bot.users['epsilon']
-            ## Sugestão de uso: grupos, canais e usuários que usam o bot regularmente
-            'epsilon': ["archive", "hashes", "mate_matica", "qr", "ytdl",],
+            ## Lista de plugins disponíveis somente para 
+            ## bot.users['epsilon']
+            ## Sugestão de uso: grupos, canais e usuários que usam o 
+            ## bot regularmente
+            'epsilon': ["archive", "hashes", "mate_matica", "qr",
+                "ytdl",
+            ],
             ## Lista de plugins ativos para todo mundo
             'omega': ["telegram",],
         }, # plugins
@@ -99,6 +135,7 @@ class Config(BaseSettings):
             'gamma': [-481703172,],
             'delta': [-1001233916997,],
             'epsilon': [777000,-1001207858341,],
+            ## Plugin Unwelcome
             'unwanted': ['HV Cursos', 'MateBot (dev)',],
             ## Plugin Welcome
             'pegadinha': [-1001233916997,],
@@ -132,17 +169,19 @@ class Config(BaseSettings):
     } # default_bot
 
     bots: dict = {
-        ### O nome da chave (por exemplo 'matebot') é o nome do bot como parâmetro ao
-        ### invocar o script. Isto permite usar múltiplos bots.
-        ### As chaves 'production', 'testing' e 'development' podem ser utilizadas
-        ### juntamente com as variáveis de ambiente do FLASK e do QUART.
-        'matebot': {
+        ### O nome da chave (por exemplo 'iacecil') é o nome do bot 
+        ### como parâmetro ao invocar o script. Isto permite usar 
+        ### múltiplos bots na mesma thread, (quase) todos comandos 
+        ### assíncronos.
+        ### As chaves 'production', 'testing' e 'development' podem ser 
+        ### utilizadas juntamente com as variáveis de ambiente do QUART.
+        'iacecil': {
             ## Obtenha um token com @BotFather no Telegram
             'token': "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
             'info': default_bot['info'],
             'plugins': default_bot['plugins'],
             'users': default_bot['users'],
-        }, # matebot
+        }, # iacecil
         'production': {
             'token': "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
             'info': default_bot['info'],
@@ -167,4 +206,12 @@ class Config(BaseSettings):
                 'info': -481703172,
             }),
         }, # development
+        ## Exemplo de bot de discord (usar token do discord no lugar da
+        ## token que seria do telegram)
+        'discord': {
+            'token': "123456789ABCDEFghijklmno.123456.123456789ABCDEFghijklmnopqr",
+            'info': default_bot['info'],
+            'plugins': default_bot['plugins'],
+            'users': default_bot['users'],
+        }, # discord
     } # bots
