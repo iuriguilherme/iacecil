@@ -42,34 +42,20 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from iacecil.views.quart_app.blueprints.admin.routes import (
-    files,
-    send_message,
-    updates,
+from iacecil.views.quart_app.blueprints.plots.routes import (
+    graphic,
 )
 
 blueprint = Blueprint(
-    'admin',
-    'admin',
-    template_folder = 'iacecil/views/quart_app/templates/admin',
+    'plots',
+    'plots',
+    template_folder = 'iacecil/views/quart_app/templates/plots',
 )
 blueprint.add_url_rule(
-    '/send_message/',
-    'send_message',
-    send_message,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/updates/',
-    'updates',
-    updates,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/files/',
-    'files',
-    files,
-    methods = ['GET', 'POST'],
+    '/graphic/',
+    'graphic',
+    graphic,
+    methods = ['GET'],
 )
 
 @blueprint.route('/', defaults={'page': 'index'})
@@ -77,7 +63,7 @@ blueprint.add_url_rule(
 async def show(page):
     try:
         return await render_template(
-            "admin/{0}.html".format(page),
+            "plots/{0}.html".format(page),
             commit = commit,
             title = actual_name,
             version = version,

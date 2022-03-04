@@ -32,7 +32,7 @@
 {% block head %}
 {% endblock %}
 </head>
-<body class="bg-success text-light">
+<body class="bg-danger text-light">
 <nav class="navbar nav-tabs navbar-expand-lg navbar-light bg-transparent bg-gradient">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('root.show', page='index') }}">{{ title }}</a>
@@ -42,10 +42,10 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('root.show') }}">Home</a>
+          <a class="nav-link" href="{{ url_for('root.show') }}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('plots.show') }}">Plots</a>
+          <a class="nav-link active" href="{{ url_for('plots.show') }}">Plots</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('admin.show') }}">Admin</a>
@@ -53,8 +53,8 @@
         <li class="nav-item">
           <a class="nav-link disabled">|</a>
         </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ url_for('root.status') }}">Status</a>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('plots.graphic') }}">Graphic</a>
         </li>
         <li class="nav-item">
           <a class="nav-link disabled">v{{ version }} (<i>commit {{ commit }}</i>)</a>
@@ -69,7 +69,7 @@
     </div>
   </div>
 </nav>
-<div class="container bg-success bg-gradient text-light shadow-lg rounded">
+<div class="container bg-danger bg-gradient text-light shadow-lg rounded">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div class="container">

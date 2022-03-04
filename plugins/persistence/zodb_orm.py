@@ -97,6 +97,66 @@ async def get_messages(chat_id):
         logger.warning(repr(exception))
         raise
 
+async def get_messages_garimpo(chat_id):
+    if not await assertIsNotNone([chat_id]):
+        return False, False
+    dispatcher = Dispatcher.get_current()
+    try:
+        db = await get_db('{}/{}/garimpo/{}.fs'.format(
+            db_path,
+            dispatcher.bot.id,
+            chat_id,
+        ))
+        if not db:
+            return False, False
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return db, pms
+        except Exception as e1:
+            logger.warning(repr(e1))
+            await croak_db(db)
+            raise
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def get_messages_admin(chat_id):
+    if not await assertIsNotNone([chat_id]):
+        return False, False
+    dispatcher = Dispatcher.get_current()
+    try:
+        db = await get_db('{}/{}/admin/{}.fs'.format(
+            db_path,
+            dispatcher.bot.id,
+            chat_id,
+        ))
+        if not db:
+            return False, False
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return db, pms
+        except Exception as e1:
+            logger.warning(repr(e1))
+            await croak_db(db)
+            raise
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
 async def get_bot_messages(bot_id, chat_id):
     if not await assertIsNotNone([bot_id, chat_id]):
         return False, False
@@ -118,6 +178,36 @@ async def get_bot_messages(bot_id, chat_id):
                 root.messages = BTrees.IOBTree.IOBTree()
                 pms = root.messages
             return db, pms
+        except Exception as e1:
+            logger.warning(repr(e1))
+            await croak_db(db)
+            raise
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+
+async def get_messages_texts_list(bot_id, chat_id):
+    if not await assertIsNotNone([bot_id, chat_id]):
+        return ['nada']
+    try:
+        db = await get_db('{}/{}/chats/{}.fs'.format(
+            db_path,
+            bot_id,
+            chat_id,
+        ))
+        if not db:
+            return ['nada']
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return ['nada']
         except Exception as e1:
             logger.warning(repr(e1))
             await croak_db(db)
@@ -249,3 +339,53 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
     except Exception as exception:
         logger.warning(repr(exception))
         raise
+
+async def log_message(message):
+    if not await assertIsNotNone([message]):
+        return False
+    dispatcher = Dispatcher.get_current()
+    try:
+        db = await get_db('{}/{}/chats/{}.fs'.format(
+            db_path,
+            dispatcher.bot.id,
+            message.chat.id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            pm = None
+            try:
+                pm = pms[message.message_id]
+                logger.info(u"Message already on database, skipping...")
+                return False
+            except KeyError:
+                try:
+                    pms[message.message_id] = BTrees.OOBTree.OOBTree()
+                    pm = pms[message.message_id]
+                    pm.update(message)
+                    pm[name + '_version'] = version
+                    pm[name + '_commit'] = commit
+                    transaction.commit()
+                    return True
+                except Exception as e2:
+                    croak_transaction(transaction)
+                    logger.warning(repr(e2))
+                    raise
+                finally:
+                    croak_db(db)
+        except Exception as e1:
+            logger.warning(repr(e1))
+            await croak_db(db)
+            raise
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return False

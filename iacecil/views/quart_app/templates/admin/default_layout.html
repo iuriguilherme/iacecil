@@ -33,7 +33,7 @@
 {% endblock %}
 </head>
 <body class="bg-primary text-light">
-<nav class="navbar navbar-expand-lg navbar-light bg-transparent bg-gradient">
+<nav class="navbar nav-tabs navbar-expand-lg navbar-light bg-transparent bg-gradient">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('root.show', page='index') }}">{{ title }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,18 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('root.show') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('plots.show') }}">Plots</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('admin.show') }}">Admin</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled">|</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('admin.updates') }}">Messages</a>
         </li>
         <li class="nav-item">
@@ -49,9 +61,6 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('admin.send_message') }}">Send Message</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('admin.graphic') }}">Graphic</a>
         </li>
         <li class="nav-item">
           <a class="nav-link disabled">v{{ version }} (<i>commit {{ commit }}</i>)</a>

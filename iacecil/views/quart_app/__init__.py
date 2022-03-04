@@ -43,6 +43,7 @@ from iacecil.controllers.aiogram_bot import (
 )
 from iacecil.views.quart_app.blueprints import (
     admin,
+    plots,
     root,
 )
 
@@ -54,6 +55,10 @@ async def add_blueprints():
     current_app.register_blueprint(
         admin.blueprint,
         url_prefix = '/admin/',
+    )
+    current_app.register_blueprint(
+        plots.blueprint,
+        url_prefix = '/plots/',
     )
 
 def quart_startup(dispatchers):

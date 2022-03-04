@@ -53,7 +53,7 @@ from iacecil import (
     commit,
     version,
 )
-from iacecil.controllers.zodb_orm import (
+from plugins.persistence.zodb_orm import (
     get_messages,
     get_bot_messages,
     get_bot_files,
@@ -67,24 +67,6 @@ _Auto = object()
 class SubFlaskForm(Form):
     def __init__(self, formdata = _Auto, **kwargs):
         super().__init__(formdata = formdata, **kwargs)
-
-async def graphic():
-    # Generate the figure **without using pyplot**.
-    fig = Figure()
-    ax = fig.subplots()
-    ax.plot([1, 2])
-    # Save it to a temporary buffer.
-    buf = BytesIO()
-    fig.savefig(buf, format="png")
-    # Embed the result in the html output.
-    data = base64.b64encode(buf.getbuffer()).decode("ascii")
-    return await render_template(
-        "admin/graphic.html",
-        commit = commit,
-        data = data,
-        title = actual_name,
-        version = version,
-    )
 
 async def send_message():
     message = None

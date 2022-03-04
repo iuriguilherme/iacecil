@@ -18,8 +18,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# ~ import BTrees, datetime, json, logger, socket, transaction, \
-    # ~ zc.zlibstorage, ZODB, ZODB.FileStorage
 import BTrees, datetime, json, socket, transaction, ZODB
 from aiogram import (
     Dispatcher,
@@ -34,7 +32,7 @@ from iacecil import (
     name,
     version,
 )
-from iacecil.controllers.zodb_orm import get_messages
+from plugins.persistence.zodb_orm import log_message
 
 ## Telepot
 ## FIXME Deprecated
@@ -195,57 +193,13 @@ async def exception_logger(
         logger.critical(repr(e))
 
 async def zodb_logger(message):
-    db = None
-    pm = None
     try:
-        db, pms = await get_messages(message.chat.id)
-        try:
-            pm = pms[message.message_id]
-            await debug_logger(
-                u"Message already on database",
-                message,
-                None,
-                ['log', 'zodb'],
-            )
-        except KeyError:
-            try:
-                pms[message.message_id] = BTrees.OOBTree.OOBTree()
-                pm = pms[message.message_id]
-                pm.update(message)
-                pm[name + '_version'] = version
-                pm[name + '_commit'] = commit
-                transaction.commit()
-            except Exception as e1:
-                try:
-                    transaction.abort()
-                except Exception as e2:
-                    logger.warning(
-                        u"transaction was never created on {}: {}".format(
-                        __name__,
-                        repr(e2),
-                    ))
-                await debug_logger(
-                    u"Message NOT added to database",
-                    message,
-                    e1,
-                    ['log', 'zodb', 'exception'],
-                )
-                raise
-            finally:
-                try:
-                    db.close()
-                except Exception as e3:
-                    logger.warning(
-                        u"db was never created on {}: {}".format(
-                        __name__,
-                        repr(e3),
-                    ))
-    except Exception as e4:
+        await log_message(message)
+    except Exception as exception:
         await exception_logger(
-            e4,
+            exception,
             ['log', 'zodb'],
         )
-        raise
 
 ## TODO: Descobrir tipo de update (era types.Message)
 async def info_logger(

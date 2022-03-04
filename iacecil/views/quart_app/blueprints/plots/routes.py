@@ -23,14 +23,26 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import base64, BTrees, glob, json, os, transaction, ZODB
+from io import BytesIO
+from matplotlib.figure import Figure
 from quart import (
     abort,
-    Blueprint,
     current_app,
     flash,
     jsonify,
     request,
     render_template,
+)
+from flask_wtf import FlaskForm
+from wtforms import (
+    Form,
+    IntegerField,
+    SelectField,
+    StringField,
+    SubmitField,
+    RadioField,
+    TextAreaField,
 )
 from jinja2 import TemplateNotFound
 from iacecil import (
@@ -38,50 +50,27 @@ from iacecil import (
     commit,
     version,
 )
-from iacecil.controllers.aiogram_bot.callbacks import (
-    error_callback,
-    exception_callback,
-)
-from iacecil.views.quart_app.blueprints.admin.routes import (
-    files,
-    send_message,
-    updates,
+from plugins.persistence.zodb_orm import (
+    get_messages,
+    get_messages_texts_list,
+    get_bot_messages,
+    get_bot_files,
 )
 
-blueprint = Blueprint(
-    'admin',
-    'admin',
-    template_folder = 'iacecil/views/quart_app/templates/admin',
-)
-blueprint.add_url_rule(
-    '/send_message/',
-    'send_message',
-    send_message,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/updates/',
-    'updates',
-    updates,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/files/',
-    'files',
-    files,
-    methods = ['GET', 'POST'],
-)
-
-@blueprint.route('/', defaults={'page': 'index'})
-@blueprint.route('/<page>')
-async def show(page):
-    try:
-        return await render_template(
-            "admin/{0}.html".format(page),
-            commit = commit,
-            title = actual_name,
-            version = version,
-        )
-    except TemplateNotFound as e:
-        logger.warning(u"Template not found for {}".format(str(page)))
-        await abort(404)
+async def graphic():
+    # Generate the figure **without using pyplot**.
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot([1, 2])
+    # Save it to a temporary buffer.
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return await render_template(
+        "plots/graphic.html",
+        commit = commit,
+        data = data,
+        title = actual_name,
+        version = version,
+    )

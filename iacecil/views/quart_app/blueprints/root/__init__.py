@@ -41,10 +41,6 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from iacecil.controllers.zodb_orm import (
-    get_messages,
-    get_bot_messages,
-)
 from iacecil.views.quart_app.blueprints.root.routes import (
     status,
 )

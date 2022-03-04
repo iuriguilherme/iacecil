@@ -30,7 +30,7 @@ from iacecil import (
     name,
     version,
 )
-from iacecil.controllers.zodb_orm import get_messages
+from plugins.persistence.zodb_orm import get_messages
 from plugins.log import (
     info_logger,
     debug_logger,
@@ -62,8 +62,7 @@ async def varre_link(message):
                 )
                 db = None
                 try:
-                    db, pms = await get_messages(str(garimpo_id) + \
-                        '.garimpo')
+                    db, pms = await get_messages_garimpo(garimpo_id)
                     try:
                         try:
                             pfm = pms[fw_message.message_id]

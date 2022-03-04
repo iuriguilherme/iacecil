@@ -35,7 +35,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from iacecil.controllers.zodb_orm import get_messages
+from plugins.persistence.zodb_orm import get_messages
 
 ## TODO migrar para aiogram - este código era do telepot
 ## Testar timezone do servidor
@@ -161,7 +161,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     async def persistence_write_callback(message):
         db = None
         try:
-            db, pms = await get_messages(str(message.chat.id) + '.admin')
+            db, pms = await get_messages_admin(message.chat.id)
             try:
                 try:
                     pm = pms[message.message_id]
@@ -206,7 +206,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     async def persistence_read_callback(message):
         db = None
         try:
-            db, pms = await get_messages(str(message.chat.id) + '.admin')
+            db, pms = await get_messages_admin(message.chat.id)
             try:
                 await message.reply('\n'.join([
                     pre(json.dumps({k:v for (k,v) in pm.items()},
