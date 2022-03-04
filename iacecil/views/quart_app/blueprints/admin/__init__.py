@@ -42,11 +42,8 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from iacecil.controllers.zodb_orm import (
-    get_messages,
-    get_bot_messages,
-)
 from iacecil.views.quart_app.blueprints.admin.routes import (
+    files,
     graphic,
     send_message,
     updates,
@@ -73,6 +70,12 @@ blueprint.add_url_rule(
     '/updates/',
     'updates',
     updates,
+    methods = ['GET', 'POST'],
+)
+blueprint.add_url_rule(
+    '/files/',
+    'files',
+    files,
     methods = ['GET', 'POST'],
 )
 

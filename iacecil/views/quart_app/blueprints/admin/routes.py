@@ -20,10 +20,15 @@
 #  MA 02110-1301, USA.
 #  
 
+## TODO
+## - [ ] Move ZODB to controllers/zodb_orm
+## - [ ] Organize imports
+## - [ ] Figure out async WTForms and get rid of _Auto = object()
+
 import logging
 logger = logging.getLogger(__name__)
 
-import BTrees, glob, json, transaction, ZODB
+import BTrees, glob, json, os, transaction, ZODB
 from quart import (
     abort,
     current_app,
@@ -51,6 +56,7 @@ from iacecil import (
 from iacecil.controllers.zodb_orm import (
     get_messages,
     get_bot_messages,
+    get_bot_files,
 )
 
 import base64
@@ -158,10 +164,18 @@ async def updates():
                 current_app.dispatchers if str(dispatcher.bot.id
                 ) == form['bot_id_field'].data
             ][0]
-            chats_list = set([chat.strip('instance/zodb/').split('.')[
-                1] for chat in glob.glob('instance/zodb/{}.*.fs'.format(
-                form['bot_id_field'].data))]
+            db_path = 'instance/zodb/bots/{}/chats'.format(
+                    form['bot_id_field'].data
             )
+            try:
+                chats_list = set([os.path.basename(chat).split('.')[0
+                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+                )
+            except FileNotFoundError:
+                os.makedirs(db_path)
+                chats_list = set([os.path.basename(chat).split('.')[0
+                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+                )
             chats_info = list()
             for chat_id in chats_list:
                 try:
@@ -230,6 +244,81 @@ async def updates():
         chats = chats,
         form = form,
         messages = messages,
+        title = actual_name,
+        version = version,
+    )
+
+async def files():
+    files = None
+    count = {'total': 0, 'current': 0}
+    bots = [user for user in [await dispatcher.bot.get_me() for \
+        dispatcher in current_app.dispatchers]]
+    class FilesForm(SubFlaskForm):
+        bot_id_field = RadioField(
+            u"select bot",
+            choices = [(user['id'], user['first_name']
+                ) for user in bots],
+        )
+        limit_field = IntegerField(
+            'limit',
+            default = 30,
+        )
+        offset_field = IntegerField(
+            'offset',
+            default = 0,
+        )
+        submit = SubmitField(u"Send")
+    form = FilesForm(formdata = await request.form)
+    if request.method == "POST":
+        try:
+            db = None
+            try:
+                db, _files = await get_bot_files(
+                    form['bot_id_field'].data,
+                )
+                if db and _files:
+                    try:
+                        count['total'] = len(_files)
+                        offset = None
+                        limit = None
+                        if form['limit_field'].data > 0:
+                            limit = -(1+form['limit_field'].data+form[
+                                'offset_field'].data)
+                        if form['offset_field'].data > 0:
+                            offset = -(1+form['offset_field'].data)
+                            limit = limit + 1
+                        files = [{k:v for (k,v) in _files[_file].items()
+                            } for _file in _files][
+                            offset:limit:-1]
+                        count['current'] = len(files)
+                    except TypeError as e3:
+                        files = None
+                        logger.warning(repr(e3))
+                        raise
+                    except Exception as e2:
+                        logger.warning(u"""Files NOT retrieved from dat\
+abase: {}""".format(repr(e2))
+                        )
+                        raise
+                    finally:
+                        try:
+                            db.close()
+                        except Exception as e4:
+                            logger.warning(u"""db was never created on \
+{}: {}""".format(__name__, repr(e4)))
+                            raise
+            except Exception as e1:
+                logger.warning(repr(e1))
+                raise
+        except Exception as exception:
+            return jsonify(repr(exception))
+    return await render_template(
+        "admin/files.html",
+        commit = commit,
+        count = count,
+        bots = bots,
+        form = form,
+        files = files,
         title = actual_name,
         version = version,
     )
