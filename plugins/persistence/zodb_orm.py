@@ -307,10 +307,9 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
                 files = root.files
             _file = None
             try:
-                _file = [files[__file] for __file in \
-                    files if files[__file]['reference'] == reference
-                ][0]
-                if _file:
+                if len([files[file_] for file_ in files if \
+                    file_ == file_unique_id]
+                ) > 0:
                     ## file is already on database, doing nothing
                     return True
             except IndexError:
