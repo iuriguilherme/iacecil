@@ -48,8 +48,9 @@ async def status():
     return await render_template(
         "root/status.html",
         commit = commit,
+        name = actual_name,
         names = names,
-        title = actual_name,
+        title = u"Status",
         users = users,
         version = version,
     )

@@ -71,6 +71,7 @@ async def graphic():
         "plots/graphic.html",
         commit = commit,
         data = data,
-        title = actual_name,
+        name = actual_name,
+        title = u"Graphics",
         version = version,
     )

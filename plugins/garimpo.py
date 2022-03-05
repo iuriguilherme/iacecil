@@ -30,7 +30,7 @@ from iacecil import (
     name,
     version,
 )
-from plugins.persistence.zodb_orm import get_messages
+from plugins.persistence.zodb_orm import get_messages_garimpo
 from plugins.log import (
     info_logger,
     debug_logger,

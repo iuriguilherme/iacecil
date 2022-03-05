@@ -186,7 +186,6 @@ async def get_bot_messages(bot_id, chat_id):
         logger.warning(repr(exception))
         raise
 
-
 async def get_messages_texts_list(bot_id, chat_id):
     if not await assertIsNotNone([bot_id, chat_id]):
         return ['nada']
@@ -210,8 +209,9 @@ async def get_messages_texts_list(bot_id, chat_id):
             return ['nada']
         except Exception as e1:
             logger.warning(repr(e1))
-            await croak_db(db)
             raise
+        finally:
+            await croak_db(db)
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -268,13 +268,13 @@ async def get_file_id_by_reference(bot_id, reference):
                     files[__file]['reference'] == reference
                 ][0]
             except IndexError:
-                await croak_db(db)
                 return False
             except Exception as e2:
                 logger.warning(repr(e2))
                 raise
+            finally:
+                await croak_db(db)
             file_id = _file['file_id']
-            await croak_db(db)
             return file_id
         except Exception as e1:
             logger.warning(repr(e1))
@@ -327,6 +327,8 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
                     await croak_transaction(transaction)
                     logger.warning(repr(e2))
                     raise
+                finally:
+                    await croak_db(db)
                 return True
             except Exception as e2:
                 logger.warning(repr(e2))
@@ -336,6 +338,8 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
         except Exception as e1:
             logger.warning(repr(e1))
             raise
+        finally:
+            await croak_db(db)
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -376,15 +380,18 @@ async def log_message(message):
                     transaction.commit()
                     return True
                 except Exception as e2:
-                    croak_transaction(transaction)
+                    await croak_transaction(transaction)
                     logger.warning(repr(e2))
                     raise
                 finally:
-                    croak_db(db)
+                    await croak_db(db)
+            finally:
+                await croak_db(db)
         except Exception as e1:
             logger.warning(repr(e1))
-            await croak_db(db)
             raise
+        finally:
+            await croak_db(db)
     except Exception as exception:
         logger.warning(repr(exception))
         raise

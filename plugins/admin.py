@@ -35,7 +35,10 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from plugins.persistence.zodb_orm import get_messages
+from plugins.persistence.zodb_orm import (
+    get_messages,
+    get_messages_admin,
+)
 
 ## TODO migrar para aiogram - este código era do telepot
 ## Testar timezone do servidor
@@ -173,28 +176,37 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 pm[name + '_commit'] = commit
                 transaction.commit()
                 await message.reply(u"ok")
-            except Exception as exception:
+            except Exception as e3:
                 transaction.abort()
                 await error_callback(
                     u"Message NOT added to database",
                     message,
-                    exception,
+                    e3,
                     ['admin', 'write', 'zodb', 'exception'],
                 )
             finally:
                 try:
                     db.close()
-                except Exception as exception:
+                except Exception as e2:
                     logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
-                        repr(exception),
+                        repr(e2),
                     ))
         except Exception as exception:
             await exception_callback(
                 exception,
                 ['admin', 'write', 'zodb'],
             )
+        finally:
+            try:
+                db.close()
+            except Exception as e1:
+                logger.warning(
+                    u"db was never created on {}: {}".format(
+                    __name__,
+                    repr(e1),
+                ))
 
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -214,27 +226,36 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ensure_ascii = False,
                     )) for pm in pms.values()
                 ]), parse_mode = "MarkdownV2")
-            except Exception as exception:
+            except Exception as e3:
                 await error_callback(
                     u"Message NOT retrieved from database",
                     message,
-                    exception,
+                    e3,
                     ['admin', 'retrieve', 'zodb', 'exception'],
                 )
             finally:
                 try:
                     db.close()
-                except Exception as exception:
+                except Exception as e2:
                     logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
-                        repr(exception),
+                        repr(e2),
                     ))
         except Exception as exception:
             await exception_callback(
                 exception,
                 ['admin', 'retrieve', 'zodb'],
             )
+        finally:
+            try:
+                db.close()
+            except Exception as e1:
+                logger.warning(
+                    u"db was never created on {}: {}".format(
+                    __name__,
+                    repr(e1),
+                ))
 
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -252,27 +273,36 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 db, pms = await get_messages(message.chat.id)
             try:
                 await message.reply(len(pms))
-            except Exception as exception:
+            except Exception as e3:
                 await error_callback(
                     u"Message NOT retrieved from database",
                     message,
-                    exception,
+                    e3,
                     ['admin', 'count', 'zodb', 'exception'],
                 )
             finally:
                 try:
                     db.close()
-                except Exception as exception:
+                except Exception as e2:
                     logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
-                        repr(exception),
+                        repr(e2),
                     ))
         except Exception as exception:
             await exception_callback(
                 exception,
                 ['admin', 'count', 'zodb'],
             )
+        finally:
+            try:
+                db.close()
+            except Exception as e1:
+                logger.warning(
+                    u"db was never created on {}: {}".format(
+                    __name__,
+                    repr(e1),
+                ))
 
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -295,27 +325,36 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     ensure_ascii = False,
                     )) for pm in pms.values()
                 ]), parse_mode = "MarkdownV2")
-            except Exception as exception:
+            except Exception as e3:
                 await error_callback(
                     u"Message NOT retrieved from database",
                     message,
-                    exception,
+                    e3,
                     ['admin', 'dump', 'zodb', 'exception'],
                 )
             finally:
                 try:
                     db.close()
-                except Exception as exception:
+                except Exception as e2:
                     logger.warning(
                         u"db was never created on {}: {}".format(
                         __name__,
-                        repr(exception),
+                        repr(e2),
                     ))
         except Exception as exception:
             await exception_callback(
                 exception,
                 ['admin', 'dump', 'zodb'],
             )
+        finally:
+            try:
+                db.close()
+            except Exception as e1:
+                logger.warning(
+                    u"db was never created on {}: {}".format(
+                    __name__,
+                    repr(e1),
+                ))
 
     ## Enviar sticker para alguém através do bot
     @dispatcher.message_handler(

@@ -65,7 +65,8 @@ async def show(page):
         return await render_template(
             "plots/{0}.html".format(page),
             commit = commit,
-            title = actual_name,
+            name = actual_name,
+            title = page,
             version = version,
         )
     except TemplateNotFound as e:

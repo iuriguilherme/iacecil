@@ -192,15 +192,6 @@ async def exception_logger(
     except Exception as e:
         logger.critical(repr(e))
 
-async def zodb_logger(message):
-    try:
-        await log_message(message)
-    except Exception as exception:
-        await exception_logger(
-            exception,
-            ['log', 'zodb'],
-        )
-
 ## TODO: Descobrir tipo de update (era types.Message)
 async def info_logger(
     update: types.Update,
@@ -247,3 +238,12 @@ async def info_logger(
         logger.debug(key_error)
     except Exception as e:
         logger.critical(repr(e))
+
+async def zodb_logger(message):
+    try:
+        await log_message(message)
+    except Exception as exception:
+        await exception_logger(
+            exception,
+            ['log', 'zodb'],
+        )

@@ -110,7 +110,8 @@ async def send_message():
         commit = commit,
         form = form,
         message = message,
-        title = actual_name,
+        name = actual_name,
+        title = u"Send Message",
         version = version,
     )
 
@@ -226,7 +227,8 @@ async def updates():
         chats = chats,
         form = form,
         messages = messages,
-        title = actual_name,
+        name = actual_name,
+        title = u"Messages",
         version = version,
     )
 
@@ -301,6 +303,7 @@ abase: {}""".format(repr(e2))
         bots = bots,
         form = form,
         files = files,
-        title = actual_name,
+        name = actual_name,
+        title = u"Files",
         version = version,
     )
