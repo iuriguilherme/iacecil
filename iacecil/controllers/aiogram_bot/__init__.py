@@ -99,6 +99,7 @@ async def add_filters(dispatcher: Dispatcher):
     dispatcher.filters_factory.bind(WhoJoinedFilter)
 
 async def add_handlers(dispatcher: Dispatcher):
+    await plugin_admin.add_handlers(dispatcher)
     # ~ await plugin_echo.add_handlers(dispatcher)
     ## Personalidades plugin, loaded first to overwrite methods
     ## (aiogram behaviour)
@@ -141,7 +142,6 @@ async def add_handlers(dispatcher: Dispatcher):
     await plugin_matematica.add_handlers(dispatcher)
     await plugin_qr.add_handlers(dispatcher)
     await plugin_feedback.add_handlers(dispatcher)
-    await plugin_admin.add_handlers(dispatcher)
     await plugin_ytdl.add_handlers(dispatcher)
     await plugin_default.add_handlers(dispatcher)
     if dispatcher.bot.info.get('personalidade', None) in [

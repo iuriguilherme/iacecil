@@ -19,3 +19,50 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 #  
+
+import logging
+logger = logging.getLogger(__name__)
+
+import nltk
+from nltk import (
+    word_tokenize
+)
+from plugins.persistence.zodb_orm import (
+    get_messages_texts_list
+)
+
+async def tokenize_list(sent_list):
+    return word_tokenize(' '.join([word for sent in sent_list for word \
+        in sent.split(' ')]))
+
+async def text_from_list(sent_list):
+    text = await tokenize_list(sent_list)
+    return nltk.Text(text)
+
+async def generate(sent_list):
+    text = await text_from_list(sent_list)
+    return text.generate()
+
+async def collocations(sent_list):
+    text = await text_from_list(sent_list)
+    return text.collocations()
+
+async def concordance(sent_list, word):
+    text = await text_from_list(sent_list)
+    return text.concordance(word)
+
+async def count(sent_list, word):
+    text = await text_from_list(sent_list)
+    return text.count(word)
+
+async def similar(sent_list, word):
+    text = await text_from_list(sent_list)
+    return text.similar(word)
+
+async def common_contexts(sent_list, words):
+    text = await text_from_list(sent_list)
+    return text.common_contexts(words)
+
+async def dispersion_plot(sent_list, words):
+    text = await text_from_list(sent_list)
+    return text.dispersion_plot(words)

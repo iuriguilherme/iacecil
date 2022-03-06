@@ -186,9 +186,14 @@ async def get_bot_messages(bot_id, chat_id):
         logger.warning(repr(exception))
         raise
 
-async def get_messages_texts_list(bot_id, chat_id):
-    if not await assertIsNotNone([bot_id, chat_id]):
-        return ['nada']
+async def get_messages_texts_list(
+    bot_id: str = None,
+    chat_id: str = None,
+    offset: int = 0,
+    limit: int = 0,
+):
+    if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
+        return (0, ['nada'])
     try:
         db = await get_db('{}/{}/chats/{}.fs'.format(
             db_path,
@@ -196,7 +201,7 @@ async def get_messages_texts_list(bot_id, chat_id):
             chat_id,
         ))
         if not db:
-            return ['nada']
+            return (0, ['nada'])
         try:
             connection = db.open()
             root = connection.root
@@ -206,7 +211,11 @@ async def get_messages_texts_list(bot_id, chat_id):
             except AttributeError:
                 root.messages = BTrees.IOBTree.IOBTree()
                 pms = root.messages
-            return ['nada']
+            return (
+                len(pms),
+                [pm.get('text','') for pm in pms.values()][
+                    offset:limit:-1],
+            )
         except Exception as e1:
             logger.warning(repr(e1))
             raise
@@ -215,6 +224,47 @@ async def get_messages_texts_list(bot_id, chat_id):
     except Exception as exception:
         logger.warning(repr(exception))
         raise
+    return (0, ['nada'])
+
+async def get_messages_list(
+    bot_id: str = None,
+    chat_id: str = None,
+    offset: int = 0,
+    limit: int = 0,
+):
+    if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
+        return (0, [{}])
+    try:
+        db = await get_db('{}/{}/chats/{}.fs'.format(
+            db_path,
+            bot_id,
+            chat_id,
+        ))
+        if not db:
+            return (0, [{}])
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return (
+                len(pms),
+                [{k:v for (k,v) in pm.items()} for pm in pms.values()][
+                    offset:limit:-1],
+            )
+        except Exception as e1:
+            logger.warning(repr(e1))
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return (0, [{}])
 
 async def get_bot_files(bot_id):
     if not await assertIsNotNone([bot_id]):

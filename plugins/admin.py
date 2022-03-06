@@ -37,7 +37,12 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 )
 from plugins.persistence.zodb_orm import (
     get_messages,
+    get_messages_texts_list,
     get_messages_admin,
+)
+from plugins.natural import (
+    count,
+    generate,
 )
 
 ## TODO migrar para aiogram - este código era do telepot
@@ -376,3 +381,60 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         await command_callback(command, ['admin', 'sticker',
             message.chat.type]
         )
+
+    ## NLTK
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['ngenerate', 'ngen']
+    )
+    async def ngenerate_callback(message):
+        await message_callback(message, ['admin', 'nltk', 'generate',
+            message.chat.type]
+        )
+        limit = 0
+        if len(message.get_args()) > 0:
+            limit = int(message.get_args())
+        texts = await get_messages_texts_list(
+            bot_id = dispatcher.bot.id,
+            chat_id = message.chat.id,
+            offset = -1,
+            limit = limit,
+        )
+        generated = await generate(texts[1])
+        command = await message.reply(generated)
+        await command_callback(command, ['admin', 'nltk', 'generate',
+            message.chat.type]
+        )
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['ncount']
+    )
+    async def ncount_callback(message):
+        await message_callback(message, ['admin', 'nltk', 'count',
+            message.chat.type]
+        )
+        word = None
+        command = None
+        if len(message.get_args()) > 0:
+            word = message.get_args()
+        if word is not None:
+            texts = await get_messages_texts_list(
+                bot_id = dispatcher.bot.id,
+                chat_id = message.chat.id,
+                offset = -1,
+                limit = 0,
+            )
+            counted = await count(texts[1], word)
+            command = await message.reply(
+                u"{} já foi dito aqui {} vezes.".format(word, counted))
+            await command_callback(command, ['admin', 'nltk', 'count',
+                message.chat.type]
+            )
+        else:
+            await message.reply(u"Contar que palavra?")

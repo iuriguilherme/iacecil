@@ -44,6 +44,8 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 )
 from iacecil.views.quart_app.blueprints.admin.routes import (
     files,
+    messages_texts_list,
+    messages_list,
     send_message,
     updates,
 )
@@ -52,6 +54,24 @@ blueprint = Blueprint(
     'admin',
     'admin',
     template_folder = 'iacecil/views/quart_app/templates/admin',
+)
+blueprint.add_url_rule(
+    '/files/',
+    'files',
+    files,
+    methods = ['GET', 'POST'],
+)
+blueprint.add_url_rule(
+    '/messages/',
+    'messages',
+    messages_list,
+    methods = ['GET', 'POST'],
+)
+blueprint.add_url_rule(
+    '/texts/',
+    'texts',
+    messages_texts_list,
+    methods = ['GET', 'POST'],
 )
 blueprint.add_url_rule(
     '/send_message/',
@@ -63,12 +83,6 @@ blueprint.add_url_rule(
     '/updates/',
     'updates',
     updates,
-    methods = ['GET', 'POST'],
-)
-blueprint.add_url_rule(
-    '/files/',
-    'files',
-    files,
     methods = ['GET', 'POST'],
 )
 
