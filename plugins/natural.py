@@ -23,7 +23,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import nltk
+import nltk, string
 from nltk import (
     word_tokenize
 )
@@ -31,7 +31,12 @@ from plugins.persistence.zodb_orm import (
     get_messages_texts_list
 )
 
+async def remove_punctuation(sent_list):
+    return [word for word in sent_list if not any(
+        [(punctuation in word) for punctuation in string.punctuation])]
+
 async def tokenize_list(sent_list):
+    sent_list = await remove_punctuation(sent_list)
     return word_tokenize(' '.join([word for sent in sent_list for word \
         in sent.split(' ')]))
 
