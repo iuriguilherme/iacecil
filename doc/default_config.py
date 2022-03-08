@@ -163,6 +163,8 @@ class Config(BaseSettings):
                 'test': -1001233916997,
                 ## Plugin Garimpo
                 'garimpo': -1001233916997,
+                ## Telegram's way to anonymize channel owner
+                'groupanonymousbot': 1087968824,
             },
         }, # users
         
