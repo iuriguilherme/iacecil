@@ -355,7 +355,7 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
             except AttributeError:
                 root.files = BTrees.OOBTree.OOBTree()
                 files = root.files
-            _file = None
+            file_ = None
             try:
                 if len([files[file_] for file_ in files if \
                     file_ == file_unique_id]
@@ -365,12 +365,12 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
             except IndexError:
                 try:
                     files[file_unique_id] = BTrees.OOBTree.OOBTree()
-                    _file = files[file_unique_id]
-                    _file['file_unique_id'] = file_unique_id
-                    _file['file_id'] = file_id
-                    _file['reference'] = reference
-                    _file[name + '_version'] = version
-                    _file[name + '_commit'] = commit
+                    file_ = files[file_unique_id]
+                    file_['file_unique_id'] = file_unique_id
+                    file_['file_id'] = file_id
+                    file_['reference'] = reference
+                    file_[name + '_version'] = version
+                    file_[name + '_commit'] = commit
                     transaction.commit()
                 except Exception as e2:
                     await croak_transaction(transaction)

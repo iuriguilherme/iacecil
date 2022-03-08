@@ -179,6 +179,7 @@ eactivated')""",
                     u"Bot has no rights in {}, skipping...".format(
                         str(chat_id),
                 ))
+                logger.debug(str(self.command))
             elif repr(exception) == descriptions['deactivated']:
                 reason = u"Probably user no longer exists"
             elif repr(exception) == descriptions['not_found']:

@@ -70,54 +70,88 @@ async def portaria(message):
     return u"alá @admin, esse guampudo conseguiu voltar!"
 
 ## Pegadinha
-async def pegadinha1(message):
-    try:
-        return await message.reply_photo(open(
-            'instance/personalidades/pave/pegadinha/pegadinha1.jpg',
-            'rb',
-        ))
-    except Exception as e:
-        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
-        return await message.reply_photo(open(
-            'doc/assets/photo_2017-06-24_22-16-38.jpg',
-            'rb',
-        ))
-async def pegadinha2(message):
-    try:
-        return await message.reply_photo(open(
-            'instance/personalidades/pave/pegadinha/pegadinha2.png',
-            'rb',
-        ))
-    except Exception as e:
-        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
-        return await message.reply_photo(open(
-            'doc/assets/photo_2017-06-24_22-16-38.jpg',
-            'rb',
-        ))
-async def pegadinha3(message):
-    try:
-        return await message.reply_animation(open(
-            'instance/personalidades/pave/pegadinha/pegadinha3.mp4',
-            'rb',
-        ))
-    except Exception as e:
-        logger.warning(u"Arquivo não encontrado: {}".format(repr(e)))
-        return await message.reply_photo(open(
-            'doc/assets/photo_2017-06-24_22-16-38.jpg',
-            'rb',
-        ))
+### FIXME armazenar file_id, porque muda conforme o grupo
 async def pegadinha4(message):
     bot = Dispatcher.get_current().bot
     return await message.reply(
         u"é {}, pa pa pa".format(
             await bot.get_chat_members_count(message.chat.id)),
     )
+async def pegadinha1(message):
+    try:
+        return await message.reply_photo('''AgACAgEAAx0EWWIw7gABAzPXYid\
+XQU56JMvt8IbBpON8d8TfI7oAAgyqMRvSF_FEnT2QiVbie1UBAAMCAANzAAMjBA''',
+        )
+    except Exception as exception:
+        logger.warning(
+            u"file_id estava errado tentando mandar pegadinha1",
+        )
+        try:
+            return await message.reply_photo(open(
+                'instance/personalidades/pave/pegadinha/pegadinha1.jpg',
+                'rb',
+            ))
+        except Exception as e1:
+            logger.warning(u"Arquivo não encontrado: {}".format(
+                repr(e1))
+            )
+            return await pegadinha4(message)
+async def pegadinha2(message):
+    try:
+        return await message.reply_photo('''AgACAgEAAx0EWWIw7gABAzPOYid\
+UEBEUFFncjjtkd6HBdAVnKVQAAleqMRvSF-lEWQpWEeJ0UWUBAAMCAANzAAMjBA''',
+        )
+    except Exception as exception:
+        logger.warning(
+            u"file_id estava errado tentando mandar pegadinha2",
+        )
+        try:
+            return await message.reply_photo(open(
+                'instance/personalidades/pave/pegadinha/pegadinha2.png',
+                'rb',
+            ))
+        except Exception as e1:
+            logger.warning(u"Arquivo não encontrado: {}".format(
+                repr(e1))
+            )
+            return await pegadinha4(message)
+async def pegadinha3(message):
+    try:
+        return await message.reply_animation('''CgACAgEAAx0EWWIw7gABAzL\
+4YiYP73EVBmcEbCrr_XztGpitP30AAgoCAALGHDFF5NSrfwkfoP4jBA''',
+        )
+    except Exception as exception:
+        logger.warning(
+            u"file_id estava errado tentando mandar pegadinha3",
+        )
+        try:
+            return await message.reply_animation(open(
+                'instance/personalidades/pave/pegadinha/pegadinha3.mp4',
+                'rb',
+            ))
+        except Exception as e1:
+            logger.warning(u"Arquivo não encontrado: {}".format(
+                repr(e1))
+            )
+            return await pegadinha4(message)
+async def pegadinha5(message):
+    bot = Dispatcher.get_current().bot
+    try:
+        ## esprimente a linguiça
+        return await message.reply_sticker('''AAMCAQADHQJZYjDuAAEDM-ViJ\
+2fMxBKkKvbPFq0miPLUuAavAAM4AAMcZ90u6TNY9DNgTcwBAAdtAAMjBA''',
+    except Exception as exception:
+        logger.warning(u"Não consegui mandar sticker: {}".format(
+            repr(exception))
+        )
+        return await pegadinha4(message)
 async def pegadinha(message):
     return await random.choice([
         pegadinha1,
         pegadinha2,
         pegadinha3,
         pegadinha4,
+        pegadinha5,
     ])(message)
 
 async def add_handlers(dispatcher):
