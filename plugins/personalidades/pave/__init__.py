@@ -140,6 +140,7 @@ async def pegadinha5(message):
         ## esprimente a linguiça
         return await message.reply_sticker('''AAMCAQADHQJZYjDuAAEDM-ViJ\
 2fMxBKkKvbPFq0miPLUuAavAAM4AAMcZ90u6TNY9DNgTcwBAAdtAAMjBA''',
+        )
     except Exception as exception:
         logger.warning(u"Não consegui mandar sticker: {}".format(
             repr(exception))
