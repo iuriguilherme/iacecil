@@ -2,8 +2,8 @@
 {% block title %}{{ title }}{% endblock %}
 {% block head %}{% endblock %}
 {% block navbar %}
-<li class="nav-item{{ active['tab']['graphic'] }}">
-    <a class="nav-link" href="{{ url_for('plots.graphic') }}">Graphic</a>
+<li class="nav-item{{ active['tab']['tests'] }}">
+    <a class="nav-link" href="{{ url_for('furhat.tests') }}">Tests</a>
 </li>
 {% endblock %}
 {% block body %}

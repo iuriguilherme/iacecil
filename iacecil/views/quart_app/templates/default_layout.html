@@ -41,12 +41,15 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('root.show') }}">Home</a>
+          <a class="nav-link{{ active['nav']['root'] }}" href="{{ url_for('root.show') }}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('plots.show') }}">Plots</a>
+          <a class="nav-link{{ active['nav']['plots'] }}" href="{{ url_for('plots.show') }}">Plots</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item{{ active['nav']['furhat'] }}">
+          <a class="nav-link" href="{{ url_for('furhat.show') }}">Furhat</a>
+        </li>
+        <li class="nav-item{{ active['nav']['admin'] }}">
           <a class="nav-link" href="{{ url_for('admin.show') }}">Admin</a>
         </li>
         <li class="nav-item">

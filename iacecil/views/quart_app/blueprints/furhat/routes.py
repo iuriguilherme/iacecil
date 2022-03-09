@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 from quart import (
     current_app,
-    flash,
     render_template,
 )
 from iacecil import (
@@ -33,34 +32,25 @@ from iacecil import (
     commit,
     version,
 )
+from iacecil.controllers import furhat_bot
 
-async def status(active_tab = {}):
-    users = [{
-        'user': await dispatcher.bot.get_me(),
-        'status': dispatcher.is_polling(),
-    } for dispatcher in current_app.dispatchers]
-    names = [user['user']['first_name'] for user in users]
-    await flash(
-        u"Total configured bots: {0}\nTotal running bots: {1}".format(
-            len(users),
-            len([user['status'] for user in users if user['status']]),
-        ), 'info')
+async def tests(active_tab = {}):
+    furhat = await furhat_bot.run_tests(current_app.quart_config['furhat'])
     return await render_template(
-        "root/status.html",
+        "furhat/tests.html",
         active = {
             'nav': dict(
                 current_app.active_nav.copy(),
-                root = ' active',
+                furhat = ' active',
             ),
             'tab': dict(
                 active_tab.copy(),
-                status = ' active',
+                tests = ' active',
             ),
         },
         commit = commit,
         name = actual_name,
-        names = names,
-        title = u"Status",
-        users = users,
+        furhat = furhat,
+        title = u"Furhat Tests",
         version = version,
     )

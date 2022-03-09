@@ -65,33 +65,127 @@ from plugins.natural import (
     tokenize_list,
 )
 
-_Auto = object()
-class SubFlaskForm(Form):
-    def __init__(self, formdata = _Auto, **kwargs):
-        super().__init__(formdata = formdata, **kwargs)
+# ~ _Auto = object()
+# ~ class SubFlaskForm(Form):
+    # ~ def __init__(self, *args, formdata = _Auto, **kwargs):
+        # ~ super().__init__(*args, formdata = formdata, **kwargs)
 
-async def send_message():
+# ~ class BotChatTextForm(SubFlaskForm):
+class BotChatLimitOffsetForm(FlaskForm):
+    bot_id_field = RadioField(
+        u"select bot",
+        choices = [('0', 'nenhum')],
+    )
+    chat_id_field = RadioField(
+        u"select chat",
+        choices = [],
+    )
+    limit_field = IntegerField(
+        'limit',
+        default = 30,
+    )
+    offset_field = IntegerField(
+        'offset',
+        default = 0,
+    )
+    submit = SubmitField(u"Send")
+    async def validate_bot_id_field(form, field):
+        field.choices = [
+            (user['id'], user['first_name']) for
+            user in [await dispatcher.bot.get_me() for
+            dispatcher in current_app.dispatchers]
+        ]
+    async def validate_chat_id_field(form, field, bot_id):
+        bot_current = [dispatcher.bot for dispatcher in \
+            current_app.dispatchers if str(dispatcher.bot.id
+            ) == bot_id
+        ][0]
+        db_path = 'instance/zodb/bots/{}/chats'.format(bot_id)
+        try:
+            chats_list = set([os.path.basename(chat).split('.')[0
+                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+            )
+        except FileNotFoundError:
+            os.makedirs(db_path)
+            chats_list = set([os.path.basename(chat).split('.')[0
+                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+            )
+        chats_info = list()
+        for chat_id in chats_list:
+            try:
+                chats_info.append(await bot_current.get_chat(chat_id))
+            except:
+                chats_info.append({'id': chat_id, 'title': u"Unknown"})
+        chats = [{'id': chat['id'], 'desc': chat['title']
+            } if chat['title'
+            ] is not None else {'id': chat['id'], 'desc': chat[
+            'first_name']} for chat in chats_info
+        ]
+        field.choices = [(int(chat['id']),
+            chat['desc']) for chat in chats]
+
+class BotChatTextForm(FlaskForm):
+    bot_id_field = RadioField(
+        u"select bot",
+        choices = [('0', 'nenhum')],
+    )
+    chat_id_field = RadioField(
+        u"select chat",
+        choices = [],
+    )
+    text_field = TextAreaField(
+        u"message",
+        default = u"Nada",
+    )
+    submit = SubmitField(u"Send")
+    async def validate_bot_id_field(form, field):
+        field.choices = [
+            (user['id'], user['first_name']) for
+            user in [await dispatcher.bot.get_me() for
+            dispatcher in current_app.dispatchers]
+        ]
+    async def validate_chat_id_field(form, field, bot_id):
+        bot_current = [dispatcher.bot for dispatcher in \
+            current_app.dispatchers if str(dispatcher.bot.id
+            ) == bot_id
+        ][0]
+        db_path = 'instance/zodb/bots/{}/chats'.format(bot_id)
+        try:
+            chats_list = set([os.path.basename(chat).split('.')[0
+                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+            )
+        except FileNotFoundError:
+            os.makedirs(db_path)
+            chats_list = set([os.path.basename(chat).split('.')[0
+                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
+            )
+        chats_info = list()
+        for chat_id in chats_list:
+            try:
+                chats_info.append(await bot_current.get_chat(chat_id))
+            except:
+                chats_info.append({'id': chat_id, 'title': u"Unknown"})
+        chats = [{'id': chat['id'], 'desc': chat['title']
+            } if chat['title'
+            ] is not None else {'id': chat['id'], 'desc': chat[
+            'first_name']} for chat in chats_info
+        ]
+        field.choices = [(int(chat['id']),
+            chat['desc']) for chat in chats]
+
+async def send_message(active_tab = {}):
     message = None
-    bots = [
-        (user['id'], user['first_name']) for
-        user in [await dispatcher.bot.get_me() for
-        dispatcher in current_app.dispatchers]
-    ]
-    class SendMessageForm(SubFlaskForm):
-        bot_id_field = RadioField(
-            u"select bot",
-            choices = bots,
-        )
-        chat_id_field = StringField(
-            u"type a valid chat_id",
-            default = 1,
-        )
-        text_field = TextAreaField(
-            u"message",
-            default = u"Nada",
-        )
-        submit = SubmitField(u"Send")
-    form = SendMessageForm(formdata = await request.form)
+    form = BotChatTextForm(formdata = await request.form)
+    await form.validate_bot_id_field(form.bot_id_field)
+    if form['bot_id_field'].data:
+        try:
+            await form.validate_chat_id_field(
+                form.chat_id_field,
+                form['bot_id_field'].data,
+            )
+        except Exception as exception:
+            return jsonify(repr(exception))
+            raise
     if request.method == "POST":
         try:
             # ~ form = await request.form
@@ -107,8 +201,19 @@ async def send_message():
             )
         except Exception as exception:
             return jsonify(repr(exception))
+            raise
     return await render_template(
         "admin/send_message.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                admin = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                send_message = ' active',
+            ),
+        },
         commit = commit,
         form = form,
         message = message,
@@ -117,7 +222,7 @@ async def send_message():
         version = version,
     )
 
-async def updates():
+async def updates(active_tab = {}):
     messages = None
     chats = None
     count = {'total': 0, 'current': 0}
@@ -142,43 +247,14 @@ async def updates():
             default = 0,
         )
         submit = SubmitField(u"Send")
-    form = UpdatesForm(formdata = await request.form)
+    form = BotChatLimitOffsetForm(formdata = await request.form)
+    await form.validate_bot_id_field(form.bot_id_field)
     if form['bot_id_field'].data:
         try:
-            bot_current = [dispatcher.bot for dispatcher in \
-                current_app.dispatchers if str(dispatcher.bot.id
-                ) == form['bot_id_field'].data
-            ][0]
-            db_path = 'instance/zodb/bots/{}/chats'.format(
-                    form['bot_id_field'].data
+            await form.validate_chat_id_field(
+                form.chat_id_field,
+                form['bot_id_field'].data,
             )
-            try:
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            except FileNotFoundError:
-                os.makedirs(db_path)
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            chats_info = list()
-            for chat_id in chats_list:
-                try:
-                    chats_info.append(
-                        await bot_current.get_chat(chat_id)
-                    )
-                except:
-                    chats_info.append({
-                        'id': chat_id,
-                        'title': u"Unknown",
-                    })
-            chats = [{'id': chat['id'], 'desc': chat['title']
-                } if chat['title'
-                ] is not None else {'id': chat['id'], 'desc': chat[
-                'first_name']} for chat in chats_info
-            ]
-            form['chat_id_field'].choices = [(int(chat['id']),
-                chat['desc']) for chat in chats]
         except Exception as exception:
             return jsonify(repr(exception))
     if request.method == "POST":
@@ -222,6 +298,16 @@ async def updates():
             return jsonify(repr(exception))
     return await render_template(
         "admin/updates.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                admin = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                updates = ' active',
+            ),
+        },
         commit = commit,
         count = count,
         bots = bots,
@@ -233,7 +319,7 @@ async def updates():
         version = version,
     )
 
-async def files():
+async def files(active_tab = {}):
     files = None
     count = {'total': 0, 'current': 0}
     bots = [user for user in [await dispatcher.bot.get_me() for \
@@ -299,6 +385,16 @@ abase: {}""".format(repr(e2))
             return jsonify(repr(exception))
     return await render_template(
         "admin/files.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                admin = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                files = ' active',
+            ),
+        },
         commit = commit,
         count = count,
         bots = bots,
@@ -309,7 +405,7 @@ abase: {}""".format(repr(e2))
         version = version,
     )
 
-async def messages_texts_list():
+async def messages_texts_list(active_tab = {}):
     show_messages = None
     messages = (0, None)
     chats = None
@@ -401,6 +497,16 @@ async def messages_texts_list():
             return jsonify(repr(exception))
     return await render_template(
         "admin/messages_texts.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                admin = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                texts = ' active',
+            ),
+        },
         commit = commit,
         count = count,
         bots = bots,
@@ -412,7 +518,7 @@ async def messages_texts_list():
         version = version,
     )
 
-async def messages_list():
+async def messages_list(active_tab = {}):
     messages = (0, None)
     chats = None
     count = {'total': 0, 'current': 0}
@@ -502,6 +608,16 @@ async def messages_list():
             return jsonify(repr(exception))
     return await render_template(
         "admin/messages.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                admin = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                messages = ' active',
+            ),
+        },
         commit = commit,
         count = count,
         bots = bots,

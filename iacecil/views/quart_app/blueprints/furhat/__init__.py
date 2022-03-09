@@ -27,9 +27,6 @@ from quart import (
     abort,
     Blueprint,
     current_app,
-    flash,
-    jsonify,
-    request,
     render_template,
 )
 from jinja2 import TemplateNotFound
@@ -38,64 +35,24 @@ from iacecil import (
     commit,
     version,
 )
-from iacecil.controllers.aiogram_bot.callbacks import (
-    error_callback,
-    exception_callback,
-)
-from iacecil.views.quart_app.blueprints.admin.routes import (
-    files,
-    messages_texts_list,
-    messages_list,
-    send_message,
-    updates,
+from iacecil.views.quart_app.blueprints.furhat.routes import (
+    tests,
 )
 
 active_tab = {
-    'files': '',
-    'messages': '',
-    'texts': '',
-    'send_message': '',
-    'updates': '',
+    'tests': '',
 }
 
 blueprint = Blueprint(
-    'admin',
-    'admin',
-    template_folder = 'iacecil/views/quart_app/templates/admin',
+    'furhat',
+    'furhat',
+    template_folder = 'iacecil/views/quart_app/templates/furhat',
 )
 blueprint.add_url_rule(
-    '/files/',
-    'files',
-    files,
-    methods = ['GET', 'POST'],
-    defaults = {'active_tab': active_tab},
-)
-blueprint.add_url_rule(
-    '/messages/',
-    'messages',
-    messages_list,
-    methods = ['GET', 'POST'],
-    defaults = {'active_tab': active_tab},
-)
-blueprint.add_url_rule(
-    '/texts/',
-    'texts',
-    messages_texts_list,
-    methods = ['GET', 'POST'],
-    defaults = {'active_tab': active_tab},
-)
-blueprint.add_url_rule(
-    '/send_message/',
-    'send_message',
-    send_message,
-    methods = ['GET', 'POST'],
-    defaults = {'active_tab': active_tab},
-)
-blueprint.add_url_rule(
-    '/updates/',
-    'updates',
-    updates,
-    methods = ['GET', 'POST'],
+    '/tests/',
+    'tests',
+    tests,
+    methods = ['GET'],
     defaults = {'active_tab': active_tab},
 )
 
@@ -104,11 +61,11 @@ blueprint.add_url_rule(
 async def show(page):
     try:
         return await render_template(
-            "admin/{0}.html".format(page),
+            'furhat/{0}.html'.format(page),
             active = {
                 'nav': dict(
                     current_app.active_nav.copy(),
-                    admin = ' active',
+                    furhat = ' active',
                 ),
                 'tab': dict(
                     active_tab.copy(),

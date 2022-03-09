@@ -45,6 +45,10 @@ from iacecil.views.quart_app.blueprints.root.routes import (
     status,
 )
 
+active_tab = {
+    'status': '',
+}
+
 blueprint = Blueprint(
     'root',
     'root',
@@ -55,6 +59,7 @@ blueprint.add_url_rule(
     'status',
     status,
     methods = ['GET'],
+    defaults = {'active_tab': active_tab},
 )
 
 @blueprint.route('/', defaults={'page': 'index'})
@@ -63,6 +68,16 @@ async def show(page):
     try:
         return await render_template(
             'root/{0}.html'.format(page),
+            active = {
+                'nav': dict(
+                    current_app.active_nav.copy(),
+                    root = ' active',
+                ),
+                'tab': dict(
+                   active_tab.copy(),
+                    status = ' active',
+                ),
+            },
             commit = commit,
             name = actual_name,
             title = page,

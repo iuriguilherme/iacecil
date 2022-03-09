@@ -43,6 +43,7 @@ from iacecil.controllers.aiogram_bot import (
 )
 from iacecil.views.quart_app.blueprints import (
     admin,
+    furhat,
     plots,
     root,
 )
@@ -60,13 +61,23 @@ async def add_blueprints():
         plots.blueprint,
         url_prefix = '/plots/',
     )
+    current_app.register_blueprint(
+        furhat.blueprint,
+        url_prefix = '/furhat/',
+    )
 
-def quart_startup(dispatchers):
+def quart_startup(config, dispatchers):
     quart_app = Quart(
         name,
         template_folder = 'views/quart_app/templates',
         static_folder = 'views/quart_app/static',
     )
+    active_page = {
+        'root': '',
+        'admin': '',
+        'plots': '',
+        'furhat': '',
+    }
     ## FIXME issue #2
     ## This approach doesn't even work
     # ~ quart_app.QUART_ENV = "development"
@@ -80,7 +91,9 @@ def quart_startup(dispatchers):
     @quart_app.before_serving
     async def quart_before_serving():
         logger.info("Starting up Quart...")
+        setattr(current_app, 'quart_config', config)
         setattr(current_app, 'dispatchers', dispatchers)
+        setattr(current_app, 'active_nav', active_page)
         loop = asyncio.get_event_loop()
         for dispatcher in dispatchers:
             await add_filters(dispatcher)

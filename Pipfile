@@ -19,6 +19,7 @@ brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #flask-sqlalchemy = "*"
 flask-wtf = "*"
 #flup = "*"
+furhat-remote-api = "*"
 #gunicorn = "*"
 graphviz = "*"
 #hypercorn = "*"

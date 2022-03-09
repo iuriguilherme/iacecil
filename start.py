@@ -69,7 +69,7 @@
 
 try:
     if __name__ == '__main__':
-        import iacecil, logging, sys, uvicorn
+        import asyncio, iacecil, logging, sys, uvicorn
         log_level = 'info'
         if len(sys.argv) > 1:
             log_level = sys.argv[1]
@@ -96,26 +96,60 @@ try:
             )
             if len(sys.argv) > 3:
                 bot = sys.argv[3]
-                logger.info(u"""Using configuration from BOT "{}" from \
-config file.""".format(bot))
-                if len(sys.argv) > 4:
-                    port = sys.argv[4]
-                    logger.info(u"Setting PORT to {}".format(port))
-                    if len(sys.argv) > 5:
-                        host = sys.argv[5]
-                        logger.info(u"Setting HOST to {}".format(
-                            host)
+                logger.info(u"""Using configuration from BOT "{}" f\
+rom config file.""".format(bot))
+                if mode in ['fpapagaio']:
+                    address = 'localhost'
+                    language = 'pt-BR'
+                    character = 'Titan'
+                    voice = 'Camila-Neural'
+                    skip_intro = False
+                    if len(sys.argv) > 4:
+                        address = sys.argv[4]
+                        logger.info(u"Setting ADDRESS to {}".format(
+                            str(address))
                         )
-                        if len(sys.argv) > 6:
-                            reload = bool(sys.argv[6])
-                            logger.info(u"Setting RELOAD to {}\
-                            ".format(str(reload)))
-                            if len(sys.argv) > 7:
-                                canonical = str(sys.argv[7])
+                        if len(sys.argv) > 5:
+                            language = sys.argv[5]
+                            logger.info(
+                                u"Setting LANGUAGE to {}".format(
+                                str(language))
+                            )
+                            if len(sys.argv) > 6:
+                                character = sys.argv[6]
                                 logger.info(
-                                    u"Setting CANONICAL to {}\
-                                    ".format(str(canonical))
+                                    u"Setting CHARACTER to {}".format(
+                                    str(character))
                                 )
+                                if len(sys.argv) > 7:
+                                    voice = sys.argv[7]
+                                    logger.info(
+                                        u"Setting VOICE to {}".format(
+                                        str(voice))
+                                    )
+                                    if len(sys.argv) > 8:
+                                        skip_intro = bool(sys.argv[8])
+                                        logger.info(u"""Setting SKIP_IN\
+TRO to {}""".format(str(skip_intro)))
+                else:
+                    if len(sys.argv) > 4:
+                        port = sys.argv[4]
+                        logger.info(u"Setting PORT to {}".format(port))
+                        if len(sys.argv) > 5:
+                            host = sys.argv[5]
+                            logger.info(u"Setting HOST to {}".format(
+                                str(host))
+                            )
+                            if len(sys.argv) > 6:
+                                reload = bool(sys.argv[6])
+                                logger.info(
+                                    u"Setting RELOAD to {}".format(
+                                    str(reload))
+                                )
+                                if len(sys.argv) > 7:
+                                    canonical = str(sys.argv[7])
+                                    logger.info(u"""Setting CANONICAL t\
+o {}""".format(str(canonical)))
             else:
                 logger.warning(u"BOT name not informed, assuming {}\
                     ".format(bot))
@@ -130,6 +164,23 @@ config file.""".format(bot))
                 logger.info(u"Starting {}".format(iacecil.actual_name))
                 app = iacecil.get_app(bot.split(','))
                 setattr(app, 'canonical', canonical)
+                uvicorn.run(
+                    app,
+                    host = host,
+                    port = int(port),
+                    log_level = log_level,
+                )
+                logger.info(u"Finishing {}".format(iacecil.actual_name))
+            except Exception as e:
+                logger.critical(repr(e))
+                logger.warning(u"Finishing with error {}...\
+                ".format(iacecil.actual_name))
+                raise
+        elif mode == 'furhat':
+            try:
+                logger.info(u"Starting {}".format(iacecil.actual_name))
+                app = iacecil.get_app(bot.split(','))
+                setattr(app, 'furhat', True)
                 uvicorn.run(
                     app,
                     host = host,
@@ -160,6 +211,25 @@ config file.""".format(bot))
                 logger.critical(repr(e))
                 logger.warning(u"Finishing with error {}...\
                 ".format(iacecil.actual_name))
+                raise
+        elif mode == 'fpapagaio':
+            try:
+                logger.info(u"Starting {}".format(iacecil.actual_name))
+                from plugins.furhat_experiments import papagaio
+                asyncio.run(papagaio(
+                    bot,
+                    address,
+                    language,
+                    character,
+                    voice,
+                    skip_intro,
+                ))
+                logger.info(u"Finishing {}".format(iacecil.actual_name))
+            except Exception as exception:
+                logger.critical(repr(exception))
+                logger.warning(u"Finishing with error {}...".format(
+                    iacecil.actual_name)
+                )
                 raise
         elif mode == 'block':
             try:

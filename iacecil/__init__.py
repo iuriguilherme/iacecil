@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.11.1'
+__version__ = '0.1.12.0'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -70,11 +70,23 @@ except Exception as exception:
     raise
 
 ## Default when just importing
-app = quart_startup(aiogram_startup(config, ['iacecil']))
+app = quart_startup(
+    config.quart,
+    aiogram_startup(
+        config.aiogram,
+        ['iacecil'],
+    ),
+)
 
 ## Default when defining all bot tokens on startup
 def get_app(bots):
-    return quart_startup(aiogram_startup(config, bots))
+    return quart_startup(
+        config.quart,
+        aiogram_startup(
+            config.aiogram,
+            bots,
+        ),
+    )
 
 ## Default when blocking the thread
 def run_app(quart_app):

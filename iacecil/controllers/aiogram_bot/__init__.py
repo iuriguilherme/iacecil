@@ -79,17 +79,14 @@ def aiogram_startup(config, names):
     dispatchers = list()
     for name in names:
         bot = (IACecilBot(
-            token = config.bots[name]['token'] or '',
-            config = config,
+            token = config['bots'][name]['token'] or '',
+            config = config['bots'][name],
             name = name,
         ))
         dispatcher = Dispatcher(bot)
-        setattr(dispatcher, 'info',
-            config.bots[name]['info'] or config.default_bot['info'])
-        setattr(dispatcher, 'plugins',
-            config.bots[name]['plugins'] or config.default_bot['plugins'])
-        setattr(dispatcher, 'users',
-            config.bots[name]['users'] or config.default_bot['users'])
+        setattr(dispatcher, 'info', config['bots'][name]['info'])
+        setattr(dispatcher, 'plugins', config['bots'][name]['plugins'])
+        setattr(dispatcher, 'users', config['bots'][name]['users'])
         dispatchers.append(dispatcher)
     return dispatchers
 

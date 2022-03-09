@@ -46,6 +46,10 @@ from iacecil.views.quart_app.blueprints.plots.routes import (
     graphic,
 )
 
+active_tab = {
+    'graphic': '',
+}
+
 blueprint = Blueprint(
     'plots',
     'plots',
@@ -56,6 +60,7 @@ blueprint.add_url_rule(
     'graphic',
     graphic,
     methods = ['GET'],
+    defaults = {'active_tab': active_tab},
 )
 
 @blueprint.route('/', defaults={'page': 'index'})
@@ -64,6 +69,16 @@ async def show(page):
     try:
         return await render_template(
             "plots/{0}.html".format(page),
+            active = {
+                'nav': dict(
+                    current_app.active_nav.copy(),
+                    plots = ' active',
+                ),
+                'tab': dict(
+                    active_tab.copy(),
+                    page = ' active',
+                ),
+            },
             commit = commit,
             name = actual_name,
             title = page,

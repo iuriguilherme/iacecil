@@ -2,7 +2,7 @@
 {% block title %}{{ title }}{% endblock %}
 {% block head %}{% endblock %}
 {% block navbar %}
-<li class="nav-item active">
+<li class="nav-item{{ active['tab']['status'] }}">
     <a class="nav-link" href="{{ url_for('root.status') }}">Status</a>
 </li>
 {% endblock %}

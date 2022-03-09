@@ -23,7 +23,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import BTrees, os, transaction, zc.zlibstorage, ZODB, ZODB.FileStorage
+import BTrees, os, transaction, uuid, zc.zlibstorage, ZODB, \
+    ZODB.FileStorage
 from aiogram import (
     Dispatcher,
 )
@@ -34,7 +35,7 @@ from iacecil import (
 )
 from iacecil.controllers.assertions import assertIsNotNone
 
-db_path = 'instance/zodb/bots'
+zodb_path = 'instance/zodb'
 
 async def croak_db(db):
     try:
@@ -72,8 +73,8 @@ async def get_messages(chat_id):
         return False, False
     dispatcher = Dispatcher.get_current()
     try:
-        db = await get_db('{}/{}/chats/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
             dispatcher.bot.id,
             chat_id,
         ))
@@ -102,8 +103,8 @@ async def get_messages_garimpo(chat_id):
         return False, False
     dispatcher = Dispatcher.get_current()
     try:
-        db = await get_db('{}/{}/garimpo/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/garimpo/{}.fs'.format(
+            zodb_path,
             dispatcher.bot.id,
             chat_id,
         ))
@@ -132,8 +133,8 @@ async def get_messages_admin(chat_id):
         return False, False
     dispatcher = Dispatcher.get_current()
     try:
-        db = await get_db('{}/{}/admin/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/admin/{}.fs'.format(
+            zodb_path,
             dispatcher.bot.id,
             chat_id,
         ))
@@ -161,8 +162,8 @@ async def get_bot_messages(bot_id, chat_id):
     if not await assertIsNotNone([bot_id, chat_id]):
         return False, False
     try:
-        db = await get_db('{}/{}/chats/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
             bot_id,
             chat_id,
         ))
@@ -195,8 +196,8 @@ async def get_messages_texts_list(
     if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
         return (0, ['nada'])
     try:
-        db = await get_db('{}/{}/chats/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
             bot_id,
             chat_id,
         ))
@@ -235,8 +236,8 @@ async def get_messages_list(
     if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
         return (0, [{}])
     try:
-        db = await get_db('{}/{}/chats/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
             bot_id,
             chat_id,
         ))
@@ -270,8 +271,8 @@ async def get_bot_files(bot_id):
     if not await assertIsNotNone([bot_id]):
         return False, False
     try:
-        db = await get_db('{}/{}/files.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/files.fs'.format(
+            zodb_path,
             bot_id,
         ))
         if not db:
@@ -298,8 +299,8 @@ async def get_file_id_by_reference(bot_id, reference):
     if not await assertIsNotNone([bot_id, reference]):
         return False
     try:
-        db = await get_db('{}/{}/files.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/files.fs'.format(
+            zodb_path,
             bot_id,
         ))
         if not db:
@@ -340,8 +341,8 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
         reference]):
         return False
     try:
-        db = await get_db('{}/{}/files.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/files.fs'.format(
+            zodb_path,
             bot_id,
         ))
         if not db:
@@ -369,8 +370,9 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
                     file_['file_unique_id'] = file_unique_id
                     file_['file_id'] = file_id
                     file_['reference'] = reference
-                    file_[name + '_version'] = version
-                    file_[name + '_commit'] = commit
+                    file_[name]['version'] = version
+                    file_[name]['commit'] = commit
+                    file_[name]['plugin'] = 'aiogram'
                     transaction.commit()
                 except Exception as e2:
                     await croak_transaction(transaction)
@@ -398,8 +400,8 @@ async def log_message(message):
         return False
     dispatcher = Dispatcher.get_current()
     try:
-        db = await get_db('{}/{}/chats/{}.fs'.format(
-            db_path,
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
             dispatcher.bot.id,
             message.chat.id,
         ))
@@ -424,8 +426,9 @@ async def log_message(message):
                     pms[message.message_id] = BTrees.OOBTree.OOBTree()
                     pm = pms[message.message_id]
                     pm.update(message)
-                    pm[name + '_version'] = version
-                    pm[name + '_commit'] = commit
+                    pm[name]['version'] = version
+                    pm[name]['commit'] = commit
+                    pm[name]['plugin'] = 'aiogram'
                     transaction.commit()
                     return True
                 except Exception as e2:
@@ -434,6 +437,103 @@ async def log_message(message):
                     raise
                 finally:
                     await croak_db(db)
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.warning(repr(e1))
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return False
+
+async def get_furhat_texts_messages(
+    furhat_id: str = None,
+    session_id: str = None,
+):
+    if not await assertIsNotNone([
+        furhat_id,
+        session_id,
+    ]):
+        return []
+    try:
+        db = await get_db('{}/furhats/{}/sessions/{}.fs'.format(
+            zodb_path,
+            furhat_id,
+            session_id,
+        ))
+        if not db:
+            return []
+        try:
+            connection = db.open()
+            root = connection.root
+            texts = None
+            try:
+                texts = root.texts
+            except AttributeError:
+                root.texts = BTrees.OOBTree.OOBTree()
+                texts = root.texts
+            try:
+                return [texts[text]['message'] for text in texts][-1]
+            except IndexError:
+                return []
+        except Exception as e1:
+            logger.warning(repr(e1))
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return []
+
+async def set_furhat_text(
+    furhat_id: str = None,
+    session_id: str = None,
+    furhat_text: object = None,
+):
+    if not await assertIsNotNone([
+        furhat_id,
+        session_id,
+        furhat_text,
+    ]):
+        return False
+    try:
+        db = await get_db('{}/furhats/{}/sessions/{}.fs'.format(
+            zodb_path,
+            furhat_id,
+            session_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            texts = None
+            try:
+                texts = root.texts
+            except AttributeError:
+                root.texts = BTrees.OOBTree.OOBTree()
+                texts = root.texts
+            try:
+                text_id = uuid.uuid4()
+                texts[text_id] = BTrees.OOBTree.OOBTree()
+                text = texts[text_id]
+                text['success'] = furhat_text.success
+                text['message'] = furhat_text.message
+                text[name] = {
+                    'version': version,
+                    'commit': commit,
+                    'plugin': 'furhat',
+                }
+                transaction.commit()
+                return True
+            except Exception as e2:
+                await croak_transaction(transaction)
+                logger.warning(repr(e2))
+                raise
             finally:
                 await croak_db(db)
         except Exception as e1:

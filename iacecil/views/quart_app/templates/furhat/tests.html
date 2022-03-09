@@ -1,0 +1,41 @@
+{% extends "furhat/default_layout.html" %}
+{% block body %}
+<h1>Tests for Furhat</h1>
+{% if furhat %}
+<div class="container">
+<div class="row">
+<div class="col">
+<div class="card bg-info text-dark mb-3 shadow-sm">
+<div class="card-header">{{ name }}</div>
+<div class="card-body">
+<table class="table table-striped">
+<tbody>
+    <tr>
+        <td>furhat</td>
+        <td><span class="badge rounded-pill bg-dark text-light">{{ furhat['furhat'] }}</span></td>
+    </tr>
+    <tr>
+        <td>voices</td>
+        <td><span class="badge rounded-pill bg-dark text-light">{{ furhat['voices'] }}</span></td>
+    </tr>
+    <tr>
+        <td>result</td>
+        <td><span class="badge rounded-pill bg-dark text-light">{{ furhat['result'] }}</span></td>
+    </tr>
+    <tr>
+        <td>user</td>
+        <td><span class="badge rounded-pill bg-dark text-light">{{ furhat['user'] }}</span></td>
+    </tr>
+</tbody>
+</table>
+</div> <!-- card-body -->
+</div> <!-- card -->
+</div> <!-- col -->
+</div> <!-- row -->
+</div> <!-- container -->
+{% else %}
+<p>We had a problem testing Furhat&excl;</p>
+{% endif %}
+<hr>
+<p>&nbsp;</p>
+{% endblock %}

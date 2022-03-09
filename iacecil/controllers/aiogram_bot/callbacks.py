@@ -24,10 +24,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 from aiogram import types
+from quart import current_app
 from iacecil import config
 from plugins.log import (
     debug_logger,
     exception_logger,
+    furhat_logger,
     info_logger,
     zodb_logger,
 )
@@ -39,6 +41,11 @@ async def message_callback(
 ):
     if message is not None:
         setattr(message, 'tags', descriptions)
+        try:
+            if current_app.furhat and message.text is not None:
+                await furhat_logger(message.text)
+        except Exception as exception:
+            logger.info(repr(exception))
         await zodb_logger(message)
 
 async def command_callback(
@@ -63,6 +70,11 @@ async def exception_callback(
     await exception_logger(exception, descriptions)
 
 async def any_message_callback(message: types.Message):
+    try:
+        if current_app.furhat and message.text is not None:
+            await furhat_logger(message.text)
+    except Exception as exception:
+        logger.info(repr(exception))
     await zodb_logger(message)
 
 async def any_edited_message_callback(message: types.Message):

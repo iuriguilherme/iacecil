@@ -57,7 +57,7 @@ from plugins.persistence.zodb_orm import (
     get_bot_files,
 )
 
-async def graphic():
+async def graphic(active_tab = {}):
     # Generate the figure **without using pyplot**.
     fig = Figure()
     ax = fig.subplots()
@@ -69,6 +69,16 @@ async def graphic():
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return await render_template(
         "plots/graphic.html",
+        active = {
+            'nav': dict(
+                current_app.active_nav.copy(),
+                plots = ' active',
+            ),
+            'tab': dict(
+                active_tab.copy(),
+                graphic = ' active',
+            ),
+        },
         commit = commit,
         data = data,
         name = actual_name,
