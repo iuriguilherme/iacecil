@@ -99,38 +99,11 @@ try:
                 logger.info(u"""Using configuration from BOT "{}" f\
 rom config file.""".format(bot))
                 if mode in ['fpapagaio']:
-                    address = 'localhost'
-                    language = 'pt-BR'
-                    character = 'Titan'
-                    voice = 'Camila-Neural'
                     skip_intro = False
                     if len(sys.argv) > 4:
-                        address = sys.argv[4]
-                        logger.info(u"Setting ADDRESS to {}".format(
-                            str(address))
-                        )
-                        if len(sys.argv) > 5:
-                            language = sys.argv[5]
-                            logger.info(
-                                u"Setting LANGUAGE to {}".format(
-                                str(language))
-                            )
-                            if len(sys.argv) > 6:
-                                character = sys.argv[6]
-                                logger.info(
-                                    u"Setting CHARACTER to {}".format(
-                                    str(character))
-                                )
-                                if len(sys.argv) > 7:
-                                    voice = sys.argv[7]
-                                    logger.info(
-                                        u"Setting VOICE to {}".format(
-                                        str(voice))
-                                    )
-                                    if len(sys.argv) > 8:
-                                        skip_intro = bool(sys.argv[8])
-                                        logger.info(u"""Setting SKIP_IN\
-TRO to {}""".format(str(skip_intro)))
+                        skip_intro = bool(sys.argv[8])
+                        logger.info(u"""Setting SKIP_INTRO to {}\
+""".format(str(skip_intro)))
                 else:
                     if len(sys.argv) > 4:
                         port = sys.argv[4]
@@ -216,14 +189,7 @@ o {}""".format(str(canonical)))
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
                 from plugins.furhat_experiments import papagaio
-                asyncio.run(papagaio(
-                    bot,
-                    address,
-                    language,
-                    character,
-                    voice,
-                    skip_intro,
-                ))
+                asyncio.run(papagaio(skip_intro = skip_intro))
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:
                 logger.critical(repr(exception))

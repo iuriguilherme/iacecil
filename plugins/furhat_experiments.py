@@ -52,6 +52,16 @@ from plugins.natural import (
     count,
     similar,
 )
+
+try:
+    from instance.config import Config
+    config = Config()
+    furhat_config = config.quart['furhat']
+except Exception as exception:
+    logger.critical(u"""{} config file not found or somehow wrong. RTFM\
+.\n{}""".format(actual_name, str(exception)))
+    raise
+
 async def change_voice(furhat, voices, language):
     await set_voice(furhat, random.choice([voice.name for voice in \
         voices if voice.language == language]))
@@ -162,20 +172,20 @@ async def blue_speak(furhat, message):
     await do_say_text(furhat, message)
 
 ## Blocking loop
-async def papagaio(
-    furhat_id,
-    address,
-    language,
-    character,
-    voice,
-    skip_intro,
-):
+async def papagaio(skip_intro = False):
+    furhat_id = furhat_config['bot']
+    address = furhat_config['address']
+    language = furhat_config['language']
+    mask = furhat_config['mask']
+    character = furhat_config['character']
+    voice = furhat_config['voice']
+    voice_url = furhat_config['voice_url']
     session_id = uuid.uuid4()
     furhat = await get_furhat(address)
     await set_led(furhat, red = 0, green = 0, blue = 255)
     voices = await get_voices(furhat)
     # ~ logger.info(voices)
-    await set_face(furhat,'adult', character)
+    await set_face(furhat, mask, character)
     await set_voice(furhat, voice)
     await do_attend_user(furhat, 'CLOSEST')
     if not skip_intro:
@@ -204,7 +214,7 @@ njoar, é só dizer: "chega". Que eu calo a boca.""")
         await set_led(furhat, red = 0, green = 0, blue = 0)
         if text.success and text.message not in ['', 'EMPTY']:
             logger.info(str(text))
-            if text.message.lower() in ['chega', 'enough', 'listo']:
+            if text.message.lower() in ['chega', 'listo', 'enough']:
                 await set_led(furhat, red = 0, green = 0, blue = 255)
                 language = 'pt-BR'
                 await change_voice(furhat, voices, language)
@@ -279,7 +289,11 @@ njoar, é só dizer: "chega". Que eu calo a boca.""")
                     words = text.message.split(' ')[2:]
                     message = await nlp_common_context(furhat_id, words)
                 await blue_speak(furhat, message)
-            elif text.message.lower() in ['português', 'portuguese']:
+            elif text.message.lower() in [
+                'português',
+                'portugués',
+                'portuguese',
+            ]:
                 await asyncio.sleep(1)
                 await set_led(furhat, red = 0, green = 0, blue = 255)
                 language = 'pt-BR'
@@ -287,7 +301,11 @@ njoar, é só dizer: "chega". Que eu calo a boca.""")
                 await do_attend_user(furhat, 'RANDOM')
                 await do_say_text(furhat, u"""Agora eu vou falar e escu\
 tar em português brasileiro.""")
-            elif text.message.lower() in ['inglês', 'english']:
+            elif text.message.lower() in [
+                'inglês',
+                'inglés',
+                'english',
+            ]:
                 await asyncio.sleep(1)
                 await set_led(furhat, red = 0, green = 0, blue = 255)
                 language = 'en-US'
@@ -295,7 +313,11 @@ tar em português brasileiro.""")
                 await do_attend_user(furhat, 'RANDOM')
                 await do_say_text(furhat, u"""Now I'm listening and spe\
 aking in united states english.""")
-            elif text.message.lower() in ['espanhol', 'spanish']:
+            elif text.message.lower() in [
+                'espanhol',
+                'español',
+                'spanish',
+            ]:
                 await asyncio.sleep(1)
                 await set_led(furhat, red = 0, green = 0, blue = 255)
                 language = 'es-ES'
@@ -303,12 +325,30 @@ aking in united states english.""")
                 await do_attend_user(furhat, 'RANDOM')
                 await do_say_text(furhat, u"""Ahora yo voy a hablar e e\
 scuchar en español""")
-            elif text.message.lower() in ['francês', 'french']:
+            elif text.message.lower() in [
+                'francês',
+                'francesc',
+                'french',
+            ]:
                 await asyncio.sleep(1)
                 await set_led(furhat, red = 0, green = 0, blue = 255)
                 await do_attend_user(furhat, 'RANDOM')
-                block_do_say_url(furhat, '''https://www.intriguing.com/\
-mp/_sounds/hg/french.wav''')
+                audio = random.choice([
+                    'french',
+                    'gotone',
+                    'kniggits',
+                    'pigdog',
+                    'nomore',
+                    'boil',
+                    'fart',
+                    'taunt',
+                    'hamster',
+                    'wipe',
+                ])
+                await do_say_url(
+                    furhat,
+                    ''.join([voice_url + audio + '.wav']),
+                )
             else:
                 await set_furhat_text(furhat_id, session_id, text)
                 await asyncio.sleep(1)
