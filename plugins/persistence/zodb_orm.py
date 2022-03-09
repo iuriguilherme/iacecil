@@ -370,9 +370,11 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
                     file_['file_unique_id'] = file_unique_id
                     file_['file_id'] = file_id
                     file_['reference'] = reference
-                    file_[name]['version'] = version
-                    file_[name]['commit'] = commit
-                    file_[name]['plugin'] = 'aiogram'
+                    file_[name] = {
+                        'version': version,
+                        'commit': commit,
+                        'plugin': 'aiogram',
+                    }
                     transaction.commit()
                 except Exception as e2:
                     await croak_transaction(transaction)
@@ -426,9 +428,11 @@ async def log_message(message):
                     pms[message.message_id] = BTrees.OOBTree.OOBTree()
                     pm = pms[message.message_id]
                     pm.update(message)
-                    pm[name]['version'] = version
-                    pm[name]['commit'] = commit
-                    pm[name]['plugin'] = 'aiogram'
+                    pm[name] = {
+                        'version': version,
+                        'commit': commit,
+                        'plugin': 'aiogram',
+                    }
                     transaction.commit()
                     return True
                 except Exception as e2:
