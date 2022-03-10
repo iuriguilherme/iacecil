@@ -273,17 +273,22 @@ async def get_aiogram_messages(
     offset: int = 0,
     limit: int = 0,
 ):
-    if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
+    logger.debug('1')
+    if not await assertIsNotNone([bot_id, chat_id]):
+        logger.debug('2')
         return (0, [{}])
     try:
+        logger.debug('3')
         db = await get_db('{}/bots/{}/chats/{}.fs'.format(
             zodb_path,
             bot_id,
             chat_id,
         ))
         if not db:
+            logger.debug('4')
             return (0, [{}])
         try:
+            logger.debug('5')
             connection = db.open()
             root = connection.root
             pms = None
@@ -292,6 +297,9 @@ async def get_aiogram_messages(
             except AttributeError:
                 root.messages = BTrees.IOBTree.IOBTree()
                 pms = root.messages
+            logger.debug('6')
+            # ~ logger.debug(str([{k:v for (k,v) in pm.items()} for pm in \
+                # ~ pms.values()]))
             return (len(pms), [{k:v for (k,v) in pm.items()} for pm in \
                 pms.values()][::-1][offset:limit])
         except Exception as e1:
@@ -302,7 +310,47 @@ async def get_aiogram_messages(
     except Exception as exception:
         logger.warning(repr(exception))
         raise
+    logger.debug('7')
     return (0, [{}])
+
+async def get_aiogram_messages_texts(
+    bot_id: str = None,
+    chat_id: str = None,
+    offset: int = 0,
+    limit: int = None,
+):
+    if not await assertIsNotNone([bot_id, chat_id]):
+        return (0, ['nada'])
+    try:
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            chat_id,
+        ))
+        if not db:
+            return (0, ['nada'])
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return (len(pms), [pm[item] for pm in pms.values() for item\
+                in {k:v for (k,v) in pm.items()} if item == 'text'][
+                ::-1][offset:limit]
+            )
+        except Exception as e1:
+            logger.warning(repr(e1))
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return (0, ['nada'])
 
 async def get_bot_files(bot_id):
     if not await assertIsNotNone([bot_id]):

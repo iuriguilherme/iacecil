@@ -36,13 +36,17 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     exception_callback,
 )
 from plugins.persistence.zodb_orm import (
+    get_aiogram_messages,
+    get_aiogram_messages_texts,
     get_messages,
     get_messages_texts_list,
     get_messages_admin,
 )
 from plugins.natural import (
+    concordance,
     count,
     generate,
+    similar,
 )
 
 ## TODO migrar para aiogram - este código era do telepot
@@ -308,6 +312,51 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     __name__,
                     repr(e1),
                 ))
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['find']
+    )
+    async def find_callback(message):
+        await message_callback(message, ['admin', 'zodb',
+            'find', message.chat.type]
+        )
+        word = None
+        command = None
+        if message.chat.type not in ['group', 'supergroup']:
+            command = await message.reply(
+                u"Comando só funciona em grupos"
+            )
+        else:
+            if len(message.get_args()) > 0:
+                word = message.get_args()
+            if word is not None:
+                messages = await get_aiogram_messages(
+                    bot_id = dispatcher.bot.id,
+                    chat_id = message.chat.id,
+                    offset = 0,
+                    limit = None,
+                )
+                links = list()
+                for message_ in messages[1]:
+                    if word in message_.get('text', ''):
+                        url = 'https://t.me/'
+                        if message_.get('username', None) is not None:
+                            url += f"{message_['username']}/"
+                        else:
+                            url += \
+                            f"c/{str(message_['chat']['id'])[4:]}/"
+                        url += f"{message_['message_id']}"
+                        links.append(url)
+                command = await message.reply(
+                    u"Encontrei '{}' nestas mensagens:".format(word)
+                )
+                command = await message.reply('\n'.join(links))
+                await command_callback(command, ['admin', 'zodb',
+                    'find', message.chat.type]
+                )
 
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -388,19 +437,19 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
-        commands = ['ngenerate', 'ngen']
+        commands = ['ngen']
     )
     async def ngenerate_callback(message):
         await message_callback(message, ['admin', 'nltk', 'generate',
             message.chat.type]
         )
-        limit = 0
+        limit = None
         if len(message.get_args()) > 0:
             limit = int(message.get_args())
-        texts = await get_messages_texts_list(
+        texts = await get_aiogram_messages_texts(
             bot_id = dispatcher.bot.id,
             chat_id = message.chat.id,
-            offset = -1,
+            offset = 0,
             limit = limit,
         )
         generated = await generate(texts[1])
@@ -413,7 +462,7 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             user_id = dispatcher.bot.users['alpha'] + \
                 dispatcher.bot.users['beta'],
         ),
-        commands = ['ncount']
+        commands = ['ncnt']
     )
     async def ncount_callback(message):
         await message_callback(message, ['admin', 'nltk', 'count',
@@ -424,11 +473,11 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         if len(message.get_args()) > 0:
             word = message.get_args()
         if word is not None:
-            texts = await get_messages_texts_list(
+            texts = await get_aiogram_messages_texts(
                 bot_id = dispatcher.bot.id,
                 chat_id = message.chat.id,
-                offset = -1,
-                limit = 0,
+                offset = 0,
+                limit = None,
             )
             counted = await count(texts[1], word)
             command = await message.reply(
@@ -436,5 +485,64 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             await command_callback(command, ['admin', 'nltk', 'count',
                 message.chat.type]
             )
-        else:
-            await message.reply(u"Contar que palavra?")
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['ncon']
+    )
+    async def nconcordance_callback(message):
+        await message_callback(message, ['admin', 'nltk',
+            'concordance', message.chat.type]
+        )
+        word = None
+        command = None
+        if len(message.get_args()) > 0:
+            word = message.get_args()
+        if word is not None:
+            texts = await get_aiogram_messages_texts(
+                bot_id = dispatcher.bot.id,
+                chat_id = message.chat.id,
+                offset = 0,
+                limit = None,
+            )
+            concordances = await concordance(texts[1], word)
+            command = await message.reply(
+                u"concordâncias para {}:\n{}".format(
+                word, concordances)
+            )
+            await command_callback(command, ['admin', 'nltk',
+                'concordance', message.chat.type]
+            )
+    @dispatcher.message_handler(
+        filters.IDFilter(
+            user_id = dispatcher.bot.users['alpha'] + \
+                dispatcher.bot.users['beta'],
+        ),
+        commands = ['nsim']
+    )
+    async def nsimilar_callback(message):
+        await message_callback(message, ['admin', 'nltk',
+            'similar', message.chat.type]
+        )
+        word = None
+        command = None
+        if len(message.get_args()) > 0:
+            word = message.get_args()
+        if word is not None:
+            texts = await get_aiogram_messages_texts(
+                bot_id = dispatcher.bot.id,
+                chat_id = message.chat.id,
+                offset = 0,
+                limit = None,
+            )
+            # ~ logger.debug(str(texts))
+            similars = await similar(texts[1], word)
+            command = await message.reply(
+                u"palavras similares a {}:\n{}".format(
+                word, similars)
+            )
+            await command_callback(command, ['admin', 'nltk',
+                'similar', message.chat.type]
+            )
