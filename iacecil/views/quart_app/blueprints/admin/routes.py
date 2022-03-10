@@ -228,7 +228,7 @@ async def updates(active_tab = {}):
     count = {'total': 0, 'current': 0}
     bots = [user for user in [await dispatcher.bot.get_me() for \
         dispatcher in current_app.dispatchers]]
-    class UpdatesForm(SubFlaskForm):
+    class UpdatesForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
             choices = [(user['id'], user['first_name']
@@ -324,7 +324,7 @@ async def files(active_tab = {}):
     count = {'total': 0, 'current': 0}
     bots = [user for user in [await dispatcher.bot.get_me() for \
         dispatcher in current_app.dispatchers]]
-    class FilesForm(SubFlaskForm):
+    class FilesForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
             choices = [(user['id'], user['first_name']
@@ -412,7 +412,7 @@ async def messages_texts_list(active_tab = {}):
     count = {'total': 0, 'current': 0}
     bots = [user for user in [await dispatcher.bot.get_me() for \
         dispatcher in current_app.dispatchers]]
-    class MessagesTextsForm(SubFlaskForm):
+    class MessagesTextsForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
             choices = [(user['id'], user['first_name']
@@ -524,7 +524,7 @@ async def messages_list(active_tab = {}):
     count = {'total': 0, 'current': 0}
     bots = [user for user in [await dispatcher.bot.get_me() for \
         dispatcher in current_app.dispatchers]]
-    class MessagesForm(SubFlaskForm):
+    class MessagesForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
             choices = [(user['id'], user['first_name']
