@@ -32,42 +32,86 @@ from plugins.persistence.zodb_orm import (
 )
 
 async def remove_punctuation(sent_list):
-    return [word for word in sent_list if not any(
-        [(punctuation in word) for punctuation in string.punctuation])]
+    try:
+        return [word for word in sent_list if not any([(punctuation in \
+            word) for punctuation in string.punctuation])]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def tokenize_list(sent_list):
-    sent_list = await remove_punctuation(sent_list)
-    return word_tokenize(' '.join([word for sent in sent_list for word \
-        in sent.split(' ')]))
+    try:
+        sent_list = await remove_punctuation(sent_list)
+        return word_tokenize(' '.join([word for sent in sent_list for \
+            word in sent.split(' ')]))
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def text_from_list(sent_list):
-    text = await tokenize_list(sent_list)
-    return nltk.Text(text)
+    try:
+        text = await tokenize_list(sent_list)
+        return nltk.Text(text)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def generate(sent_list):
-    text = await text_from_list(sent_list)
-    return text.generate()
+    try:
+        text = await text_from_list(sent_list)
+        logger.debug(str(text))
+        return text.generate()
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def collocations(sent_list):
-    text = await text_from_list(sent_list)
-    return text.collocations()
+    try:
+        text = await text_from_list(sent_list)
+        return text.collocations()
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def concordance(sent_list, word):
-    text = await text_from_list(sent_list)
-    return text.concordance(word)
+    try:
+        text = await text_from_list(sent_list)
+        logger.debug(str(text))
+        concordances = text.concordance_list(word)
+        return concordances
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def count(sent_list, word):
-    text = await text_from_list(sent_list)
-    return text.count(word)
+    try:
+        text = await text_from_list(sent_list)
+        logger.debug(str(text))
+        return text.count(word)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def similar(sent_list, word):
-    text = await text_from_list(sent_list)
-    return text.similar(word)
+    try:
+        text = await text_from_list(sent_list)
+        return text.similar(word)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def common_contexts(sent_list, words):
-    text = await text_from_list(sent_list)
-    return text.common_contexts(words)
+    try:
+        text = await text_from_list(sent_list)
+        return text.common_contexts(words)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def dispersion_plot(sent_list, words):
-    text = await text_from_list(sent_list)
-    return text.dispersion_plot(words)
+    try:
+        text = await text_from_list(sent_list)
+        return text.dispersion_plot(words)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
