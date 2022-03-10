@@ -480,7 +480,7 @@ async def get_furhat_texts_messages(
                 root.texts = BTrees.OOBTree.OOBTree()
                 texts = root.texts
             try:
-                return [texts[text]['message'] for text in texts][-1]
+                return [texts[text]['message'] for text in texts][::-1]
             except IndexError:
                 return []
         except Exception as e1:

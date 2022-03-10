@@ -101,7 +101,7 @@ rom config file.""".format(bot))
                 if mode in ['fpapagaio']:
                     skip_intro = False
                     if len(sys.argv) > 4:
-                        skip_intro = bool(sys.argv[8])
+                        skip_intro = bool(sys.argv[4])
                         logger.info(u"""Setting SKIP_INTRO to {}\
 """.format(str(skip_intro)))
                 else:

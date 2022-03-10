@@ -68,6 +68,7 @@ async def change_voice(furhat, voices, language):
 
 async def zodb_get_session(furhat_id, session_id):
     messages = await get_furhat_texts_messages(furhat_id, session_id)
+    logger.debug(str(messages))
     return messages
 
 async def zodb_get_sessions(furhat_id):
@@ -82,6 +83,7 @@ async def zodb_get_sessions(furhat_id):
             all_messages = all_messages + messages
         elif isinstance(messages, str):
             all_messages.append(messages)
+    logger.debug(str(all_messages))
     return all_messages
 
 async def zodb_get_aiogram():
@@ -345,6 +347,7 @@ scuchar en español""")
                     'hamster',
                     'wipe',
                 ])
+                logger.debug(''.join([voice_url + audio + '.wav']))
                 await do_say_url(
                     furhat,
                     ''.join([voice_url + audio + '.wav']),
