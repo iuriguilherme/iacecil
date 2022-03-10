@@ -54,6 +54,7 @@ from iacecil import (
     version,
 )
 from plugins.persistence.zodb_orm import (
+    get_aiogram_messages,
     get_messages,
     get_messages_list,
     get_messages_texts_list,
@@ -540,7 +541,7 @@ async def messages_list(active_tab = {}):
         )
         offset_field = IntegerField(
             'offset',
-            default = -1,
+            default = 0,
         )
         submit = SubmitField(u"Send")
     form = MessagesForm(formdata = await request.form)
@@ -584,20 +585,20 @@ async def messages_list(active_tab = {}):
             return jsonify(repr(exception))
     if request.method == "POST":
         try:
-            offset = -1
-            limit = 0
-            if form['limit_field'].data > 0:
-                limit = -(2+form['limit_field'].data+form[
-                    'offset_field'].data)
-            if form['offset_field'].data > 0:
-                offset = -(1+form['offset_field'].data)
-                limit = limit + 1
+            # ~ offset = -1
+            # ~ limit = 0
+            # ~ if form['limit_field'].data > 0:
+                # ~ limit = -(2+form['limit_field'].data+form[
+                    # ~ 'offset_field'].data)
+            # ~ if form['offset_field'].data > 0:
+                # ~ offset = -(1+form['offset_field'].data)
+                # ~ limit = limit + 1
             try:
-                messages = await get_messages_list(
+                messages = await get_aiogram_messages(
                     bot_id = form['bot_id_field'].data,
                     chat_id = form['chat_id_field'].data,
-                    offset = offset,
-                    limit = limit,
+                    offset = form['offset_field'].data,
+                    limit = form['limit_field'].data,
                 )
                 count['total'] = messages[0]
                 count['current'] = len(messages[1])

@@ -267,6 +267,43 @@ async def get_messages_list(
         raise
     return (0, [{}])
 
+async def get_aiogram_messages(
+    bot_id: str = None,
+    chat_id: str = None,
+    offset: int = 0,
+    limit: int = 0,
+):
+    if not await assertIsNotNone([bot_id, chat_id, offset, limit]):
+        return (0, [{}])
+    try:
+        db = await get_db('{}/bots/{}/chats/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            chat_id,
+        ))
+        if not db:
+            return (0, [{}])
+        try:
+            connection = db.open()
+            root = connection.root
+            pms = None
+            try:
+                pms = root.messages
+            except AttributeError:
+                root.messages = BTrees.IOBTree.IOBTree()
+                pms = root.messages
+            return (len(pms), [{k:v for (k,v) in pm.items()} for pm in \
+                pms.values()][::-1][offset:limit])
+        except Exception as e1:
+            logger.warning(repr(e1))
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+    return (0, [{}])
+
 async def get_bot_files(bot_id):
     if not await assertIsNotNone([bot_id]):
         return False, False
