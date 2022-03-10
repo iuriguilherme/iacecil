@@ -196,10 +196,16 @@ eactivated')""",
                         chunk = chunk.translate(
                             str.maketrans('', '', '\\`')
                         )
-                        kwargs['text'] = markdown.escape_md(
-                            u"#thread ({}/{}):\n\n".format(count, 
-                            len(chunks))
-                        ) + markdown.pre(chunk)
+                        # ~ kwargs['text'] = markdown.escape_md(
+                            # ~ u"#thread ({}/{}):\n\n".format(count, 
+                            # ~ len(chunks))
+                        # ~ ) + markdown.pre(chunk)
+                        # ~ kwargs['parse_mode'] = 'MarkdownV2'
+                        kwargs['text'] = u"#thread ({}/{}):\n\n".format(
+                            count, 
+                            len(chunks),
+                        ) + chunk
+                        kwargs['parse_mode'] = 'None'
                         await function(*args, **kwargs)
                 self.command['text'] = u"empty"
                 return self.command
