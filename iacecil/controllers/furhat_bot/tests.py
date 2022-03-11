@@ -23,43 +23,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from furhat_remote_api import FurhatRemoteAPI
-
-### From https://docs.furhat.io/remote-api/#python-remote-api
-async def get_furhat(address):
-    return FurhatRemoteAPI(address)
-async def get_gestures(furhat):
-    return furhat.get_gestures()
-async def get_users(furhat):
-    return furhat.get_users()
-async def get_voices(furhat):
-    return furhat.get_voices()
-async def set_led(furhat, red = 0, green = 0, blue = 0):
-    return furhat.set_led(red = red, green = green, blue = blue)
-async def set_face(furhat, mask, character):
-    return furhat.set_face(mask = mask, character = character)
-async def set_voice(furhat, name):
-    return furhat.set_voice(name = name)
-async def do_attend_location(furhat, x = 0, y = 0, z = 0):
-    return furhat.attend(location = ','.join([str(x), str(y), str(z)]))
-async def do_attend_user(furhat, user):
-    return furhat.attend(user = user)
-async def do_attend_id(furhat, user_id):
-    return furhat.attend(userid = user_id)
-async def do_gesture(furhat, name):
-    return furhat.gesture(name = name)
-async def do_listen(furhat, language):
-    return furhat.listen(language = language)
-async def do_say_text(furhat, text):
-    return furhat.say(text = text)
-async def do_say_url(furhat, url):
-    return furhat.say(url = url, lipsync = True)
-def block_do_listen(furhat, language):
-    return furhat.listen(language = language)
-def block_do_say_text(furhat, text):
-    return furhat.say(text = text)
-def block_do_say_url(furhat, url):
-    return furhat.say(url = url, lipsync = True)
+from iacecil.controllers.furhat_bot.remote_api import get_furhat
 
 async def run_tests(config):
     try:

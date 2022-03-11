@@ -59,7 +59,6 @@ async def text_from_list(sent_list):
 async def generate(sent_list):
     try:
         text = await text_from_list(sent_list)
-        logger.debug(str(text))
         return text.generate()
     except Exception as exception:
         logger.warning(repr(exception))

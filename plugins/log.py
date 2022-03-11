@@ -34,12 +34,13 @@ from iacecil import (
     version,
 )
 from plugins.persistence.zodb_orm import log_message
-from iacecil.controllers.furhat_bot import (
+from iacecil.controllers.furhat_bot.remote_api import (
     do_attend_user,
     do_say_text,
     get_furhat,
-    set_voice,
     set_face,
+    set_led,
+    set_voice,
 )
 
 ## Telepot
@@ -259,22 +260,16 @@ async def zodb_logger(message):
 async def furhat_logger(text):
     try:
         logger.info(u"Sending to Furhat...")
-        global_config = current_app.quart_config['furhat']
-        local_config = Dispatcher.get_current().bot.info['furhat']
-        furhat = await get_furhat(global_config['address'])
-        await set_voice(furhat, local_config['voice'])
+        config = Dispatcher.get_current().bot.config['furhat']
+        furhat = await get_furhat(config['address'])
+        await set_voice(furhat, config['voice'])
+        await set_led(furhat, **config['led'])
         await set_face(
             furhat,
-            local_config['mask'],
-            local_config['character'],
+            config['mask'],
+            config['character'],
         )
         await do_say_text(furhat, text)
-        await set_voice(furhat, global_config['voice'])
-        await set_face(
-            furhat,
-            global_config['mask'],
-            global_config['character'],
-        )
     except Exception as exception:
         await exception_logger(
             exception,

@@ -84,6 +84,7 @@ def quart_startup(config, dispatchers):
     # ~ quart_app.DEBUG = True
     # ~ quart_app.TESTING = True
     quart_app.secret_key = secrets.token_urlsafe(32)
+    quart_app.config.from_mapping(config)
     ## TODO finish testing template folders lookup
     # ~ quart_app.EXPLAIN_TEMPLATE_LOADING = True
     # ~ logger.debug(quart_app.root_path)
@@ -107,7 +108,8 @@ def quart_startup(config, dispatchers):
             ))
             try:
                 await dispatcher.bot.send_message(
-                    chat_id = dispatcher.users['special']['info'],
+                    chat_id = dispatcher.config['telegram']['users'][
+                        'special']['info'],
                     text = u"Mãe tá #on",
                     disable_notification = True,
                 )
@@ -122,10 +124,13 @@ def quart_startup(config, dispatchers):
         for dispatcher in dispatchers:
             try:
                 await dispatcher.bot.send_message(
-                    chat_id = dispatcher.users['special']['info'],
+                    chat_id = dispatcher.config['telegram']['users'][
+                        'special']['info'],
                     text = u"Mãe tá #off",
                     disable_notification = True,
                 )
+                dispatcher.storage.close()
+                await dispatcher.storage.wait_closed()
             except Exception as exception:
                 logger.critical(u"""logs not configured properly: {}\
 """.format(exception))

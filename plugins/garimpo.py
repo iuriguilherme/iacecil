@@ -41,14 +41,14 @@ from plugins.log import (
 async def varre_link(message):
     try:
         dispatcher = Dispatcher.get_current()
-        if dispatcher.bot.info.get('personalidade', None) in [
+        if dispatcher.bot.config['info'].get('personalidade', None) in [
             'default',
             'metarec',
             'matebot',
             'iacecil',
         ]:
             url = None
-            garimpo_id = dispatcher.bot.users['special']['garimpo']
+            garimpo_id = dispatcher.bot.config['telegram']['users']['special']['garimpo']
             if message.entities is not None:
                 for entity in message.entities:
                     if entity['type'] == "url":
@@ -102,7 +102,7 @@ async def varre_link(message):
         )
 
 async def add_handlers(dispatcher):
-    garimpo_id = dispatcher.bot.users['special']['garimpo']
+    garimpo_id = dispatcher.bot.config['telegram']['users']['special']['garimpo']
 
     ## Salva link em outro grupo
 

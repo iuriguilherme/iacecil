@@ -100,7 +100,7 @@ async def add_handlers(dispatcher):
             # ~ ## Somente grupos configurados pra receber novas pessoas com
             # ~ ## pegadinha
             # ~ ## Atualmente só o @ZaffariPoa
-            # ~ chat_id = dispatcher.bot.users.get('pegadinha', -1),
+            # ~ chat_id = dispatcher.bot.config['telegram']['users'].get('pegadinha', -1),
         # ~ ),
         # ~ content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     # ~ )
@@ -111,7 +111,7 @@ async def add_handlers(dispatcher):
         # ~ )
         # ~ if str(message['new_chat_member']['first_name']).lower() in \
             # ~ [unwant.lower() for unwant in \
-            # ~ dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            # ~ dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
             # ~ text = await portaria(message)
             # ~ command_type = 'portaria'
             # ~ command = await message.reply(text)
@@ -128,18 +128,18 @@ async def add_handlers(dispatcher):
     async def welcome_callback(message: types.Message):
         command_type = 'welcome'
         await message_callback(message,
-            [command_type, dispatcher.bot.info.get(
+            [command_type, dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type],
         )
         text = await welcome(message)
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
-            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
             text = await portaria(message)
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
-            [command_type, dispatcher.bot.info.get(
+            [command_type, dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type],
         )
 
@@ -148,11 +148,11 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.LEFT_CHAT_MEMBER,
     )
     async def bye_callback(message: types.Message):
-        await message_callback(message, ['bye', dispatcher.bot.info.get(
+        await message_callback(message, ['bye', dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type])
         text = await bye(message)
         command = await message.reply(text)
-        await command_callback(command, ['bye', dispatcher.bot.info.get(
+        await command_callback(command, ['bye', dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type])
 
     ## Piadas sem graça

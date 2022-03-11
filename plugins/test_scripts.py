@@ -22,36 +22,3 @@
 
 import logging
 logger = logging.getLogger(__name__)
-
-from aiogram import Dispatcher
-from quart import (
-    current_app,
-    render_template,
-)
-from iacecil import (
-    actual_name,
-    commit,
-    version,
-)
-from iacecil.controllers.furhat_bot.tests import run_tests
-
-async def tests(active_tab = {}):
-    furhat = await run_tests(Dispatcher.get_current().config['furhat'])
-    return await render_template(
-        "furhat/tests.html",
-        active = {
-            'nav': dict(
-                current_app.active_nav.copy(),
-                furhat = ' active',
-            ),
-            'tab': dict(
-                active_tab.copy(),
-                tests = ' active',
-            ),
-        },
-        commit = commit,
-        name = actual_name,
-        furhat = furhat,
-        title = u"Furhat Tests",
-        version = version,
-    )

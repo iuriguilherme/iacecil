@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.12.4'
+__version__ = '0.1.13.0'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -73,7 +73,7 @@ except Exception as exception:
 app = quart_startup(
     config.quart,
     aiogram_startup(
-        config.aiogram,
+        config.bots,
         ['iacecil'],
     ),
 )
@@ -83,7 +83,7 @@ def get_app(bots):
     return quart_startup(
         config.quart,
         aiogram_startup(
-            config.aiogram,
+            config.bots,
             bots,
         ),
     )

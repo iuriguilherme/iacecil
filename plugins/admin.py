@@ -77,8 +77,9 @@ async def add_handlers(dispatcher):
     ## tiver nenhum argumento.
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['teste', 'test'],
     )
@@ -90,8 +91,9 @@ async def add_handlers(dispatcher):
     ## Enviar mensagem para alguém através do bot
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['enviar', 'send']
     )
@@ -107,8 +109,9 @@ async def add_handlers(dispatcher):
     ## Responder uma mensagem através do bot
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['responder', 'reply']
     )
@@ -126,8 +129,9 @@ async def add_handlers(dispatcher):
     ## Lista de comandos reservados para dev/admin
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['admin'],
     )
@@ -146,10 +150,12 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     ## Teste de timezone do servidor
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
-            chat_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
+            chat_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['tz', 'timezone'],
     )
@@ -165,8 +171,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     ## ZODB
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['gravar', 'record'],
     )
@@ -219,8 +226,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
 
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['recuperar', 'retrieve'],
     )
@@ -268,8 +276,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
 
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['count'],
     )
@@ -314,8 +323,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 ))
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['find']
     )
@@ -360,8 +370,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
 
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['dump'],
     )
@@ -413,8 +424,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     ## Enviar sticker para alguém através do bot
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['sticker']
     )
@@ -434,8 +446,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
     ## NLTK
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['ngen']
     )
@@ -459,8 +472,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         )
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+            'alpha'] + dispatcher.bot.config['telegram']['users'][
+            'beta'],
         ),
         commands = ['ncnt']
     )
@@ -487,8 +501,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             )
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['ncon']
     )
@@ -517,8 +532,9 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             )
     @dispatcher.message_handler(
         filters.IDFilter(
-            user_id = dispatcher.bot.users['alpha'] + \
-                dispatcher.bot.users['beta'],
+            user_id = dispatcher.bot.config['telegram']['users'][
+                'alpha'] + dispatcher.bot.config['telegram']['users'][
+                'beta'],
         ),
         commands = ['nsim']
     )

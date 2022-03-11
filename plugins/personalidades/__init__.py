@@ -80,7 +80,7 @@ async def gerar_texto(command, bot, message):
 
 async def add_handlers(dispatcher):
     try:
-        await getattr(globals()[dispatcher.bot.info.get('personalidade',
+        await getattr(globals()[dispatcher.bot.config['info'].get('personalidade',
             'default')], 'add_handlers')(dispatcher)
     except AttributeError as exception:
         logger.info(repr(exception))

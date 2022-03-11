@@ -86,5 +86,5 @@ async def add_handlers(dispatcher):
     )
     async def info_callback(message):
         await message_callback(message, ['info', message.chat.type])
-        command = await message.reply(await info(dispatcher.bot.info))
+        command = await message.reply(await info(dispatcher.bot.config['info']))
         await command_callback(command, ['info', message.chat.type])

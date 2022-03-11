@@ -79,7 +79,7 @@ async def add_handlers(dispatcher):
                 url = None
             try:
                 await dispatcher.bot.send_message(
-                    chat_id = dispatcher.bot.users['special']['feedback'],
+                    chat_id = dispatcher.bot.config['telegram']['users']['special']['feedback'],
                     text = u"#feedback enviado\nde" + 
                         u"{chat} {user} (<b>{user_id}</b>):\n{link}\n""".format(
                         user = message.from_user.mention,

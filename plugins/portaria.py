@@ -42,7 +42,7 @@ async def add_handlers(dispatcher):
     @dispatcher.message_handler(
         WhoJoinedFilter(
             unwanted = [unwant.lower() for unwant in 
-                dispatcher.bot.users.get('unwanted', ['SPAM'])],
+                dispatcher.bot.config['telegram'].get('unwanted', ['SPAM'])],
         ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )

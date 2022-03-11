@@ -40,8 +40,8 @@ async def add_handlers(dispatcher):
     ## 'delta' ou 'gama'.
     @dispatcher.message_handler(
         filters.IDFilter(
-            chat_id = dispatcher.bot.users.get('delta', -1) +
-                dispatcher.bot.users.get('gamma', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get('delta', -1) +
+                dispatcher.bot.config['telegram']['users'].get('gamma', -1),
         ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
@@ -53,7 +53,7 @@ async def add_handlers(dispatcher):
         text = await gerar_texto('welcome', dispatcher.bot, message)
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
-            dispatcher.bot.users.get('unwanted', ['SPAM'])]:
+            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
             text = await gerar_texto('portaria', dispatcher.bot,
                 message,
             )

@@ -30,60 +30,42 @@ class Config(BaseSettings):
     ### Os bots definidos posteriormente podem herdar as configurações padrão, ou
     ### Uma parte das configurações conforme a necessidade.
     defaults: dict = {
-        'aiogram': {
-            ### Informações exibidas em alguns comandos do bot
-            'info': {
-                'website': "https://matehackers.org",
-                'repository': "https://github.com/iuriguilherme/iacecil",
-                'group': "https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q",
-                'channel': "@matebotnews",
-                'admin': "@desobedientecivil",
-                'dev': "@desobedientecivil",
-                ## Plugin donate - doações
-                'donate': {
-                    'btc': "1AG2SX3n9iFQiZExiyS3M5qCuZT5GhArn",
-                    'crypto': [
-                        "BCH: `1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL`",
-                        "BTC: `1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2`",
-                        "DOGE: `DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D`",
-                        "ETH: `0x083652085dc46ab2d6146fbb329db0cde48eea81`",
-                        "FLO: `F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp`",
-                        "LTC: `LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3`",
-                        "PIVX: `D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC`",
-                        "TRX: `TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e`",
-                    ],
-                },
-                ## Plugin tropixel - colar os links aqui no lugar de "Não sei !"
-                'tropixel': {
-                    'site': "Não sei!",
-                    'boteco': "Não sei!",
-                },
-                ## Plugin personalidades
-                'personalidade': 'default',
-                ## Plugin cryptoforex
-                'coinmarketcap_token': '00000000-0000-0000-0000-000000000000',
-                ## Plugin TecidoTextoPalavra
-                'tecido': {
-                    'host': '127.0.0.1',
-                    'port': 3000,
-                },
-                'webhook': {
-                    'host': 'https://127.0.0.1',
-                    'path': '/telegram',
-                    'webapp': 'https://127.0.0.1/telegram',
-                    'port': 8443,
-                }, # webhook
-                'furhat': {
-                    'bot': 'f1',
-                    'address': '127.0.0.1',
-                    'voice': 'Camila-Neural',
-                    'mask': 'adult',
-                    'character': 'Titan',
-                    'language': 'pt-BR',
-                    'voice_url': 'http://127.0.0.1/',
-                }, # furhat
-            }, # info
-
+        ### Common data pertinent to all bots
+        'info': {
+            'website': "https://matehackers.org",
+            'repository': "https://github.com/iuriguilherme/iacecil",
+            'group': "https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q",
+            'channel': "@matebotnews",
+            'admin': "@desobedientecivil",
+            'dev': "@desobedientecivil",
+            ## Plugin donate - doações
+            'donate': {
+                'btc': "1AG2SX3n9iFQiZExiyS3M5qCuZT5GhArn",
+                'crypto': [
+                    "BCH: `1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL`",
+                    "BTC: `1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2`",
+                    "DOGE: `DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D`",
+                    "ETH: `0x083652085dc46ab2d6146fbb329db0cde48eea81`",
+                    "FLO: `F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp`",
+                    "LTC: `LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3`",
+                    "PIVX: `D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC`",
+                    "TRX: `TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e`",
+                ],
+            },
+            ## Plugin tropixel - colar os links aqui no lugar de "Não sei !"
+            'tropixel': {
+                'site': "Não sei!",
+                'boteco': "Não sei!",
+            },
+            ## Plugin personalidades
+            'personalidade': 'default',
+            ## Plugin cryptoforex
+            'coinmarketcap_token': '00000000-0000-0000-0000-000000000000',
+            ## Plugin TecidoTextoPalavra
+            'tecido': {
+                'host': '127.0.0.1',
+                'port': 3000,
+            },
             ### Níveis de permissão (inspirados no Brave New World):
             ###
             ### Os usuários e grupos cujos ids estão na lista 
@@ -134,7 +116,24 @@ class Config(BaseSettings):
                 ## Lista de plugins ativos para todo mundo
                 'omega': ["telegram",],
             }, # plugins
-            
+        }, # info
+        ### Flask / Quart configuration
+        'quart': {
+        }, # quart
+        ### Configuration specific to Telegram Bot API
+        'telegram': {
+            'token': None,
+            'webhook': {
+                'host': 'https://127.0.0.1',
+                'path': '/telegram',
+                'webapp': 'https://127.0.0.1/telegram',
+                'port': 8443,
+            }, # webhook
+            ## Plugin portaria
+            'unwanted': [
+                'HV Cursos',
+                'MateBot (dev)',
+            ], # unwanted
             'users': {
                 ### telegram_id de usuária(o)s ou grupos
                 ### Envie /start para descobrir o próprio id
@@ -143,8 +142,6 @@ class Config(BaseSettings):
                 'gamma': [-481703172,],
                 'delta': [-1001233916997,],
                 'epsilon': [777000,-1001207858341,],
-                ## Plugin Unwelcome
-                'unwanted': ['HV Cursos', 'MateBot (dev)',],
                 ## Plugin Welcome
                 'pegadinha': [-1001233916997,],
                 ## Plugin Tropixel
@@ -175,24 +172,65 @@ class Config(BaseSettings):
                     'groupanonymousbot': 1087968824,
                 }, # special
             }, # users
-        }, # aiogram
-        'quart': {},
+        }, # telegram
+        ### Discord.py configuration
+        'discord':{
+            'token': None,
+        }, # discord
         'furhat': {
+            # Robot identifier
             'bot': 'f1',
+            # Network address of Furhat Robot
             'address': '127.0.0.1',
-            'voice': 'Camila-Neural',
-            'mask': 'adult',
-            'character': 'Titan',
+            # Default Amazon Polly Language
             'language': 'pt-BR',
-            'voice_url': 'http://127.0.0.1/',
+            # Default Amazon Polly Voice
+            'voice': 'Camila-Neural',
+            # Default FaceCore Mask
+            'mask': 'adult',
+            # Default FaceCore Character
+            'character': 'Titan',
+            # Default Led Color
+            'led': {'x': 0, 'y': 0, 'z': 0},
+            # Default URL for voice files storage
+            'voice_url': 'https://denise.matehackers.org/audio/',
+            # STT recognizer credentials
+            'recognizer': {
+                # https://cloud.google.com/speech/docs/getting-started
+                'google': {
+                    "type": None,
+                    "project_id": None,
+                    "private_key_id": None,
+                    "private_key": None,
+                    "client_email": None,
+                    "client_id": None,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_x509_cert_url": None,
+                }, # google
+                # https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text/
+                'microsoft': {}, # microsoft
+            }, # recognizer
+            # TTS synthesizer credentials
+            'synthesizer': {
+                # https://aws.amazon.com/pt/polly/
+                'amazon': {
+                    'secret': None,
+                    'key': None,
+                }, # amazon
+                # https://www.acapela-group.com/solutions/acapela-cloud/
+                'acapela': {}, # acapela
+            }, # synthesizer
         }, # furhat
+    } # defaults
 
     quart: dict = {
         ## Copy from default configuration
-        'furhat': defaults['furhat'].copy()
+        defaults['quart'].copy()
     } # quart
 
-    aiogram: dict = {
+    bots: dict = {
         ### O nome da chave (por exemplo 'iacecil') é o nome do bot 
         ### como parâmetro ao invocar o script. Isto permite usar 
         ### múltiplos bots na mesma thread, (quase) todos comandos 
@@ -200,46 +238,62 @@ class Config(BaseSettings):
         ### As chaves 'production', 'testing' e 'development' podem ser 
         ### utilizadas juntamente com as variáveis de ambiente do QUART.
         'iacecil': dict(
-            ## This copies all default configuration for aiogram bots
-            defaults['aiogram'].copy(),
+            ## This copies all default configuration
+            defaults.copy(),
             ## Now we'll override the ones we need to change
-            ## Obtenha um token com @BotFather no Telegram
-            token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
             info = dict(
-                defaults['aiogram']['info'].copy(),
+                ## Have to copy all sub dicts
+                defaults['info'].copy(),
                 personalidade = 'iacecil',
             ), # info
-        ), # iacecil            
+            telegram = dict(
+                defaults['telegram'].copy(),
+                ## Obtenha um token com @BotFather no Telegram
+                token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            ), # telegram
+        ), # iacecilbot        
         'production': dict(
-            defaults['aiogram'].copy(),
-            token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            defaults.copy(),
+            telegram = dict(
+                defaults['telegram'].copy(),
+                token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            ), # telegram
         ), # production
         'testing': {
-            defaults['aiogram'].copy(),
-            token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            defaults.copy(),
+            telegram = dict(
+                defaults['telegram'].copy(),
+                token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            ), # telegram
         }, # testing
         'development': dict(
-            defaults['aiogram'].copy(),
-            token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
-            ## Changing personalidade
+            defaults.copy(),
             info = dict(
-                defaults['aiogram']['info'].copy(),
+                defaults['info'].copy(),
+                ## Changing personalidade
                 personalidade = 'matebot',
             ), # info
-            ## Exemplo (ruim) para herdar configurações padrão alterando algumas
-            'users': dict(
-                defaults['aiogram']['users'].copy(),
-                special = {
-                    'debug': -481703172,
-                    'feedback': -481703172,
-                    'info': -481703172,
-                }
-            ), # users
+            telegram = dict(
+                defaults['telegram'].copy(),
+                token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+                ## Exemplo (ruim) para herdar configurações padrão alterando algumas
+                users = dict(
+                    defaults['telegram']['users'].copy(),
+                    special = {
+                        'debug': -481703172,
+                        'feedback': -481703172,
+                        'info': -481703172,
+                    }, # special
+                ), # users
+            ), # telegram
         ), # development
         ## Exemplo de bot de discord (usar token do discord no lugar da
         ## token que seria do telegram)
-        'discord': dict(
-            defaults['aiogram'].copy(),
-            'token': "123456789ABCDEFghijklmno.123456.123456789ABCDEFghijklmnopqr",
-        ), # discord
-    } # aiogram
+        'discord_bot': dict(
+            defaults.copy(),
+            discord = dict(
+                defaults['discord'].copy(),
+                'token': "123456789ABCDEFghijklmno.123456.123456789ABCDEFghijklmnopqr",
+            ), # discord
+        ), # discord_bot
+    } # bots

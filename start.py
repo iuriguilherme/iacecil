@@ -22,7 +22,7 @@
 #  
 
 ### Arguments explanation
-### Usage: start.py log_level mode bot port host reload canonical
+### Usage: start.py log_level mode bots port host reload canonical
 ### Defaults: start.py info quart iacecil 8000 127.0.0.1 True None
 ###
 ### log_level: Used in the logging module globally, this included 
@@ -38,7 +38,7 @@
 ### should take care of everything to make it simple to run easily in 
 ### whichever settings;
 ###
-### bot: This would be an alias (or a comma separated list of aliases) 
+### bots: This would be an alias (or a comma separated list of aliases) 
 ### for bots already configured at instance/config.py. This allows for 
 ### selection of which bot tokens will be used simultaneously in an 
 ### environment where they should be selected before the script starts 
@@ -80,7 +80,7 @@ try:
         logger = logging.getLogger(iacecil.name)
         
         ### Default args
-        bot = 'iacecil'
+        bots = 'iacecil'
         mode = 'quart'
         port = 8000
         host = '127.0.0.1'
@@ -95,15 +95,23 @@ try:
                 mode)
             )
             if len(sys.argv) > 3:
-                bot = sys.argv[3]
-                logger.info(u"""Using configuration from BOT "{}" f\
-rom config file.""".format(bot))
+                bots = sys.argv[3]
+                logger.info(u"""Using configuration from BOTS "{}" f\
+rom config file.""".format(bots))
                 if mode in ['fpapagaio']:
                     skip_intro = False
                     if len(sys.argv) > 4:
                         skip_intro = bool(sys.argv[4])
-                        logger.info(u"""Setting SKIP_INTRO to {}\
-""".format(str(skip_intro)))
+                        logger.info(u"Setting SKIP_INTRO to {}".format(
+                            str(skip_intro))
+                        )
+                elif mode in ['fpersonas']:
+                    personas = ['default']
+                    if len(sys.argv) > 4:
+                        personas = sys.argv[4:]
+                        logger.info(u"Setting PERSONAS to {}".format(
+                            str(personas))
+                        )
                 else:
                     if len(sys.argv) > 4:
                         port = sys.argv[4]
@@ -124,8 +132,8 @@ rom config file.""".format(bot))
                                     logger.info(u"""Setting CANONICAL t\
 o {}""".format(str(canonical)))
             else:
-                logger.warning(u"BOT name not informed, assuming {}\
-                    ".format(bot))
+                logger.warning(u"BOTS names not informed, assuming {}\
+                    ".format(bots))
         else:
             logger.warning(
                 u"Operation MODE not informed, assuming {}".format(
@@ -135,7 +143,7 @@ o {}""".format(str(canonical)))
         if mode == 'quart':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','))
+                app = iacecil.get_app(bots.split(','))
                 setattr(app, 'canonical', canonical)
                 uvicorn.run(
                     app,
@@ -152,7 +160,7 @@ o {}""".format(str(canonical)))
         elif mode == 'furhat':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','))
+                app = iacecil.get_app(bots.split(','))
                 setattr(app, 'furhat', True)
                 uvicorn.run(
                     app,
@@ -169,7 +177,7 @@ o {}""".format(str(canonical)))
         elif mode == 'socket':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','))
+                app = iacecil.get_app(bots.split(','))
                 setattr(app, 'canonical', canonical)
                 uvicorn.run(
                     app,
@@ -188,8 +196,23 @@ o {}""".format(str(canonical)))
         elif mode == 'fpapagaio':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from plugins.furhat_experiments import papagaio
-                asyncio.run(papagaio(skip_intro = skip_intro))
+                from plugins.furhat_experiments import run_papagaio
+                asyncio.run(run_papagaio(
+                    bots.split(',')[0],
+                    skip_intro,
+                ))
+                logger.info(u"Finishing {}".format(iacecil.actual_name))
+            except Exception as exception:
+                logger.critical(repr(exception))
+                logger.warning(u"Finishing with error {}...".format(
+                    iacecil.actual_name)
+                )
+                raise
+        elif mode == 'fpersonas':
+            try:
+                logger.info(u"Starting {}".format(iacecil.actual_name))
+                from plugins.furhat_experiments import run_personas
+                asyncio.run(run_personas(bots.split(',')))
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:
                 logger.critical(repr(exception))
@@ -200,7 +223,7 @@ o {}""".format(str(canonical)))
         elif mode == 'block':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                app = iacecil.get_app(bot.split(','))
+                app = iacecil.get_app(bots.split(','))
                 setattr(app, 'canonical', canonical)
                 iacecil.run_app(app)
                 logger.info(u"Finishing {}".format(iacecil.actual_name))

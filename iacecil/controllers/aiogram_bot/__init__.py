@@ -79,14 +79,15 @@ def aiogram_startup(config, names):
     dispatchers = list()
     for name in names:
         bot = (IACecilBot(
-            token = config['bots'][name]['token'] or '',
-            config = config['bots'][name],
-            name = name,
+            token = config[name]['telegram']['token'],
+            config = config[name],
         ))
         dispatcher = Dispatcher(bot)
-        setattr(dispatcher, 'info', config['bots'][name]['info'])
-        setattr(dispatcher, 'plugins', config['bots'][name]['plugins'])
-        setattr(dispatcher, 'users', config['bots'][name]['users'])
+        ## FIXME backwards compat
+        setattr(dispatcher, 'config', config[name])
+        setattr(dispatcher, 'info', config[name]['info'])
+        setattr(dispatcher, 'users', config[name]['telegram']['users'])
+        setattr(dispatcher, 'plugins', config[name]['info']['plugins'])
         dispatchers.append(dispatcher)
     return dispatchers
 
@@ -103,7 +104,7 @@ async def add_handlers(dispatcher: Dispatcher):
     # ~ await plugin_portaria.add_handlers(dispatcher)
     await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
-    if dispatcher.bot.info.get('personalidade', None) in [
+    if dispatcher.bot.config['info'].get('personalidade', None) in [
         'default',
         'metarec',
         'pave',
@@ -114,7 +115,7 @@ async def add_handlers(dispatcher: Dispatcher):
         await plugin_donate.add_handlers(dispatcher)
         await plugin_archive.add_handlers(dispatcher)
     ## Plugins mais que especiais
-    if dispatcher.bot.info.get('personalidade', None) in [
+    if dispatcher.bot.config['info'].get('personalidade', None) in [
         'metarec',
         'matebot',
     ]:
@@ -141,7 +142,7 @@ async def add_handlers(dispatcher: Dispatcher):
     await plugin_feedback.add_handlers(dispatcher)
     await plugin_ytdl.add_handlers(dispatcher)
     await plugin_default.add_handlers(dispatcher)
-    if dispatcher.bot.info.get('personalidade', None) in [
+    if dispatcher.bot.config['info'].get('personalidade', None) in [
         'default',
         'metarec',
         'matebot',

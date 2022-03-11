@@ -35,7 +35,7 @@ async def add_handlers(dispatcher):
             text = u"""List of addresses to donate for the bot develope\
 rs:\n\n{}\n\nMissing one? Send /feedback""".format(
                 addresses = '\n'.join(
-                    dispatcher.bot.info['donate']['crypto']
+                    dispatcher.bot.config['info']['donate']['crypto']
                 ),
             ),
             parse_mode = "MarkdownV2",

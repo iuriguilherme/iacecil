@@ -180,10 +180,10 @@ de ser também: /archive /arquivar /salvar /wm""")
 o Youtube, Facebook, Instagram ou áudio do Soundcloud, entre outros. É necessár\
 io enviar a URL do vídeo, por exemplo /y https://youtube.com/watch?v=dQw4w9WgXc\
 Q Pode ser também: /yt /ytdl /youtube /baixar /video""")
-            if dispatcher.bot.info['personalidade'] in ['default', 'metarec']:
+            if dispatcher.bot.config['info']['personalidade'] in ['default', 'metarec']:
                 lista.append(u"""doar - Lista opções de doação para ajudar o Hackerspac\
 e Matehackers. Pode ser também: /donate""")
-            elif dispatcher.bot.info['personalidade'] in ['pave', 'pacume']:
+            elif dispatcher.bot.config['info']['personalidade'] in ['pave', 'pacume']:
                 lista.append(u"""versiculo - Cita uma passagem da bíblia sagrada""")
                 lista.append(u"""piada - Uma piada aleatória""")
             ## Gê

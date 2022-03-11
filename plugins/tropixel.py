@@ -35,7 +35,7 @@ async def add_handlers(dispatcher):
     ## Tropixel Café / Rede Metareciclagem
     @dispatcher.message_handler(
         filters.IDFilter(
-            chat_id = dispatcher.bot.users.get('tropixel', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
         ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
@@ -48,7 +48,7 @@ async def add_handlers(dispatcher):
     ## Link para o Boteco Tropixel
     @dispatcher.message_handler(
         filters.IDFilter(
-            chat_id = dispatcher.bot.users.get('tropixel', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
         ),
         commands = ['boteco'],
     )
@@ -56,7 +56,7 @@ async def add_handlers(dispatcher):
         await message_callback(message, ['tropixel', 'boteco', message.chat.type])
         command = await message.reply(
             u"Link para o boteco: {}".format(
-                dispatcher.bot.info.get(
+                dispatcher.bot.config['info'].get(
                     'tropixel', dict(boteco = u"Não sei"),
                 ).get('boteco', u"Não sei"),
             ),
@@ -68,7 +68,7 @@ async def add_handlers(dispatcher):
     ## Link para a Rede Tropixel
     @dispatcher.message_handler(
         filters.IDFilter(
-            chat_id = dispatcher.bot.users.get('tropixel', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
         ),
         commands = ['forum', 'rede', 'site', 'wiki'],
     )
@@ -76,7 +76,7 @@ async def add_handlers(dispatcher):
         await message_callback(message, ['tropixel', 'site', message.chat.type])
         command = await message.reply(
             u"Link para o site/rede/forum/wiki: {}".format(
-                    dispatcher.bot.info.get(
+                    dispatcher.bot.config['info'].get(
                     'tropixel', dict(site = u"Não sei"),
                 ).get('site', u"Não sei"),
             ),
