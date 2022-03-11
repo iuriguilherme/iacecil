@@ -191,7 +191,9 @@ class Config(BaseSettings):
             # Default FaceCore Character
             'character': 'Titan',
             # Default Led Color
-            'led': {'x': 0, 'y': 0, 'z': 0},
+            'led': {'gren': 0, 'red': 0, 'blue': 0},
+            # Default attend position
+            'attend': {'x': 0, 'y': 0, 'z': 0},
             # Default URL for voice files storage
             'voice_url': 'https://denise.matehackers.org/audio/',
             # STT recognizer credentials
