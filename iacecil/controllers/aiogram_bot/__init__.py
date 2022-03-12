@@ -127,7 +127,7 @@ async def add_handlers(dispatcher: Dispatcher):
             await plugin_tropixel.add_handlers(dispatcher)
         except KeyError:
             logger.warning(u"plugin tropixel não configurado")
-    if dispatcher.bot.info.get('personalidade') in [
+    if dispatcher.bot.config['info'].get('personalidade') in [
         'cryptoforex',
         'iacecil',
     ]:

@@ -93,6 +93,8 @@ def quart_startup(config, dispatchers):
     async def quart_before_serving():
         logger.info("Starting up Quart...")
         setattr(current_app, 'quart_config', config)
+        setattr(current_app, 'aiogram', False)
+        setattr(current_app, 'furhat', False)
         setattr(current_app, 'dispatchers', dispatchers)
         setattr(current_app, 'active_nav', active_page)
         loop = asyncio.get_event_loop()

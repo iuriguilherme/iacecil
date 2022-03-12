@@ -43,9 +43,9 @@ class IACecilBot(Bot):
         name = kwargs.get('name', 'iacecil')
         setattr(self, 'config', config)
         ## FIXME temporary back reference for compatibility
-        setattr(self, 'info', config['info'])
-        setattr(self, 'users', config['telegram']['users'])
-        setattr(self, 'plugins', config['info']['plugins'])
+        # ~ setattr(self, 'info', config['info'])
+        # ~ setattr(self, 'users', config['telegram']['users'])
+        # ~ setattr(self, 'plugins', config['info']['plugins'])
         kwargs.pop('config', None)
         kwargs.pop('name', None)
         self.command = None
