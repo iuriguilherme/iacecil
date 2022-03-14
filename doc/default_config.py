@@ -27,8 +27,8 @@ from pydantic import BaseSettings
 class Config(BaseSettings):
     
     ### Configuração padrão para todos bots:
-    ### Os bots definidos posteriormente podem herdar as configurações padrão, ou
-    ### Uma parte das configurações conforme a necessidade.
+    ### Os bots definidos posteriormente podem herdar as configurações 
+    ### padrão, ou uma parte das configurações conforme a necessidade.
     defaults: dict = {
         ### Common data pertinent to all bots
         'info': {
@@ -52,7 +52,8 @@ class Config(BaseSettings):
                     "TRX: `TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e`",
                 ],
             },
-            ## Plugin tropixel - colar os links aqui no lugar de "Não sei !"
+            ## Plugin tropixel - colar os links aqui no lugar de 
+            ## "Não sei !"
             'tropixel': {
                 'site': "Não sei!",
                 'boteco': "Não sei!",
@@ -69,13 +70,14 @@ class Config(BaseSettings):
             ### Níveis de permissão (inspirados no Brave New World):
             ###
             ### Os usuários e grupos cujos ids estão na lista 
-            ### bot.users['alpha'] só vão ter acesso aos comandos que fazem 
-            ### parte dos plugins da lista bot.plugins['alpha']. Assim como 
-            ### a lista bot.users['beta'] é relativa à lista 
-            ### bot.plugins['beta'], e assim por diante. Esta é a única 
-            ### regra.
+            ### bot.config['telegram']['users']['alpha'] só vão ter 
+            ### acesso aos comandos que fazem parte dos plugins da lista
+            ### bot.config['info']['plugins']['alpha']. Assim como a 
+            ### lista bot.config['telegram']['users']['beta'] é relativa
+            ### à lista bot.config['info']['plugins']['beta'], e assim 
+            ### por diante. Esta é a única regra.
             ###
-            ### Sinta-se livre para liberar o acesso a todos os comandos 
+            ### Sinta-se livre para liberar o acesso a todos os comandos
             ### para qualquer pessoa ou grupo, ou para criar ainda mais 
             ### níveis de controle de acesso.
             ###
@@ -83,31 +85,32 @@ class Config(BaseSettings):
             ### README.md ou peça ajuda no grupo: 
             ### https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q
             ###
-            ### A lista bot.plugins['omega'] é especial e serve para dar 
-            ### acesso a comandos para toda e qualquer pessoa ou grupo.
+            ### A lista bot.config['info']['plugins']['omega'] é 
+            ### especial e serve para dar acesso a comandos para toda e 
+            ### qualquer pessoa ou grupo.
             ###
             'plugins': {
                 ## Lista de plugins disponíveis somente para 
-                ## bot.users['alpha']
+                ## bot.config['telegram']['users']['alpha']
                 ## Sugestão de uso: pessoa que criou o bot, etc.
                 'alpha': ["admin",],
                 ## Lista de plugins disponíveis somente para 
-                ## bot.users['beta']
-                ## Sugestão de uso: administradora(e)s, moderadora(e)s, etc.
+                ## bot.config['telegram']['users']['beta']
+                ## Sugestão de uso: administradora(e)s, moderadora(e)s, 
+                ## etc.
                 'beta': ["admin",],
                 ## Lista de plugins disponíveis somente para 
-                ## bot.users['gamma']
-                ## Sugestão de uso: grupos e canais onde quem administra 
+                ## bot.config['telegram']['users']['gamma']
+                ## Sugestão de uso: grupos e canais onde quem administra
                 ## tem controle
                 'gamma': ["donate",],
                 ## Lista de plugins disponíveis somente para 
-                ## bot.users['delta']
-                ## Sugestão de uso: grupos e canais onde quem administra 
-                ## acompanha mas não
-                ## controla
+                ## bot.config['telegram']['users']['delta']
+                ## Sugestão de uso: grupos e canais onde quem administra
+                ## acompanha mas não controla
                 'delta': ["personalidades", "feedback", "welcome",],
                 ## Lista de plugins disponíveis somente para 
-                ## bot.users['epsilon']
+                ## bot.config['telegram']['users']['epsilon']
                 ## Sugestão de uso: grupos, canais e usuários que usam o 
                 ## bot regularmente
                 'epsilon': ["archive", "hashes", "mate_matica", "qr",
@@ -147,11 +150,13 @@ class Config(BaseSettings):
                 ## Plugin Tropixel
                 'tropixel': [-1001233916997,],
                 ### Não tem 'omega' porque 'omega' é qualquer outro id
-                ### Usuários e grupos especiais (que são referenciados pelo nome da chave)
+                ### Usuários e grupos especiais (que são referenciados 
+                ### pelo nome da chave)
                 'special': {
                     ## Conta de serviço do telegram
                     'service': 777000,
-                    ## Grupo público para desenvolvedora(e)s e usuária(o)s
+                    ## Grupo público para desenvolvedora(e)s e 
+                    ## usuária(o)s
                     ## https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q
                     'pub': -1001207858341, 
                     ## Grupo para onde vão mensagens de informação
@@ -160,7 +165,8 @@ class Config(BaseSettings):
                     ## Grupo para onde são logados os erros / exceções
                     ## https://t.me/joinchat/CwFUFhy2NQRi_9Cc60v_aA
                     'debug': -481703172,
-                    ## Grupo para onde vão as mensagens do comando /feedback
+                    ## Grupo para onde vão as mensagens do comando 
+                    ## /feedback
                     ## https://t.me/joinchat/CwFUFhy2NQRi_9Cc60v_aA
                     'feedback': -481703172,
                     ## Grupo para testar bots
@@ -278,7 +284,8 @@ class Config(BaseSettings):
             telegram = dict(
                 defaults['telegram'].copy(),
                 token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
-                ## Exemplo (ruim) para herdar configurações padrão alterando algumas
+                ## Exemplo (ruim) para herdar configurações padrão 
+                ## alterando algumas
                 users = dict(
                     defaults['telegram']['users'].copy(),
                     special = {
