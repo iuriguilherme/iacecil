@@ -80,16 +80,16 @@ async def tecido_logger(texto: str = ''):
     # ~ sock.setblocking(0) ## Talvez bloquear de vez em quando
     # Connect the socket to the port where the server is listening
     server_address = (
-        bot.info['tecido']['host'],
-        bot.info['tecido']['port'],
+        bot.config['info']['tecido']['host'],
+        bot.config['info']['tecido']['port'],
     )
     logger.info('connecting to {} port {}'.format(*server_address))
     try:
         await sock.connect(server_address)
     except ConnectionRefusedError:
         logger.debug(u"""Servidor TextoTecidoPalavras não escutando em \
-{0}:{1}""".format(bot.info['tecido']['host'],
-        bot.info['tecido']['port']))
+{0}:{1}""".format(bot.config['info']['tecido']['host'],
+        bot.config['info']['tecido']['port']))
         return 1
     try:
         # Send data
@@ -163,7 +163,8 @@ async def debug_logger(
     text.append(escape_md(error))
     try:
         await bot.send_message(
-            chat_id = bot.users['special']['debug'],
+            chat_id = bot.config['telegram']['users']['special'][
+                'debug'],
             text = '\n'.join(text),
             disable_notification = True,
             parse_mode = "MarkdownV2",
@@ -191,7 +192,7 @@ async def exception_logger(
             ensure_ascii = False))
         )
         await bot.send_message(
-            chat_id = bot.users['special']['debug'],
+            chat_id = bot.config['telegram']['users']['special']['debug'],
             text = '\n'.join(text),
             disable_notification = True,
             parse_mode = "MarkdownV2",
@@ -238,7 +239,8 @@ async def info_logger(
         ## TelegramTextoTecidoTabelas
         #await tecido_logger(getattr(update, 'text', ''))
         await bot.send_message(
-            chat_id = bot.users['special']['info'],
+            chat_id = bot.config['telegram']['users']['special'][
+                'info'],
             text = '\n'.join(text),
             disable_notification = True,
             parse_mode = "MarkdownV2",
