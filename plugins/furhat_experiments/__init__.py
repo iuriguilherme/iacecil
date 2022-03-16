@@ -71,6 +71,5 @@ except Exception as exception:
 async def run_papagaio(bot, skip_intro):
     await papagaio(bots_config[bot], skip_intro = skip_intro)
 
-async def run_personas(bots, skip_intro = False, log_messages = True):
-    await personas(bots, furhat_config, bots_config,
-        skip_intro = skip_intro, log_messages = log_messages)
+async def run_personas(bots, *args, **kwargs):
+    await personas(bots, furhat_config, bots_config, *args, **kwargs)

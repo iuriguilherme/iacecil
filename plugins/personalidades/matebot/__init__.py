@@ -61,8 +61,11 @@ async def furhat_desculpa(config, message):
 
 async def furhat_contains_iterations():
     return (await furhat_contains_iterations_default()) + [
-        Iteration(
-            text = 'não tá funcionando',
-            callback = furhat_desculpa,
-        ),
+        Iteration(text = subtext, callback = furhat_desculpa,
+            ) for subtext in [
+                'não tá funcionando',
+                'internet tá ruim',
+                'wi-fi tá ruim',
+                'not working',
+            ]
     ]

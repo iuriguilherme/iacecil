@@ -90,6 +90,8 @@ try:
         skip_intro = False
         log_messages = True
         personas = 'default'
+        add_startswith = None
+        add_endswith = None
         
         ### Args parsing
         if len(sys.argv) > 2:
@@ -123,6 +125,14 @@ rom config file.""".format(bots))
                                 log_messages = bool(sys.argv[6])
                                 logger.info(u"""Setting LOG_MESSAGES to\
  {}""".format(str(log_messages)))
+                                if len(sys.argv) > 7:
+                                    add_startswith = sys.argv[7]
+                                    logger.info(u"""Setting ADD_STARTSW\
+ITH to {}""".format(str(add_startswith)))
+                                    if len(sys.argv) > 8:
+                                        add_endswith = sys.argv[8]
+                                        logger.info(u"""Setting ADD_END\
+SWITH to {}""".format(str(add_endswith)))
                 else:
                     if len(sys.argv) > 4:
                         port = sys.argv[4]
@@ -223,8 +233,13 @@ o {}""".format(str(canonical)))
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
                 from plugins.furhat_experiments import run_personas
-                asyncio.run(run_personas(personas.split(','),
-                    skip_intro, log_messages))
+                asyncio.run(run_personas(
+                    personas.split(','),
+                    skip_intro = skip_intro,
+                    log_messages = log_messages,
+                    add_startswith = add_startswith,
+                    add_endswith = add_endswith,
+                ))
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:
                 logger.critical(repr(exception))

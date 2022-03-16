@@ -99,8 +99,10 @@ async def personas(
     bots,
     furhat_config,
     bots_config,
-    skip_intro,
-    log_messages,
+    skip_intro = False,
+    log_messages = True,
+    add_startswith = None,
+    add_endswith = None,
 ):
     try:
         furhat_id = furhat_config['bot']
@@ -282,6 +284,12 @@ escutar em português brasileiro.""")
                         ''.join([voice_url + audio + '.wav']),
                     )
                 else:
+                    if add_startswith is not None:
+                        text.message = add_startswith + ' ' + \
+                            text.message
+                    if add_endswith is not None:
+                        text.message = text.message + ' ' + \
+                            add_endswith
                     if log_messages:
                         await set_furhat_text(
                             furhat_id,

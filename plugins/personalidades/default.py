@@ -120,6 +120,8 @@ async def furhat_startswith_iterations():
                 'fabi',
                 'fáb',
                 'fábi',
+                'fábio',
+                'fabio',
             ]
     ]
 
@@ -133,6 +135,7 @@ async def furhat_contains_iterations():
         Iteration(text = subtext, callback = furhat_naosou,
             ) for subtext in [
                 'alexa',
+                'a lexa',
                 'google',
                 'siri',
             ]

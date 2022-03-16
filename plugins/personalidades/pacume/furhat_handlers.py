@@ -120,6 +120,7 @@ async def furhat_endswith_iterations():
             callback = furhat_naosou,
         ) for subtext in [
             'alexa',
+            'a lexa',
             'google',
             'siri',
         ]
