@@ -23,7 +23,15 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-from plugins.personalidades.default import start, portaria
+from iacecil.models import Iteration
+from plugins.personalidades.default import (
+    start,
+    portaria,
+    furhat_contains_iterations,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations,
+    add_handlers as add_default_handlers,
+)
 
 async def help(message):
     return u"""
@@ -80,11 +88,4 @@ te interessada no meu desenvolvimento se encontra, o link de acesso \
     )
 
 async def add_handlers(dispatcher):
-    ## Comando /info padrão
-    @dispatcher.message_handler(
-        commands = ['info'],
-    )
-    async def info_callback(message):
-        await message_callback(message, ['info', message.chat.type])
-        command = await message.reply(await info(dispatcher.bot.config['info']))
-        await command_callback(command, ['info', message.chat.type])
+    await add_default_handlers(dispatcher)

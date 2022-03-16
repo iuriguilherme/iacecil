@@ -31,6 +31,11 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
+from plugins.personalidades.pave.furhat_handlers import (
+    furhat_contains_iterations,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations,
+)
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
@@ -66,7 +71,7 @@ nto que nunca vai ser pra te agradar. Para enviar sugestões ou relatar \
 problemas para o pessoal que faz manutenção, use o comando /feedback po\
 r exemplo /feedback Obrigado pelo bot!"""
 
-async def portaria(message):
+async def portaria():
     return u"alá @admin, esse guampudo conseguiu voltar!"
 
 ## Pegadinha
@@ -155,6 +160,7 @@ async def pegadinha(message):
         pegadinha5,
     ])(message)
 
+## Aiogram
 async def add_handlers(dispatcher):
     ## Saúda com trollada
     @dispatcher.message_handler(
@@ -162,7 +168,8 @@ async def add_handlers(dispatcher):
             ## Somente grupos configurados pra receber novas pessoas com
             ## pegadinha
             ## Atualmente só o @ZaffariPoa
-            chat_id = dispatcher.bot.config['telegram']['users'].get('pegadinha', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get(
+                'pegadinha', -1),
         ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
@@ -173,8 +180,9 @@ async def add_handlers(dispatcher):
         )
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
-            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            text = await portaria(message)
+            dispatcher.bot.config['telegram']['users'].get('unwanted',
+                ['SPAM'])]:
+            text = await portaria()
             command_type = 'portaria'
             command = await message.reply(text)
         else:
@@ -189,7 +197,8 @@ async def add_handlers(dispatcher):
             ## Somente grupos configurados pra receber novas pessoas com
             ## pegadinha
             ## Atualmente só o @ZaffariPoa
-            chat_id = dispatcher.bot.config['telegram']['users'].get('pegadinha', -1),
+            chat_id = dispatcher.bot.config['telegram']['users'].get(
+                'pegadinha', -1),
         ),
         commands = ['brinde', 'brindes'],
     )
@@ -210,18 +219,19 @@ async def add_handlers(dispatcher):
         command_type = 'welcome'
         await message_callback(message,
             [command_type, dispatcher.bot.config['info'].get(
-            'personalidade', 'pacume'), message.chat.type],
+            'personalidade', 'pave'), message.chat.type],
         )
         text = await welcome(message)
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
-            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            text = await portaria(message)
+            dispatcher.bot.config['telegram']['users'].get('unwanted',
+                ['SPAM'])]:
+            text = await portaria()
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
             [command_type, dispatcher.bot.config['info'].get(
-            'personalidade', 'pacume'), message.chat.type],
+            'personalidade', 'pave'), message.chat.type],
         )
 
     ## Piadas sem graça

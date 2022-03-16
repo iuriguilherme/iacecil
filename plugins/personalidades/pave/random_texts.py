@@ -28,48 +28,16 @@ logger = logging.getLogger(__name__)
 import random
 from aiogram.utils.markdown import escape_md
 
-def bebidas():
+def adjetivos():
     return [
-        u"bebida",
-        u"bira",
-        u"breja",
-        u"cachaca",
-        u"cachaça",
-        u"cerveja",
-        u"ceva",
-        u"trago",
-        u"vinho",
-        u"uisque",
-        u"uísque",
-        u"whisky",
+        u"gente",
     ]
 
-def adjetivos():
-    return random.choice([
-        u"gente",
-    ])
+def respostas_adjetivos():
+    return random.choice(adjetivos())
 
-def respostas_bebida():
-    return random.choice([
-        u"quem é que vai pagar o tragoléu de hoje?",
-        u"tu que tá botando pá nois bebê?",
-        u"agora sim falou o que interessa!",
-        u"pudim de trago",
-        u"cu de bêbado não tem dono",
-        u"""o orifício circular corrugado, localizado na parte ínfero-l\
-ombar da região glútea de um indivíduo em alto grau etílico, deixa de e\
-star em consonância com os ditames referentes ao direito individual de \
-propriedade""",
-    ])
-
-def respostas_quanto():
-    return random.choice([
-        u"todo mundo tem o seu preço. eu tenho o meu. qual é o teu?",
-        u"tá interessado?",
-    ])
-
-def respostas_ignorante(admin):
-    return random.choice([
+def ignorante(admin):
+    return [
         u"???",
         u"anotei aqui",
         u"ahaha",
@@ -95,10 +63,59 @@ def respostas_ignorante(admin):
         u"rsrsrs",
         u"todo mundo aqui sabe, menos tu pelo jeito, que ninguém te perguntou nada",
         u"tu respira tu e tu escreve? tu é o bichão mesmo",
-    ])
+    ]
+
+def respostas_ignorante(admin):
+    return random.choice(ignorante(admin))
 
 def piadas():
-    return respostas_ignorante('@admin')
+    return ignorante('@admin')
+
+def respostas_piadas():
+    return random.choice(piadas())
+
+def bebidas():
+    return [
+        u"bebida",
+        u"bira",
+        u"breja",
+        u"cachaca",
+        u"cachaça",
+        u"cerveja",
+        u"ceva",
+        u"trago",
+        u"vinho",
+        u"uisque",
+        u"uísque",
+        u"whisky",
+    ]
+
+def respostas_bebida():
+    return random.choice([
+        u"quem é que vai pagar o tragoléu de hoje?",
+        u"tu que tá botando pá nois bebê?",
+        u"agora sim falou o que interessa!",
+        u"pudim de trago",
+        u"cu de bêbado não tem dono",
+        u"""o orifício circular corrugado, localizado na parte ínfero-l\
+ombar da região glútea de um indivíduo em alto grau etílico, deixa de e\
+star em consonância com os ditames referentes ao direito individual de \
+propriedade""",
+    ])
+
+def bye(admin):
+    return [
+        u"vai tarde",
+    ]
+
+def respostas_bye(admin):
+    return random.choice(bye(admin))
+
+def respostas_quanto():
+    return random.choice([
+        u"todo mundo tem o seu preço. eu tenho o meu. qual é o teu?",
+        u"tá interessado?",
+    ])
 
 def versiculos_md():
     return random.choice([
@@ -247,7 +264,7 @@ def start(message):
     return random.choice([
         u"putz! quem é que te deu o meu contato? tô fudido",
         u"lá vem essa {adjetivo} me {interagir}".format(
-            adjetivo = adjetivos(),
+            adjetivo = respostas_adjetivos(),
             interagir = random.choice([
                 u"atazanar",
                 u"aporrinhar",
@@ -261,7 +278,7 @@ def start(message):
             u"",
             u", bagual",
             u", chê",
-            u", {adjetivo}".format(adjetivo = adjetivos()),
+            u", {adjetivo}".format(adjetivo = respostas_adjetivos()),
             u", tchê",
             u" duma vez",
         ])),
@@ -278,13 +295,8 @@ def welcome(message, count, admin):
         u"aff, mais um pra ficar lurkando no grupo",
         u"alá {admin}, tá entrando {adjetivo} no grupo".format(
             admin = admin,
-            adjetivo = adjetivos(),
+            adjetivo = respostas_adjetivos(),
         ),
         u"chegou mais um filho perdido do {admin}".format(admin = admin),
         u"é {}, pa pa pa".format(count),
-    ])
-
-def bye(admin):
-    return random.choice([
-        u"vai tarde",
     ])

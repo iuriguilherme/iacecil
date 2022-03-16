@@ -23,6 +23,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
+from iacecil.models import Iteration
 from plugins.personalidades import (
     cryptoforex,
     default,
@@ -33,61 +34,162 @@ from plugins.personalidades import (
     pave,
 )
 
+personalidades = {'default': default}
+personalidades = {
+    'cryptoforex': cryptoforex,
+    'default': default,
+    'iacecil': iacecil,
+    'matebot': matebot,
+    'metarec': metarec,
+    'pacume': pacume,
+    'pave': pave,
+}
+
+## Aiogram
 async def gerar_comando(command, bot, message):
     try:
-        return await getattr(
-            globals()[bot.info.get('personalidade', 'default')],
-                command)(message)
+        # ~ return await getattr(globals()[bot.config['info'].get(
+            # ~ 'personalidade', 'default')], command)(message)
+        return await getattr(personalidades.get(bot.config['info'].get(
+            'personalidade', 'default'), 'default'), command)(message)
     except AttributeError as exception:
         logger.info(repr(exception))
         try:
-            return await getattr(globals()['default'], command)(message)
+            # ~ return await getattr(globals()['default'], command)(
+                # ~ message)
+            return await getattr(personalidades['default'], command)(
+                message)
         except Exception as exception:
             await error_callback(
                 u"Erro tentando achar comando em personalidade",
-                message, exception, ['personalidades',
-                bot.info.get('personalidade', 'default'),
-                'gerarComando'],
+                message, exception, ['personalidades', bot.config[
+                'info'].get('personalidade', 'default'), 'gerarComando',
+                ],
             )
     except Exception as exception:
         await error_callback(
             u"Erro tentando achar comando em personalidade",
-            message, exception, ['personalidades',
-            bot.info.get('personalidade', 'default'), 'gerarComando'],
+            message, exception, ['personalidades', bot.config['info'
+            ].get('personalidade', 'default'), 'gerarComando'],
         )
 
 async def gerar_texto(command, bot, message):
     try:
-        return await getattr(globals()[bot.info.get(
-            'personalidade', 'default')],
-            command)(message)
+        # ~ return await getattr(globals()[bot.config['info'].get(
+            # ~ 'personalidade', 'default')],
+            # ~ command)(message)
+        return await getattr(personalidades.get(bot.config['info'].get(
+            'personalidade', 'default'), 'default'), command)(message)
     except AttributeError as exception:
         logger.info(repr(exception))
         try:
-            return await getattr(globals()['default'], command)(message)
+            # ~ return await getattr(globals()['default'], command)(
+                # ~ message)
+            return await getattr(personalidades['default'], command)(
+                message)
         except Exception as exception:
             await error_callback(
                 u"Erro tentando achar comando em personalidade",
-                message, exception, ['personalidades',
-                bot.info.get('personalidade', 'default'), 'gerarTexto'],
+                message, exception, ['personalidades', bot.config[
+                'info'].get('personalidade', 'default'), 'gerarTexto'],
             )
     except Exception as exception:
         await error_callback(
             u"Erro tentando achar comando em personalidade",
-            message, exception, ['personalidades',
-            bot.info.get('personalidade', 'default'), 'gerarTexto'],
+            message, exception, ['personalidades', bot.config['info'
+            ].get('personalidade', 'default'), 'gerarTexto'],
         )
 
 async def add_handlers(dispatcher):
     try:
-        await getattr(globals()[dispatcher.bot.config['info'].get('personalidade',
-            'default')], 'add_handlers')(dispatcher)
+        # ~ await getattr(globals()[dispatcher.bot.config['info'].get(
+            # ~ 'personalidade', 'default')], 'add_handlers')(
+            # ~ dispatcher)
+        await getattr(personalidades.get(dispatcher.bot.config['info'
+            ].get('personalidade', 'default'), 'default'),
+            'add_handlers')(dispatcher)
     except AttributeError as exception:
         logger.info(repr(exception))
-        await getattr(globals()['default'], 'add_handlers')(dispatcher)
+        # ~ await getattr(globals()['default'], 'add_handlers')(
+            # ~ dispatcher)
+        await getattr(personalidades['default'], 'add_handlers')(
+            dispatcher)
     except Exception as exception:
         logger.warning(repr(exception))
-        await exception_callback(
-            exception,
-            ['personalidades', 'add_handlers'],
+        await exception_callback(exception, ['personalidades',
+            'add_handlers'])
+
+async def generate_command_furhat(config, command, message):
+    try:
+        return getattr(personalidades.get(config['info'
+            ].get('personalidade', 'default'), 'default'),
+            'furhat_' + command,
         )
+    except AttributeError as exception:
+        logger.info(repr(exception))
+        try:
+            return getattr(personalidades['default'],
+                'furhat_' + command,
+            )
+        except Exception as exception:
+            logger.warning(u"""Erro tentando achar comando em personali\
+dade: {}""".format(repr(exception)))
+    except Exception as exception:
+        logger.warning(u"""Erro tentando achar comando em personalidade\
+""".format(repr(exception)))
+
+async def generate_text_furhat(config, command, message):
+    # ~ command = message.split(' ')[0]
+    try:
+        return await getattr(
+            personalidades.get(config['info'].get(
+            'personalidade', 'default'), 'default'),
+            'furhat_' + command,
+        )(config, message)
+    except AttributeError as exception:
+        logger.info(repr(exception))
+        try:
+            return await getattr(personalidades['default'],
+                'furhat_' + command)(config, message)
+        except Exception as exception:
+            logger.warning(u"""Erro tentando achar comando em personali\
+dade""".format(repr(exception)))
+    except Exception as exception:
+        logger.warning(u"""Erro tentando achar comando em personalidade\
+""".format(repr(exception)))
+
+async def get_furhat_startswith_handlers(persona):
+    try:
+        return await getattr(
+            personalidades.get(persona, 'default'),
+            'furhat_startswith_iterations',
+        )()
+    except AttributeError as exception:
+        return [Iteration()]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def get_furhat_endswith_handlers(persona):
+    try:
+        return await getattr(
+            personalidades.get(persona, 'default'),
+            'furhat_endswith_iterations',
+        )()
+    except AttributeError as exception:
+        return [Iteration()]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def get_furhat_contains_handlers(persona):
+    try:
+        return await getattr(
+            personalidades.get(persona, 'default'),
+            'furhat_contains_iterations',
+        )()
+    except AttributeError as exception:
+        return [Iteration()]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise

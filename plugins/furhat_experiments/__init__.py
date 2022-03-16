@@ -61,14 +61,16 @@ from plugins.furhat_experiments.personas import personas
 try:
     from instance.config import Config
     config = Config()
-    furhat_config = config.bots
+    bots_config = config.bots
+    furhat_config = config.furhat
 except Exception as exception:
     logger.critical(u"""{} config file not found or somehow wrong. RTFM\
 .\n{}""".format(actual_name, str(exception)))
     raise
 
 async def run_papagaio(bot, skip_intro):
-    await papagaio(furhat_config[bot], skip_intro = skip_intro)
+    await papagaio(bots_config[bot], skip_intro = skip_intro)
 
-async def run_personalidades(skip_intro = False):
-    await personalidades(bots, skip_intro = skip_intro)
+async def run_personas(bots, skip_intro = False, log_messages = True):
+    await personas(bots, furhat_config, bots_config,
+        skip_intro = skip_intro, log_messages = log_messages)

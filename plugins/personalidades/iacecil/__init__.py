@@ -24,7 +24,18 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-from plugins.personalidades.default import start, help, welcome, info
+from iacecil.models import Iteration
+from plugins.personalidades.default import (
+    start,
+    help,
+    welcome,
+    info,
+    furhat_contains_iterations,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations as \
+        furhat_startswith_iterations_default,
+    add_handlers as add_default_handlers,
+)
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
@@ -32,23 +43,9 @@ try:
 except:
     from plugins.personalidades.iacecil import random_texts
 
+## Aiogram
 async def add_handlers(dispatcher):
-    ## Comando /info herdado da personalidade padrão
-    @dispatcher.message_handler(
-        commands = ['info'],
-    )
-    async def info_callback(message):
-        await message_callback(message, [
-            'info',
-            dispatcher.bot.get('personalidade', 'iacecil'),
-            message.chat.type,
-        ])
-        command = await message.reply(await info(dispatcher.bot.config['info']))
-        await command_callback(command, [
-            'info',
-            dispatcher.bot.get('personalidade', 'iacecil'),
-            message.chat.type,
-        ])
+    await add_default_handlers(dispatcher)
     @dispatcher.message_handler(
         commands = ['fofa'],
     )
@@ -64,3 +61,12 @@ async def add_handlers(dispatcher):
             dispatcher.bot.get('personalidade', 'iacecil'),
             message.chat.type,
         ])
+
+## Furhat
+async def furhat_fofice(config, message):
+    return random_texts.fofices()
+
+async def furhat_startswith_iterations():
+    return (await furhat_startswith_iterations_default()) + [
+        Iteration(text = 'fofice', callback = furhat_fofice),
+    ]

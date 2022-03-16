@@ -23,10 +23,15 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
+from iacecil.models import Iteration
 from plugins.personalidades.default import (
     info,
     start,
     welcome,
+    furhat_contains_iterations,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations,
+    add_handlers as add_default_handlers,
 )
 
 async def tropixel(message):
@@ -65,18 +70,7 @@ async def portaria(message):
             ]) for member in message.new_chat_members]),
     )
 
+## Aiogram
 async def add_handlers(dispatcher):
-    ## Comando /info herdado da personalidade padrão
-    @dispatcher.message_handler(
-        commands = ['info'],
-    )
-    async def info_callback(message):
-        await message_callback(message, ['info',
-            dispatcher.bot.get('personalidade', 'metarec'),
-            message.chat.type],
-        )
-        command = await message.reply(await info(dispatcher.bot.config['info']))
-        await command_callback(command, ['info',
-            dispatcher.bot.get('personalidade', 'metarec'),
-            message.chat.type],
-        )
+    await add_default_handlers(dispatcher)
+

@@ -87,6 +87,9 @@ try:
         log_level = 'info'
         reload = True
         canonical = None
+        skip_intro = False
+        log_messages = True
+        personas = 'default'
         
         ### Args parsing
         if len(sys.argv) > 2:
@@ -99,19 +102,27 @@ try:
                 logger.info(u"""Using configuration from BOTS "{}" f\
 rom config file.""".format(bots))
                 if mode in ['fpapagaio']:
-                    skip_intro = False
                     if len(sys.argv) > 4:
                         skip_intro = bool(sys.argv[4])
                         logger.info(u"Setting SKIP_INTRO to {}".format(
                             str(skip_intro))
                         )
                 elif mode in ['fpersonas']:
-                    personas = ['default']
                     if len(sys.argv) > 4:
-                        personas = sys.argv[4:]
+                        personas = sys.argv[4]
                         logger.info(u"Setting PERSONAS to {}".format(
                             str(personas))
                         )
+                        if len(sys.argv) > 5:
+                            skip_intro = bool(sys.argv[5])
+                            logger.info(
+                                u"Setting SKIP_INTRO to {}".format(
+                                str(skip_intro))
+                            )
+                            if len(sys.argv) > 6:
+                                log_messages = bool(sys.argv[6])
+                                logger.info(u"""Setting LOG_MESSAGES to\
+ {}""".format(str(log_messages)))
                 else:
                     if len(sys.argv) > 4:
                         port = sys.argv[4]
@@ -212,7 +223,8 @@ o {}""".format(str(canonical)))
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
                 from plugins.furhat_experiments import run_personas
-                asyncio.run(run_personas(bots.split(',')))
+                asyncio.run(run_personas(personas.split(','),
+                    skip_intro, log_messages))
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:
                 logger.critical(repr(exception))

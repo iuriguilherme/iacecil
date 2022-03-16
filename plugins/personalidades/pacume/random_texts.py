@@ -34,29 +34,46 @@ except Exception as exception:
     logger.debug(u"Não consegui achar o arquivo: {}".format(
         repr(exception)))
 
-def bebidas():
-    return pave.bebidas()
-
 def adjetivos():
-    return random.choice([pave.adjetivos(), random.choice([
+    return pave.adjetivos() + [
         u"direitopata",
         u"esquerdopata",
         u"gentalha",
-    ])])
+    ]
 
-def respostas_bebida():
-    return pave.respostas_bebida()
-
-def respostas_quanto():
-    return pave.respostas_quanto()
+def respostas_adjetivos():
+    return random.choice(adjetivos())
 
 def piadas():
     return pave.piadas()
 
+def respostas_piadas():
+    return random.choice(piadas())
+
+def ignorante(admin):
+    return pave.ignorante(admin)
+
 def respostas_ignorante(admin):
     return random.choice([
-        pave.respostas_ignorante(admin), piadas(), adjetivos()
+        ignorante(admin),
+        piadas(),
+        respostas_adjetivos(),
     ])
+
+def bebidas():
+    return pave.bebidas()
+
+def respostas_bebida():
+    return random_texts.respostas_bebida()
+
+def bye(admin):
+    return pave.bye(admin)
+
+def respostas_bye(admin):
+    return random.choice(bye(admin))
+
+def respostas_quanto():
+    return pave.respostas_quanto()
 
 def versiculos_md():
     return pave.versiculos_md()
@@ -71,6 +88,3 @@ def start(message):
 
 def welcome(message, count, admin):
     return pave.welcome(message, count, admin)
-
-def bye(admin):
-    return pave.bye(admin)

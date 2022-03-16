@@ -19,10 +19,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 ### Personalidade padrão do @mate_obot
+import random
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
+from iacecil.models import Iteration
 
 async def start(message):
     return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
@@ -77,12 +79,61 @@ te interessada no meu desenvolvimento se encontra, o link de acesso é: \
         group = infos.get('group', u"eu não sei."),
     )
 
+## Aiogram
 async def add_handlers(dispatcher):
     ## Comando /info padrão
     @dispatcher.message_handler(
         commands = ['info'],
     )
     async def info_callback(message):
-        await message_callback(message, ['info', message.chat.type])
-        command = await message.reply(await info(dispatcher.bot.config['info']))
-        await command_callback(command, ['info', message.chat.type])
+        await message_callback(message, ['info', dispatcher.bot.config[
+            'info'].get('personalidade', 'default'), message.chat.type])
+        command = await message.reply(await info(dispatcher.bot.config[
+            'info']))
+        await command_callback(command, ['info', dispatcher.bot.config[
+            'info'].get('personalidade', 'default'), message.chat.type])
+
+## Furhat
+async def furhat_papagaio(config, message):
+    return message.split(' ')[1:]
+
+async def furhat_naoentendi(config, message):
+    return u"Não entendi"
+
+async def furhat_sevira(config, message):
+    return u"Eu não sou {}".format(random.choice([
+        u"a Alexa",
+        u"o OK Google",
+        u"a Siri",
+    ]))
+
+async def furhat_naosou(config, message):
+    return u"Acho que tu me confundiu"
+
+async def furhat_startswith_iterations():
+    return [
+        Iteration(text = 'repete', callback = furhat_papagaio),
+    ] + [
+        Iteration(text = subtext, callback = furhat_sevira
+            ) for subtext in [
+                'fab',
+                'fabi',
+                'fáb',
+                'fábi',
+            ]
+    ]
+
+async def furhat_endswith_iterations():
+    return [
+        Iteration(text = 'por favor', callback = furhat_naoentendi),
+    ]
+
+async def furhat_contains_iterations():
+    return [
+        Iteration(text = subtext, callback = furhat_naosou,
+            ) for subtext in [
+                'alexa',
+                'google',
+                'siri',
+            ]
+    ]

@@ -47,6 +47,7 @@ async def message_callback(
         except Exception as exception:
             logger.info(repr(exception))
         await zodb_logger(message)
+    await info_logger(message, ['message'] + descriptions)
 
 async def command_callback(
     message: types.Message,
@@ -76,6 +77,7 @@ async def any_message_callback(message: types.Message):
     except Exception as exception:
         logger.info(repr(exception))
     await zodb_logger(message)
+    await info_logger(message, ['message'])
 
 async def any_edited_message_callback(message: types.Message):
     await info_logger(message, ['edited_message', message.chat.type])

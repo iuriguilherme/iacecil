@@ -23,6 +23,18 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
+from iacecil.models import Iteration
+from plugins.personalidades.default import (
+    start,
+    help,
+    info,
+    portaria,
+    welcome,
+    furhat_contains_iterations as furhat_contains_iterations_default,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations,
+    add_handlers as add_default_handlers,
+)
 
 try:
     from instance.personalidades.matebot import random_texts
@@ -30,69 +42,8 @@ except:
     logger.info(f"instance não encontrada em {__name__}")
     from plugins.personalidades.matebot import random_texts
 
-async def start(message):
-    return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
- id no telegram é {telegram_id}""".format(
-        first_name = message.from_user.first_name,
-        last_name = message.from_user.last_name,
-        telegram_id = message.from_user.id,
-    )
-
-async def help(message):
-    return u"""Eu sou uma bot social com múltiplas personalidades progr\
-amada para aprender conforme o ambiente onde estou. Para saber quais co\
-mandos estou respondendo, envie /lista\nPara mais informações sobre a m\
-inha atual personalidade, envie /info"""
-
-async def welcome(message):
-    return u"""Bem vinda(o)(e){members} ao grupo {title}\n\nVerifique a\
- mensagem fixada (se houver) para saber o que está acontecendo e se qui\
-ser e puder, se apresente. Não parece, mas o pessoal daqui está genuina\
-mente interessado em te ver escrevendo! Mas sem pressão, pode ser no te\
-u tempo. Qualquer coisa, estou à disposição.""".format(
-        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
-            ', '.join([' '.join([
-                member['first_name'] or '',
-                member['last_name'] or '',
-            ]) for member in message.new_chat_members]),
-        title = message.chat.title,
-    )
-
-async def portaria(message):
-    return u"""sem querer caguetar @admin, mas taí de novo o {members}\
-""".format(
-        members = 's' if len(message.new_chat_members) > 1 else ' ' + 
-            ', '.join([' '.join(
-                [member['first_name'] or '',
-                member['last_name'] or '',
-            ]) for member in message.new_chat_members]),
-    )
-
-async def info(infos):
-    return u"""Eu sou uma MateBot com personalidade padrão configurada \
-para responder os comandos básicos. O meu código fonte está em \
-{repository} , Quem me administra é {admin} , quem me desenvolve é \
-{dev}\nSe quiser acompanhar meu processo de desenvolvimento, tem um can\
-al de notícias {channel}\nTambém tem um grupo do telegram onde mais gen\
-te interessada no meu desenvolvimento se encontra, o link de acesso é: \
-{group}""".format(
-        repository = infos.get('repository', u"algum lugar"),
-        admin = infos.get('admin', u"Ninguém"),
-        dev = infos.get('dev', u"Alguém"),
-        channel = infos.get('channel', u"que eu não sei."),
-        group = infos.get('group', u"eu não sei."),
-    )
-
 async def add_handlers(dispatcher):
-    ## Comando /info padrão
-    @dispatcher.message_handler(
-        commands = ['info'],
-    )
-    async def info_callback(message):
-        await message_callback(message, ['info', message.chat.type])
-        command = await message.reply(await info(dispatcher.bot.config['info']))
-        await command_callback(command, ['info', message.chat.type])
-    
+    await add_default_handlers(dispatcher)
     ## BOFH
     @dispatcher.message_handler(
         commands = ['bofh'],
@@ -103,3 +54,15 @@ async def add_handlers(dispatcher):
         command = await message.reply(await random_texts.bofh())
         await command_callback(command, ['personalidades', 'matebot',
             'bofh', message.chat.type])
+
+## Furhat
+async def furhat_desculpa(config, message):
+    return await random_texts.bofh()
+
+async def furhat_contains_iterations():
+    return (await furhat_contains_iterations_default()) + [
+        Iteration(
+            text = 'não tá funcionando',
+            callback = furhat_desculpa,
+        ),
+    ]

@@ -142,69 +142,69 @@ do enjoar, é só dizer: "chega". Que eu calo a boca.""")
                     await asyncio.sleep(1)
                     await led_blank(furhat)
                     break
-                elif text.message.lower().startswith('comando'):
+                elif text.message.lower().endswith('por favor'):
                     message = u"não entendi."
-                    if text.message == 'comando gerar sessão':
+                    if text.message == 'geração sessão por favor':
                         message = await nlp_generate_session(
                             furhat_id,
                             session_id,
                         )
-                    elif text.message.lower() == 'comando gerar':
+                    elif text.message.lower() == 'geração por favor':
                         message = await nlp_generate(furhat_id)
                     elif text.message.lower() == \
-                        'comando colocação sessão':
+                        'colocação sessão por favor':
                         message = await nlp_collocations_session(
                             furhat_id,
                             session_id,
                         )
-                    elif text.message == 'comando colocação':
+                    elif text.message.lower() == 'colocação por favor':
                         message = await nlp_collocations(furhat_id)
                     elif text.message.lower().startswith(
-                        'comando contar sessão'
+                        'contar sessão'
                     ):
-                        word = text.message.split(' ')[-1]
+                        word = ' '.join(text.message.split(' ')[2:-2])
                         message = await nlp_count_session(
                             furhat_id,
                             session_id,
                             word,
                         )
-                    elif text.message.startswith('comando contar'):
-                        word = text.message.split(' ')[-1]
+                    elif text.message.lower().startswith('contar'):
+                        word = ' '.join(text.message.split(' ')[1:-2])
                         message = await nlp_count(furhat_id, word)
                     elif text.message.lower().startswith(
-                        'comando similar sessão'
+                        'similar sessão'
                     ):
-                        word = text.message.split(' ')[-1]
+                        word = ' '.join(text.message.split(' ')[2:-2])
                         message = await nlp_similar_session(furhat_id,
                             word)
-                    elif text.message.startswith('comando similar'):
-                        word = text.message.split(' ')[-1]
+                    elif text.message.lower().startswith('similar'):
+                        word = ' '.join(text.message.split(' ')[1:-2])
                         message = await nlp_similar(furhat_id, word)
                     elif text.message.lower().startswith(
-                        'comando concordância sessão'
+                        'concordância sessão'
                     ):
-                        word = text.message.split(' ')[-1]
+                        word = ' '.join(text.message.split(' ')[2:-2])
                         message = await nlp_concordance_session(
                             furhat_id,
                             word,
                         )
                     elif text.message.lower().startswith(
-                        'comando concordância'
+                        'concordância'
                     ):
-                        word = text.message.split(' ')[-1]
+                        word = ' '.join(text.message.split(' ')[1:-2])
                         message = await nlp_concordance(furhat_id, word)
                     elif text.message.lower().startswith(
-                        'comando contexto sessão'
+                        'contexto sessão'
                     ):
-                        words = text.message.split(' ')[3:]
+                        words = text.message.split(' ')[2:-2]
                         message = await nlp_common_context_session(
                             furhat_id,
                             words,
                         )
                     elif text.message.lower().startswith(
-                        'comando contexto'
+                        'contexto'
                     ):
-                        words = text.message.split(' ')[2:]
+                        words = text.message.split(' ')[1:-2]
                         message = await nlp_common_context(furhat_id,
                             words)
                     await blue_speak(furhat, message)

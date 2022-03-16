@@ -24,19 +24,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 # ~ import asyncio, glob, os, random, uuid
-import random, uuid
+import asyncio, random, uuid
 from urllib3.exceptions import MaxRetryError
 from iacecil.controllers.furhat_bot.remote_api import (
     get_furhat,
     get_voices,
     set_face,
-    # ~ set_led,
+    set_led,
     set_voice,
     do_attend_location,
     do_attend_user,
     do_listen,
     do_say_text,
     do_say_url,
+    do_shutup,
     # ~ block_do_listen,
     block_do_say_text,
     block_do_say_url,
@@ -84,8 +85,23 @@ from plugins.furhat_experiments.controllers.zodb_controllers import(
     zodb_get_sessions,
     zodb_get_aiogram,
 )
+from plugins.personalidades import (
+    gerar_comando,
+    gerar_texto,
+    generate_command_furhat,
+    generate_text_furhat,
+)
+from plugins.furhat_experiments.personas.handlers import (
+    furhat_handler,
+)
 
-async def personas(skip_intro = False):
+async def personas(
+    bots,
+    furhat_config,
+    bots_config,
+    skip_intro,
+    log_messages,
+):
     try:
         furhat_id = furhat_config['bot']
         address = furhat_config['address']
@@ -103,19 +119,9 @@ async def personas(skip_intro = False):
         await set_voice(furhat, voice)
         await do_attend_user(furhat, 'CLOSEST')
         if not skip_intro:
-            await do_say_text(furhat, """olá! eu sou um papagaio. quand\
-o a minha luz for verde, eu estou ouvindo. quando a minha luz for verme\
-lha, eu estou falando. Eu vou repetir tudo o que disserem pra mim. Quan\
-do enjoar, é só dizer: "chega". Que eu calo a boca.""")
-            await asyncio.sleep(18)
-
-        # ~ message = await nlp_count(furhat_id, 'teste')
-        # ~ await blue_speak(furhat, message)
-        # ~ message = await nlp_generate(furhat_id)
-        # ~ await blue_speak(furhat, message)
-        # ~ message = await nlp_generate_aiogram()
-        # ~ await blue_speak(furhat, message)
-
+            await do_say_text(furhat, """iniciando modo de múltiplas pe\
+rsonalidades""")
+            await asyncio.sleep(3)
         await asyncio.sleep(1)
         await led_blank(furhat)
         while True:
@@ -127,9 +133,18 @@ do enjoar, é só dizer: "chega". Que eu calo a boca.""")
             await asyncio.sleep(1)
             await led_blank(furhat)
             # ~ text = Status(success = True, message = "chega")
-            if text.success and text.message not in ['', 'EMPTY']:
+            if text.success and text.message not in ['', 'EMPTY'] and \
+                not text.message.startswith('ERROR'):
                 logger.info(str(text))
-                if text.message.lower() in ['chega', 'listo', 'enough']:
+                if 'cala boca' in text.message.lower() or 'cala a boca'\
+                    in text.message.lower():
+                    await do_shutup(furhat)
+                elif text.message.lower() in [
+                    'chega',
+                    'listo',
+                    'enough',
+                ]:
+                    await do_shutup(furhat)
                     await led_blue(furhat)
                     language = 'pt-BR'
                     await change_voice(furhat, voices, language)
@@ -268,11 +283,48 @@ escutar em português brasileiro.""")
                         ''.join([voice_url + audio + '.wav']),
                     )
                 else:
-                    await set_furhat_text(furhat_id, session_id, text)
+                    if log_messages:
+                        await set_furhat_text(
+                            furhat_id,
+                            session_id,
+                            text,
+                        )
                     await asyncio.sleep(1)
-                    await do_attend_user(furhat, 'RANDOM')
-                    await led_red(furhat)
-                    block_do_say_text(furhat, text.message)
+                    iterations =  None
+                    iterations = await furhat_handler(
+                        bots_config,
+                        bots,
+                        text,
+                    )
+                    if len(iterations) > 0:
+                        for iteration in iterations:
+                            generated_text = await iteration.callback
+                            if generated_text is not None:
+                                await do_attend_user(furhat, 'RANDOM')
+                                await led_red(furhat)
+                                await set_led(
+                                    furhat,
+                                    **bots_config[iteration.bot][
+                                        'furhat']['led'],
+                                )
+                                await set_voice(
+                                    furhat,
+                                    name = bots_config[iteration.bot][
+                                        'furhat']['voice'],
+                                )
+                                await set_face(
+                                    furhat,
+                                    mask = bots_config[iteration.bot][
+                                        'furhat']['mask'],
+                                    character = bots_config[
+                                        iteration.bot]['furhat'][
+                                        'character'],
+                                )
+                                await do_say_text(
+                                    furhat,
+                                    generated_text,
+                                )
+                                await asyncio.sleep(3)
                 await asyncio.sleep(1)
                 await led_blank(furhat)
                 continue

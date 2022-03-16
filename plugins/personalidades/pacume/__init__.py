@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 import random
 from aiogram import (
     Dispatcher,
+    exceptions,
     filters,
     types,
 )
@@ -34,6 +35,11 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 from plugins.personalidades import pave
+from plugins.personalidades.pacume.furhat_handlers import (
+    furhat_contains_iterations,
+    furhat_endswith_iterations,
+    furhat_startswith_iterations,
+)
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
@@ -62,7 +68,7 @@ async def welcome(message):
             pass
     return random_texts.welcome(message, count, admin)
 
-async def portaria(message):
+async def portaria():
     return u"Puta que pariu, entrou esse filho da puta aqui ó @admin"
 
 async def bye(message):
@@ -76,7 +82,11 @@ async def bye(message):
                 ) if member.status == 'creator'][0].first_name
         except IndexError:
             pass
-    return random_texts.bye(admin)
+        except exceptions.BotKicked:
+            pass
+        except Exception as exception:
+            logger.info(repr(exception))
+    return random_texts.respostas_bye(admin)
 
 async def info():
     return u"""Eu sou um bot com personalidade de tiozão do churrasco (\
@@ -112,7 +122,7 @@ async def add_handlers(dispatcher):
         # ~ if str(message['new_chat_member']['first_name']).lower() in \
             # ~ [unwant.lower() for unwant in \
             # ~ dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            # ~ text = await portaria(message)
+            # ~ text = await portaria()
             # ~ command_type = 'portaria'
             # ~ command = await message.reply(text)
         # ~ else:
@@ -135,7 +145,7 @@ async def add_handlers(dispatcher):
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
             dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            text = await portaria(message)
+            text = await portaria()
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
@@ -164,7 +174,7 @@ async def add_handlers(dispatcher):
             dispatcher.bot.get('personalidade', 'pacume'),
             message.chat.type],
         )
-        command = await message.reply(random_texts.piadas())
+        command = await message.reply(random_texts.respostas_piadas())
         await command_callback(command, ['piada',
             dispatcher.bot.get('personalidade', 'pacume'),
             message.chat.type],
@@ -191,15 +201,11 @@ async def add_handlers(dispatcher):
         commands = ['info'],
     )
     async def info_callback(message):
-        await message_callback(message, ['info',
-            dispatcher.bot.get('personalidade', 'pacume'),
-            message.chat.type],
-        )
+        await message_callback(message, ['info', dispatcher.bot.config[
+            'info'].get('personalidade', 'pacume'), message.chat.type])
         command = await message.reply(await info())
-        await command_callback(command, ['info',
-            dispatcher.bot.get('personalidade', 'pacume'),
-            message.chat.type],
-        )
+        await command_callback(command, ['info', dispatcher.bot.config[
+            'info'].get('personalidade', 'pacume'),message.chat.type])
 
     ## Qualquer frase que termina em 'ão' com uma palavra de pelo menos
     ## quatro letras
