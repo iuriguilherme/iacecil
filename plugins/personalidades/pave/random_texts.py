@@ -29,15 +29,15 @@ import random
 from aiogram.utils.markdown import escape_md
 
 def adjetivos():
-    return [
+    return set([
         u"gente",
-    ]
+    ])
 
 def respostas_adjetivos():
-    return random.choice(adjetivos())
+    return random.choice(list(adjetivos()))
 
 def ignorante(admin):
-    return [
+    return set([
         u"???",
         u"anotei aqui",
         u"ahaha",
@@ -63,19 +63,19 @@ def ignorante(admin):
         u"rsrsrs",
         u"todo mundo aqui sabe, menos tu pelo jeito, que ninguém te perguntou nada",
         u"tu respira tu e tu escreve? tu é o bichão mesmo",
-    ]
+    ])
 
 def respostas_ignorante(admin):
-    return random.choice(ignorante(admin))
+    return random.choice(list(ignorante(admin)))
 
 def piadas():
-    return ignorante('@admin')
+    return set(ignorante('@admin'))
 
 def respostas_piadas():
-    return random.choice(piadas())
+    return random.choice(list(piadas()))
 
 def bebidas():
-    return [
+    return set([
         u"bebida",
         u"bira",
         u"breja",
@@ -88,7 +88,7 @@ def bebidas():
         u"uisque",
         u"uísque",
         u"whisky",
-    ]
+    ])
 
 def respostas_bebida():
     return random.choice([
@@ -104,12 +104,12 @@ propriedade""",
     ])
 
 def bye(admin):
-    return [
+    return set([
         u"vai tarde",
-    ]
+    ])
 
 def respostas_bye(admin):
-    return random.choice(bye(admin))
+    return random.choice(list(bye(admin)))
 
 def respostas_quanto():
     return random.choice([

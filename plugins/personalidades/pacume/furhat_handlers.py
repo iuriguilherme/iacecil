@@ -19,6 +19,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import random
 from iacecil.models import Iteration
 
 try:
@@ -104,6 +105,8 @@ async def furhat_startswith_iterations():
             'fabi',
             'fáb',
             'fábi',
+            'fábio',
+            'fabio',
         ]
     ]
 
@@ -111,6 +114,27 @@ async def furhat_endswith_iterations():
     return [
         Iteration(text = 'por favor', callback = furhat_naoentendi),
         Iteration(text = 'ão', callback = furhat_rima_ao),
+    ] + [
+        Iteration(
+            text = subtext,
+            callback = furhat_naosou,
+        ) for subtext in [
+            'alexa',
+            'google',
+            'siri',
+        ]
+    ] + [
+        Iteration(
+            text = subtext,
+            callback = furhat_sevira,
+        ) for subtext in [
+            'fab',
+            'fabi',
+            'fáb',
+            'fábi',
+            'fábio',
+            'fabio',
+        ]
     ]
 
 async def furhat_contains_iterations():
@@ -131,10 +155,10 @@ async def furhat_contains_iterations():
         Iteration(
             text = subtext,
             callback = furhat_adjetivo,
-        ) for subtext in random_texts.adjetivos()
+        ) for subtext in set(random_texts.adjetivos())
     ] + [
         Iteration(
             text = subtext,
             callback = furhat_bebida,
-        ) for subtext in random_texts.bebidas()
+        ) for subtext in set(random_texts.bebidas())
     ]

@@ -35,38 +35,42 @@ except Exception as exception:
         repr(exception)))
 
 def adjetivos():
-    return pave.adjetivos() + [
+    return set().union(pave.adjetivos(), set([
         u"direitopata",
         u"esquerdopata",
         u"gentalha",
-    ]
+    ]))
 
 def respostas_adjetivos():
-    return random.choice(adjetivos())
+    return random.choice(list(adjetivos()))
 
 def piadas():
-    return pave.piadas()
+    return set().union(pave.piadas())
 
 def respostas_piadas():
-    return random.choice(piadas())
+    return random.choice(list(piadas()))
 
 def ignorante(admin):
-    return pave.ignorante(admin)
+    return set().union(pave.ignorante(admin))
 
 def respostas_ignorante(admin):
-    return random.choice(ignorante(admin) + piadas() + adjetivos())
+    return random.choice(list(set().union(
+        ignorante(admin),
+        piadas(),
+        adjetivos(),
+    )))
 
 def bebidas():
-    return pave.bebidas()
+    return set().union(pave.bebidas())
 
 def respostas_bebida():
     return random_texts.respostas_bebida()
 
 def bye(admin):
-    return pave.bye(admin)
+    return set().union(pave.bye(admin))
 
 def respostas_bye(admin):
-    return random.choice(bye(admin))
+    return random.choice(list(bye(admin)))
 
 def respostas_quanto():
     return pave.respostas_quanto()

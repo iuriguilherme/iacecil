@@ -46,8 +46,8 @@ class Frame(object):
 
 class Status(object):
     success: bool = False
-    message: str = None
-    def __init__(self, success, message):
+    message: str = ''
+    def __init__(self, success = False, message = ''):
         self.success = success
         self.message = message
     def __repr__(self):
