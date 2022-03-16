@@ -54,11 +54,7 @@ def ignorante(admin):
     return pave.ignorante(admin)
 
 def respostas_ignorante(admin):
-    return random.choice([
-        ignorante(admin),
-        piadas(),
-        respostas_adjetivos(),
-    ])
+    return random.choice(ignorante(admin) + piadas() + adjetivos())
 
 def bebidas():
     return pave.bebidas()
