@@ -75,9 +75,9 @@ async def any_message_callback(message: types.Message):
         if current_app.furhat and message.text is not None:
             await furhat_logger(message.text)
     except Exception as exception:
-        logger.info(repr(exception))
+        logger.warning(repr(exception))
     await zodb_logger(message)
-    await info_logger(message, ['message'])
+    # ~ await info_logger(message, ['message'])
 
 async def any_edited_message_callback(message: types.Message):
     await info_logger(message, ['edited_message', message.chat.type])
