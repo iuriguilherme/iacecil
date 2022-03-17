@@ -49,10 +49,14 @@ from plugins.persistence.zodb_orm import (
 from plugins.natural import (
     generate,
     concordance,
+    concordance_1,
     collocations,
     common_contexts,
+    common_contexts_1,
     count,
+    count_1,
     similar,
+    similar_1,
 )
 from plugins.furhat_experiments.controllers.zodb_controllers import (
     zodb_get_session,
@@ -81,46 +85,126 @@ async def nlp_collocations_session(furhat_id, session_id):
 
 async def nlp_concordance(furhat_id, word):
     all_messages = await zodb_get_sessions(furhat_id)
-    concordances = await concordance(all_messages, word)
+    concordances = await concordance_1(all_messages, word)
     return u"concordâncias com {}: {}".format(word, concordances)
 
 async def nlp_concordance_session(furhat_id, session_id, word):
     messages = await zodb_get_session(furhat_id, session_id)
-    concordances = await concordance(messages, word)
+    concordances = await concordance_1(messages, word)
     return u"concordâncias com {}: {}".format(word, concordances)
 
 async def nlp_similar(furhat_id, word):
     all_messages = await zodb_get_sessions(furhat_id)
-    similars = await similar(all_messages, word)
-    return u"palavras similares a {}: {}".format(word, similars)
+    similars = await similar_1(all_messages, word)
+    return u"""palavras que eu ouvi e são similares a {}: {}""".format(
+        word, similars)
 
 async def nlp_similar_session(furhat_id, session_id, word):
     messages = await zodb_get_session(furhat_id, session_id)
-    similars = await similar(messages, word)
-    return u"palavras similares a {}: {}".format(word, similars)
+    similars = await similar_1(messages, word)
+    return u"""palavras que eu ouvi e são similares a {} nesta sessão: \
+{}""".format(word, similars)
 
 async def nlp_count(furhat_id, word):
     all_messages = await zodb_get_sessions(furhat_id)
-    counted = await count(all_messages, word)
-    return u"{} foi dita {} vezes".format(word, counted)
+    counted = await count_1(all_messages, word)
+    return u"""eu já ouvi {}. {} vezes, sendo {:.2f} por cento de tudo \
+que eu já ouvi""".format(word, counted['count'], counted['percentage'])
 
 async def nlp_count_session(furhat_id, session_id, word):
     messages = await zodb_get_session(furhat_id, session_id)
-    counted = await count(messages, word)
-    return u"{} foi dita {} vezes".format(word, counted)
+    counted = await count_1(messages, word)
+    return u"""eu já ouvi {}. {} vezes nessa sessão, sendo {:.2f} por c\
+ento de tudo que eu já ouvi""".format(word, counted['count'],
+        counted['percentage'])
 
 async def nlp_common_context(furhat_id, words):
     all_messages = await zodb_get_sessions(furhat_id)
-    contexts = await common_contexts(all_messages, words)
+    contexts = await common_contexts_1(all_messages, words)
     return u"contextos comuns para as palavras {}: {}".format(
-        ' '.join(words),
+        ' e '.join(words),
         contexts,
     )
 
 async def nlp_common_context_session(furhat_id, session_id, words):
     messages = await zodb_get_session(furhat_id, session_id)
-    contexts = await common_contexts(messages, words)
+    contexts = await common_contexts_1(messages, words)
     return u"contextos comuns para as palavras {}: {}".format(
-        ' '.join(words),
+        ' e '.join(words),
         contexts,
     )
+
+async def ack(furhat):
+    await do_say_text(furhat, text = 'ok, só um minuto')
+
+async def natural_handler(furhat, message, order, furhat_id,
+    session_id, *args, **kwargs):
+    reply = u"não entendi."
+    if message.lower() == 'geração sessão ' + order:
+        await ack(furhat)
+        reply = await nlp_generate_session(
+            furhat_id,
+            session_id,
+        )
+    elif message.lower() == 'geração ' + order:
+        await ack(furhat)
+        reply = await nlp_generate(furhat_id)
+    # ~ elif message.lower() == 'colocação sessão ' + order:
+        # ~ await ack(furhat)
+        # ~ reply = await nlp_collocations_session(
+            # ~ furhat_id,
+            # ~ session_id,
+        # ~ )
+    # ~ elif message.lower() == 'colocação ' + order:
+        # ~ await ack(furhat)
+        # ~ reply = await nlp_collocations(furhat_id)
+    elif message.lower().startswith('contar sessão'):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
+        reply = await nlp_count_session(
+            furhat_id,
+            session_id,
+            word,
+        )
+    elif message.lower().startswith('contar'):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
+        reply = await nlp_count(furhat_id, word)
+    elif message.lower().startswith(
+        'similar sessão'
+    ):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
+        reply = await nlp_similar_session(furhat_id,
+            word)
+    elif message.lower().startswith('similar'):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
+        reply = await nlp_similar(furhat_id, word)
+    elif message.lower().startswith('concordância sessão'):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
+        reply = await nlp_concordance_session(
+            furhat_id,
+            word,
+        )
+    elif message.lower().startswith('concordância'):
+        await ack(furhat)
+        word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
+        reply = await nlp_concordance(furhat_id, word)
+    elif message.lower().startswith('contexto sessão'):
+        await ack(furhat)
+        words = message.split(' ')[2:-len(order.split(' '))]
+        reply = await nlp_common_context_session(
+            furhat_id,
+            words,
+        )
+    elif message.lower().startswith('contexto'):
+        await ack(furhat)
+        words = message.split(' ')[1:-len(order.split(' '))]
+        reply = await nlp_common_context(furhat_id,
+            words)
+    elif message.lower().startswith('escolhe'):
+        words = message.split(' ')[1:-len(order.split(' '))]
+        reply = random.choice(words)
+    return reply

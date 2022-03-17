@@ -55,6 +55,9 @@ from plugins.natural import (
     similar,
 )
 
+async def shutup(furhat):
+    return furhat.say(text = 'ta', abort = True)
+
 async def change_voice(furhat, voices, language):
     await set_voice(furhat, random.choice([voice.name for voice in \
         voices if voice.language == language]))

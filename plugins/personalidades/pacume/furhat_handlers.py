@@ -36,7 +36,10 @@ async def furhat_naoentendi(config, message):
     return u"Não entendi"
 
 async def furhat_naosou(config, message):
-    return u"Acho que tu me confundiu"
+    return random.choice([
+        u"Acho que tu me confundiu",
+        u"Eu tenho cara de robô?",
+    ])
 
 async def furhat_sevira(config, message):
     return u"Eu não sou {}, {}".format(
@@ -62,25 +65,32 @@ async def furhat_versiculo(config, message):
     return random_texts.versiculos_md()
 
 async def furhat_piada(config, message):
-    return random_texts.respostas_piadas()
+    return random_texts.respostas_piadas().lower()
 
 async def furhat_rima_ao(config, message):
     if len(message.split(' ')[-1]) > 3:
-        return random_texts.rimas_ao()
+        return random_texts.rimas_ao().lower()
 
-async def furhat_adjetivo(config, message):
+async def furhat_replica_adjetivo(config, message):
     for adjetivo in random_texts.adjetivos():
         for submessage in message.split(' '):
-            if adjetivo == submessage:
-                return adjetivo + ' é tu. E tu é um {}'.format(
-                    random_texts.respostas_adjetivos()
+            if adjetivo.lower() == submessage.lower():
+                return adjetivo.lower() + ' é tu. E tu é um {}.'.format(
+                    random_texts.respostas_adjetivos().lower()
                 )
+
+async def furhat_adjetivo(config, message):
+    return 'tu é um {}.'.format(
+        random_texts.respostas_adjetivos().lower())
 
 async def furhat_ignorante(config, message):
     return random_texts.respostas_ignorante('Iuri')
 
 async def furhat_tchau(config, message):
     return random_texts.respostas_bye('Iuri')
+
+async def furhat_menine(config, message):
+    return 'o certo é: meni-ne.'
 
 async def furhat_startswith_iterations():
     return [
@@ -114,6 +124,7 @@ async def furhat_endswith_iterations():
     return [
         Iteration(text = 'por favor', callback = furhat_naoentendi),
         Iteration(text = 'ão', callback = furhat_rima_ao),
+        Iteration(text = 'é tu', callback = furhat_adjetivo),
     ] + [
         Iteration(
             text = subtext,
@@ -155,11 +166,19 @@ async def furhat_contains_iterations():
     ] + [
         Iteration(
             text = subtext,
-            callback = furhat_adjetivo,
+            callback = furhat_replica_adjetivo,
         ) for subtext in set(random_texts.adjetivos())
     ] + [
         Iteration(
             text = subtext,
             callback = furhat_bebida,
         ) for subtext in set(random_texts.bebidas())
+    ] + [
+        Iteration(
+            text = subtext,
+            callback = furhat_menine,
+        ) for subtext in [
+            'menina',
+            'menino',
+        ]
     ]

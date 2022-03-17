@@ -68,10 +68,6 @@ async def do_say_text(furhat, text):
 async def do_say_url(furhat, url):
     return furhat.say(url = url, lipsync = True)
 
-async def do_shutup(furhat):
-    furhat.set_voice('Camila')
-    return furhat.say(text = 'calei', abort = True)
-
 def block_do_listen(furhat, language):
     return furhat.listen(language = language)
 

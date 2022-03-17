@@ -23,7 +23,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import nltk, string
+import io, nltk, string
+from contextlib import redirect_stdout
 from nltk import (
     word_tokenize
 )
@@ -39,9 +40,17 @@ async def remove_punctuation(sent_list):
         logger.warning(repr(exception))
         raise
 
+async def remove_punctuation_1(sent_list):
+    try:
+        return [''.join([word.replace(punctuation, '') for punctuation \
+            in string.punctuation]) for word in sent_list]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
 async def tokenize_list(sent_list):
     try:
-        sent_list = await remove_punctuation(sent_list)
+        # ~ sent_list = await remove_punctuation_1(sent_list)
         return word_tokenize(' '.join([word for sent in sent_list for \
             word in sent.split(' ')]))
     except Exception as exception:
@@ -56,10 +65,18 @@ async def text_from_list(sent_list):
         logger.warning(repr(exception))
         raise
 
+async def lexical_diversity(text):
+    return len(set(text))
+
+async def percentage(word, text):
+    return (100 * word) / text
+
 async def generate(sent_list):
     try:
         text = await text_from_list(sent_list)
         return text.generate()
+    except ValueError:
+        return "nada pra gerar"
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -75,9 +92,18 @@ async def collocations(sent_list):
 async def concordance(sent_list, word):
     try:
         text = await text_from_list(sent_list)
-        logger.debug(str(text))
         concordances = text.concordance_list(word)
         return concordances
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def concordance_1(sent_list, word):
+    try:
+        text = await text_from_list(sent_list)
+        with redirect_stdout(io.StringIO()) as f:
+            text.concordance_list(word)
+        return f.getvalue()
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -85,8 +111,21 @@ async def concordance(sent_list, word):
 async def count(sent_list, word):
     try:
         text = await text_from_list(sent_list)
-        logger.debug(str(text))
         return text.count(word)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def count_1(sent_list, word):
+    try:
+        text = await text_from_list(sent_list)
+        count = text.count(word)
+        lexical_diversity = len(set(text))
+        percentage = 100 * count / lexical_diversity
+        return {
+            'count': count,
+            'percentage': percentage,
+        }
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -99,10 +138,30 @@ async def similar(sent_list, word):
         logger.warning(repr(exception))
         raise
 
+async def similar_1(sent_list, word):
+    try:
+        text = await text_from_list(sent_list)
+        with redirect_stdout(io.StringIO()) as f:
+            text.similar(word)
+        return f.getvalue()
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
 async def common_contexts(sent_list, words):
     try:
         text = await text_from_list(sent_list)
         return text.common_contexts(words)
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def common_contexts_1(sent_list, words):
+    try:
+        text = await text_from_list(sent_list)
+        with redirect_stdout(io.StringIO()) as f:
+            text.common_contexts(words)
+        return f.getvalue()
     except Exception as exception:
         logger.warning(repr(exception))
         raise

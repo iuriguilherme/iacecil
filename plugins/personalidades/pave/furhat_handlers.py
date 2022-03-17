@@ -51,21 +51,11 @@ async def furhat_sevira(config, message):
         ]),
     )
 
-async def furhat_quanto(config, message):
-    return random_texts.respostas_quanto()
-
 async def furhat_bebida(config, message):
     return random_texts.respostas_bebida()
 
 async def furhat_versiculo(config, message):
     return random_texts.versiculos_md()
-
-async def furhat_piada(config, message):
-    return random_texts.respostas_piadas()
-
-async def furhat_rima_ao(config, message):
-    if len(message.split(' ')[-1]) > 3:
-        return random_texts.rimas_ao()
 
 async def furhat_adjetivo(config, message):
     for adjetivo in random_texts.adjetivos():
@@ -75,17 +65,12 @@ async def furhat_adjetivo(config, message):
                     random_texts.respostas_adjetivos()
                 )
 
-async def furhat_ignorante(config, message):
-    return random_texts.respostas_ignorante('Iuri')
-
 async def furhat_tchau(config, message):
     return random_texts.respostas_bye('Iuri')
 
 async def furhat_startswith_iterations():
     return [
         Iteration(text = 'repete', callback = furhat_papagaio),
-        Iteration(text = 'vai', callback = furhat_ignorante),
-        Iteration(text = 'quanto custa', callback = furhat_quanto),
     ] + [
         Iteration(
             text = subtext,
@@ -139,7 +124,6 @@ async def furhat_endswith_iterations():
 async def furhat_contains_iterations():
     return [
         Iteration(text = 'tchau', callback = furhat_tchau),
-        Iteration(text = 'piada', callback = furhat_piada),
         Iteration(text = 'bíblia', callback = furhat_versiculo),
     ] + [
         Iteration(

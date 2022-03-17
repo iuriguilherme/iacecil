@@ -23,37 +23,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# ~ import asyncio, glob, os, random, uuid
-# ~ from urllib3.exceptions import MaxRetryError
-# ~ from iacecil.controllers.furhat_bot.remote_api import (
-    # ~ get_furhat,
-    # ~ get_voices,
-    # ~ set_face,
-    # ~ set_led,
-    # ~ set_voice,
-    # ~ do_attend_location,
-    # ~ do_attend_user,
-    # ~ do_listen,
-    # ~ do_say_text,
-    # ~ do_say_url,
-    # ~ block_do_listen,
-    # ~ block_do_say_text,
-    # ~ block_do_say_url,
-# ~ )
-# ~ from iacecil.models.furhat_models import Status
-# ~ from plugins.persistence.zodb_orm import (
-    # ~ get_messages_texts_list,
-    # ~ get_furhat_texts_messages,
-    # ~ set_furhat_text,
-# ~ )
-# ~ from plugins.natural import (
-    # ~ generate,
-    # ~ concordance,
-    # ~ collocations,
-    # ~ common_contexts,
-    # ~ count,
-    # ~ similar,
-# ~ )
 from iacecil import actual_name
 from plugins.furhat_experiments.papagaio import papagaio
 from plugins.furhat_experiments.personas import personas
@@ -68,8 +37,10 @@ except Exception as exception:
 .\n{}""".format(actual_name, str(exception)))
     raise
 
+## This one just repeats everything that's being said
 async def run_papagaio(bot, skip_intro):
     await papagaio(bots_config[bot], skip_intro = skip_intro)
 
+## This one process messages using iacecil's personalities
 async def run_personas(bots, *args, **kwargs):
     await personas(bots, furhat_config, bots_config, *args, **kwargs)

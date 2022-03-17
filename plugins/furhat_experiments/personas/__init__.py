@@ -37,7 +37,6 @@ from iacecil.controllers.furhat_bot.remote_api import (
     do_listen,
     do_say_text,
     do_say_url,
-    do_shutup,
     # ~ block_do_listen,
     block_do_say_text,
     block_do_say_url,
@@ -57,28 +56,17 @@ from plugins.persistence.zodb_orm import (
     # ~ similar,
 # ~ )
 from plugins.furhat_experiments.controllers.furhat_controllers import (
+    blue_speak,
     change_voice,
+    led_blank,
     led_blue,
     led_green,
     led_red,
     led_white,
-    led_blank,
-    blue_speak,
+    shutup,
 )
 from plugins.furhat_experiments.controllers.natural_controllers import(
-    nlp_generate,
-    nlp_generate_session,
-    nlp_generate_aiogram,
-    nlp_collocations,
-    nlp_collocations_session,
-    nlp_concordance,
-    nlp_concordance_session,
-    nlp_similar,
-    nlp_similar_session,
-    nlp_count,
-    nlp_count_session,
-    nlp_common_context,
-    nlp_common_context_session,
+    natural_handler,
 )
 from plugins.furhat_experiments.controllers.zodb_controllers import(
     zodb_get_session,
@@ -105,6 +93,7 @@ async def personas(
     add_endswith = None,
 ):
     try:
+        order = 'por favor'
         furhat_id = furhat_config['bot']
         address = furhat_config['address']
         language = furhat_config['language']
@@ -139,13 +128,13 @@ rsonalidades""")
                 logger.info(str(text))
                 if 'cala boca' in text.message.lower() or 'cala a boca'\
                     in text.message.lower():
-                    await do_shutup(furhat)
+                    await shutup(furhat)
                 elif text.message.lower() in [
                     'chega',
                     'listo',
                     'enough',
                 ]:
-                    await do_shutup(furhat)
+                    await shutup(furhat)
                     await led_blue(furhat)
                     language = 'pt-BR'
                     await change_voice(furhat, voices, language)
@@ -157,72 +146,10 @@ rsonalidades""")
                     await asyncio.sleep(1)
                     await led_blank(furhat)
                     break
-                elif text.message.lower().endswith('por favor'):
-                    message = u"não entendi."
-                    if text.message == 'geração sessão por favor':
-                        message = await nlp_generate_session(
-                            furhat_id,
-                            session_id,
-                        )
-                    elif text.message.lower() == 'geração por favor':
-                        message = await nlp_generate(furhat_id)
-                    elif text.message.lower() == \
-                        'colocação sessão por favor':
-                        message = await nlp_collocations_session(
-                            furhat_id,
-                            session_id,
-                        )
-                    elif text.message.lower() == 'colocação por favor':
-                        message = await nlp_collocations(furhat_id)
-                    elif text.message.lower().startswith(
-                        'contar sessão'
-                    ):
-                        word = ' '.join(text.message.split(' ')[2:-2])
-                        message = await nlp_count_session(
-                            furhat_id,
-                            session_id,
-                            word,
-                        )
-                    elif text.message.lower().startswith('contar'):
-                        word = ' '.join(text.message.split(' ')[1:-2])
-                        message = await nlp_count(furhat_id, word)
-                    elif text.message.lower().startswith(
-                        'similar sessão'
-                    ):
-                        word = ' '.join(text.message.split(' ')[2:-2])
-                        message = await nlp_similar_session(furhat_id,
-                            word)
-                    elif text.message.lower().startswith('similar'):
-                        word = ' '.join(text.message.split(' ')[1:-2])
-                        message = await nlp_similar(furhat_id, word)
-                    elif text.message.lower().startswith(
-                        'concordância sessão'
-                    ):
-                        word = ' '.join(text.message.split(' ')[2:-2])
-                        message = await nlp_concordance_session(
-                            furhat_id,
-                            word,
-                        )
-                    elif text.message.lower().startswith(
-                        'concordância'
-                    ):
-                        word = ' '.join(text.message.split(' ')[1:-2])
-                        message = await nlp_concordance(furhat_id, word)
-                    elif text.message.lower().startswith(
-                        'contexto sessão'
-                    ):
-                        words = text.message.split(' ')[2:-2]
-                        message = await nlp_common_context_session(
-                            furhat_id,
-                            words,
-                        )
-                    elif text.message.lower().startswith(
-                        'contexto'
-                    ):
-                        words = text.message.split(' ')[1:-2]
-                        message = await nlp_common_context(furhat_id,
-                            words)
-                    await blue_speak(furhat, message)
+                elif text.message.lower().endswith(order):
+                    reply = await natural_handler(furhat, text.message,
+                        order, furhat_id, session_id)
+                    await blue_speak(furhat, reply)
                 elif text.message.lower() in [
                     'português',
                     'portugués',
