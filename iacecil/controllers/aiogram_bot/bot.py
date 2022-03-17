@@ -165,6 +165,7 @@ ge')""",
                 'not_found': "BadRequest('Replied message not found')",
                 'deactivated': """UserDeactivated('Forbidden: user is d\
 eactivated')""",
+                'empty': "MessageTextIsEmpty('Message text is empty')",
             }
             reason = u"I don't know what just happened"
             if repr(exception) == descriptions['rights']:
@@ -183,6 +184,8 @@ eactivated')""",
                 reason = u"Probably user no longer exists"
             elif repr(exception) == descriptions['not_found']:
                 reason = u"Probably message has been erased already"
+            elif repr(exception) == descriptions['empty']:
+                reason = u"Trying to send empty message"
             elif repr(exception) == descriptions['too_long']:
                 reason = u"Message is too long"
                 limit = 2048 # Telegram limit is 4096
@@ -212,22 +215,27 @@ eactivated')""",
                 self.command['text'] = u"empty"
                 return self.command
             if reason is not None:
-                try:
-                    await error_callback(
-                        reason,
-                        self.command,
-                        exception,
-                        [function_name, 'TelegramAPIError',
-                            'exception'],
-                    )
-                except Exception as e1:
-                    try:
-                        await exception_callback(
-                            e1,
-                            [function_name, 'TelegramAPIError'],
-                        )
-                    except Exception as e2:
-                        logger.critical(repr(e2))
+                logger.debug(u"{}:\n{}\n".format(reason, str(
+                    self.command)))
+                # ~ try:
+                    # ~ await error_callback(
+                        # ~ reason,
+                        # ~ self.command,
+                        # ~ exception,
+                        # ~ [function_name, 'TelegramAPIError',
+                            # ~ 'exception'],
+                    # ~ )
+                # ~ except Exception as e1:
+                    # ~ try:
+                        # ~ await exception_callback(
+                            # ~ e1,
+                            # ~ [function_name, 'TelegramAPIError'],
+                        # ~ )
+                    # ~ except Exception as e2:
+                        # ~ logger.critical(repr(e2))
+            else:
+                logger.debug(u"No reason for:\n{}\n".format(str(
+                    self.command)))
         except Exception as exception:
             try:
                 await exception_callback(

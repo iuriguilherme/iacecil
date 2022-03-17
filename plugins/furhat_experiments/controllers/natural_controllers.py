@@ -65,15 +65,21 @@ from plugins.furhat_experiments.controllers.zodb_controllers import (
 
 async def nlp_generate(furhat_id):
     all_messages = await zodb_get_sessions(furhat_id)
-    return await generate(all_messages)
+    generated = await generate(all_messages)
+    return ' '.join([word for word in generated if word.lower() != \
+        "none"])
 
 async def nlp_generate_session(furhat_id, session_id):
     messages = await zodb_get_session(furhat_id, session_id)
-    return await generate(messages)
+    generated = await generate(messages)
+    return ' '.join([word for word in generated if word.lower() != \
+        "none"])
 
 async def nlp_generate_aiogram():
     all_messages = await zodb_get_aiogram()
-    return await generate(all_messages)
+    generated = await generate(all_messages)
+    return ' '.join([word for word in generated if word.lower() != \
+        "none"])
 
 async def nlp_collocations(furhat_id):
     all_messages = await zodb_get_sessions(furhat_id)
@@ -142,13 +148,13 @@ async def natural_handler(furhat, message, order, furhat_id,
     reply = u"não entendi."
     if message.lower() == 'geração sessão ' + order:
         await ack(furhat)
-        reply = await nlp_generate_session(
-            furhat_id,
-            session_id,
-        )
+        reply = await nlp_generate_session(furhat_id, session_id)
     elif message.lower() == 'geração ' + order:
         await ack(furhat)
         reply = await nlp_generate(furhat_id)
+    elif message.lower() == 'geração total ' + order:
+        await ack(furhat)
+        reply = await nlp_generate_aiogram(furhat_id)
     # ~ elif message.lower() == 'colocação sessão ' + order:
         # ~ await ack(furhat)
         # ~ reply = await nlp_collocations_session(
@@ -161,22 +167,15 @@ async def natural_handler(furhat, message, order, furhat_id,
     elif message.lower().startswith('contar sessão'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
-        reply = await nlp_count_session(
-            furhat_id,
-            session_id,
-            word,
-        )
+        reply = await nlp_count_session(furhat_id, session_id, word)
     elif message.lower().startswith('contar'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
         reply = await nlp_count(furhat_id, word)
-    elif message.lower().startswith(
-        'similar sessão'
-    ):
+    elif message.lower().startswith('similar sessão'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
-        reply = await nlp_similar_session(furhat_id,
-            word)
+        reply = await nlp_similar_session(furhat_id, word)
     elif message.lower().startswith('similar'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
@@ -184,10 +183,7 @@ async def natural_handler(furhat, message, order, furhat_id,
     elif message.lower().startswith('concordância sessão'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[2:-len(order.split(' '))])
-        reply = await nlp_concordance_session(
-            furhat_id,
-            word,
-        )
+        reply = await nlp_concordance_session(furhat_id, word)
     elif message.lower().startswith('concordância'):
         await ack(furhat)
         word = ' '.join(message.split(' ')[1:-len(order.split(' '))])
@@ -195,15 +191,11 @@ async def natural_handler(furhat, message, order, furhat_id,
     elif message.lower().startswith('contexto sessão'):
         await ack(furhat)
         words = message.split(' ')[2:-len(order.split(' '))]
-        reply = await nlp_common_context_session(
-            furhat_id,
-            words,
-        )
+        reply = await nlp_common_context_session(furhat_id, words)
     elif message.lower().startswith('contexto'):
         await ack(furhat)
         words = message.split(' ')[1:-len(order.split(' '))]
-        reply = await nlp_common_context(furhat_id,
-            words)
+        reply = await nlp_common_context(furhat_id, words)
     elif message.lower().startswith('escolhe'):
         words = message.split(' ')[1:-len(order.split(' '))]
         reply = random.choice(words)

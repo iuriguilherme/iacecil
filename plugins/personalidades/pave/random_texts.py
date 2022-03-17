@@ -30,7 +30,7 @@ from aiogram.utils.markdown import escape_md
 
 def adjetivos():
     return set([
-        u"gente",
+        # ~ u"gente",
     ])
 
 def respostas_adjetivos():
