@@ -128,7 +128,22 @@ was fixed.
                 </div> <!-- container -->
                 </td>
                 </tr>
-            {% elif subitem[0] in ['forward_from'] %}
+            {% elif subitem[0] in [
+                'animation',
+                'document',
+                'forward_from',
+                'forward_from_chat',
+                'iacecil',
+                'left_chat_member',
+                'left_chat_participant',
+                'new_chat_member',
+                'new_chat_participant',
+                'reply_markup',
+                'sender_chat',
+                'sticker',
+                'via_bot',
+                'voice',
+            ] %}
                 <tr>
                 <td>
                 <div class="container">
@@ -140,10 +155,68 @@ was fixed.
                 <table class="table table-striped">
                 <tbody>
                 {% for subsubitem in subitem[1].items() %}
-                    <tr>
-                        <td>{{ subsubitem[0] }}</td>
-                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
-                    </tr>
+                    {% if subsubitem[0] in ['inline_keyboard'] %}
+                        <tr>
+                        <td>
+                        <div class="container">
+                        <div class="row">
+                        <div class="col">
+                        <div class="card bg-danger text-dark mb-3 shadow-sm">
+                        <div class="card-header">{{ subsubitem[0] }}</div>
+                        <div class="card-body">
+                        <table class="table table-striped">
+                        <tbody>
+                        {% for subsubsubitem in subsubitem[1] %}
+                            {% for subsubsubsubitem in subsubsubitem %}
+                                {% for subsubsubsubsubitem in subsubsubsubitem.items() %}
+                                    <tr>
+                                        <td>{{ subsubsubsubsubitem[0] }}</td>
+                                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubsubsubsubitem[1] }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endfor %}
+                        </tbody>
+                        </table>
+                        </div> <!-- card-body -->
+                        </div> <!-- card -->
+                        </div> <!-- col -->
+                        </div> <!-- row -->
+                        </div> <!-- container -->
+                        </td>
+                        </tr>
+                    {% elif subsubitem[0] in ['thumb'] %}
+                        <tr>
+                        <td>
+                        <div class="container">
+                        <div class="row">
+                        <div class="col">
+                        <div class="card bg-danger text-dark mb-3 shadow-sm">
+                        <div class="card-header">{{ subsubitem[0] }}</div>
+                        <div class="card-body">
+                        <table class="table table-striped">
+                        <tbody>
+                        {% for subsubsubitem in subsubitem[1].items() %}
+                            <tr>
+                                <td>{{ subsubsubitem[0] }}</td>
+                                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubsubitem[1] }}</span></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        </table>
+                        </div> <!-- card-body -->
+                        </div> <!-- card -->
+                        </div> <!-- col -->
+                        </div> <!-- row -->
+                        </div> <!-- container -->
+                        </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td>{{ subsubitem[0] }}</td>
+                            <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
+                        </tr>
+                    {% endif %}
                 {% endfor %}
                 </tbody>
                 </table>
@@ -204,6 +277,8 @@ was fixed.
         </td>
         </tr>
     {% elif item[0] in [
+        'animation',
+        'document',
         'forward_from',
         'forward_from_chat',
         'iacecil',
@@ -213,6 +288,7 @@ was fixed.
         'new_chat_participant',
         'reply_markup',
         'sender_chat',
+        'sticker',
         'via_bot',
         'voice',
     ] %}
@@ -268,7 +344,7 @@ was fixed.
                 <div class="card-body">
                 <table class="table table-striped">
                 <tbody>
-                {% for subsubitem in subitem[1] %}
+                {% for subsubitem in subitem[1].items() %}
                     <tr>
                         <td>{{ subsubitem[0] }}</td>
                         <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
