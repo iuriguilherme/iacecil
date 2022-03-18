@@ -76,8 +76,8 @@ class IACecilBot(Bot):
             )
         except exceptions.BotKicked as exception:
             if kwargs['chat_id'] in [
-                self.users['special']['debug'],
-                self.users['special']['info']
+                self.config['telegram']['users']['special']['debug'],
+                self.config['telegram']['users']['special']['info']
             ]:
                 sys.exit(u"""\n***TERMINATED***\nBot was kicked from th\
 e logger groups! Fix this before continuing! Either change the ids fro\
