@@ -176,6 +176,8 @@ class Config(BaseSettings):
                     'garimpo': -1001233916997,
                     ## Telegram's way to anonymize channel owner
                     'groupanonymousbot': 1087968824,
+                    ## When user sends message as a channel
+                    'Channel_Bot': 136817688,
                 }, # special
             }, # users
         }, # telegram
