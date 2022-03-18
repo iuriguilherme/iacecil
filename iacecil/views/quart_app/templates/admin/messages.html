@@ -257,11 +257,37 @@ was fixed.
                 </div> <!-- container -->
                 </td>
                 </tr>
+            {% elif subitem[0] in ['thumb'] %}
+                <tr>
+                <td>
+                <div class="container">
+                <div class="row">
+                <div class="col">
+                <div class="card bg-success text-dark mb-3 shadow-sm">
+                <div class="card-header">{{ subitem[0] }}</div>
+                <div class="card-body">
+                <table class="table table-striped">
+                <tbody>
+                {% for subsubitem in subitem[1] %}
+                    <tr>
+                        <td>{{ subsubitem[0] }}</td>
+                        <td><span class="badge bg-dark text-light text-wrap text-break">{{ subsubitem[1] }}</span></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div> <!-- card-body -->
+                </div> <!-- card -->
+                </div> <!-- col -->
+                </div> <!-- row -->
+                </div> <!-- container -->
+                </td>
+                </tr>
             {% else %}
-            <tr>
-                <td>{{ subitem[0] }}</td>
-                <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
-            </tr>
+                <tr>
+                    <td>{{ subitem[0] }}</td>
+                    <td><span class="badge bg-dark text-light text-wrap text-break">{{ subitem[1] }}</span></td>
+                </tr>
             {% endif %}
         {% endfor %}
         </tbody>
