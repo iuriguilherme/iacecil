@@ -10,10 +10,12 @@ aiodns = "*"
 aiogram = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 #Babel = "*"
+boto3 = "*"
 brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #cchardet = "*"
 #dataset = "*"
 #fastapi = {extras = ["all"], version = "*"}
+ffmpeg-python = "*"
 #flair = "*"
 #flask = "*"
 #flask-sqlalchemy = "*"

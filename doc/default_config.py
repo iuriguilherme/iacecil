@@ -228,6 +228,7 @@ class Config(BaseSettings):
                 'amazon': {
                     'secret': None,
                     'key': None,
+                    'engine': 'neural',
                 }, # amazon
                 # https://www.acapela-group.com/solutions/acapela-cloud/
                 'acapela': {}, # acapela

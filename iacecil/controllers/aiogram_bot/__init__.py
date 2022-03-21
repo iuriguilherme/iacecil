@@ -51,6 +51,7 @@ from plugins import (
     qr as plugin_qr,
     # ~ totalvoice as plugin_totalvoice
     tropixel as plugin_tropixel,
+    tts as plugin_tts,
     welcome as plugin_welcome,
     ytdl as plugin_ytdl,
 )
@@ -140,6 +141,7 @@ async def add_handlers(dispatcher: Dispatcher):
     await plugin_matematica.add_handlers(dispatcher)
     await plugin_qr.add_handlers(dispatcher)
     await plugin_feedback.add_handlers(dispatcher)
+    await plugin_tts.add_handlers(dispatcher)
     await plugin_ytdl.add_handlers(dispatcher)
     await plugin_default.add_handlers(dispatcher)
     if dispatcher.bot.config['info'].get('personalidade', None) in [

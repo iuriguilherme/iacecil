@@ -23,7 +23,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import ffmpeg, glob
+import ffmpeg, glob, os
 
 ## Converts audio files to telegram sendVoice format
 async def telegram_voice(input_file):
@@ -57,6 +57,9 @@ async def telegram_voice(input_file):
         logger.warning(u"probably no ffmpeg in the system: {}".format(
             repr(exception)))
         return None
+    finally:
+        if input_file is not None:
+            os.remove(input_file)
 
 async def storify(input_file, h = '00', m = '00', s = '15', **kwargs):
     try:
@@ -94,3 +97,6 @@ async def storify(input_file, h = '00', m = '00', s = '15', **kwargs):
     except Exception as exception:
         logger.debug(repr(exception))
         raise
+    finally:
+        if input_file is not None:
+            os.remove(input_file)

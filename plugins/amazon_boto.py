@@ -51,7 +51,8 @@ async def get_audio(
     LanguageCode = 'pt-BR',
     VoiceId = 'Camila',
     OutputFormat = 'ogg_vorbis',
-    Engine = 'neural',
+    Engine = config.furhat['synthesizer']['amazon']['engine'],
+    **kwargs,
 ):
     output = None
     try:

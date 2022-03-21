@@ -275,6 +275,18 @@ o {}""".format(str(canonical)))
                 logger.warning(u"Finishing with error {}...\
                 ".format(iacecil.actual_name))
                 raise
+        elif mode == 'polly':
+            try:
+                logger.info(u"Starting {}".format(iacecil.actual_name))
+                from plugins import amazon_boto
+                asyncio.run(amazon_boto.teste())
+                logger.info(u"Finishing {}".format(iacecil.actual_name))
+            except Exception as exception:
+                logger.critical(repr(exception))
+                logger.warning(u"Finishing with error {}...".format(
+                    iacecil.actual_name)
+                )
+                raise
         else:
             logger.info(u"""Wrong operation mode. RTFM will you please.\
  Bye.""")

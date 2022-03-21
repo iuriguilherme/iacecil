@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.14.3'
+__version__ = '0.1.15.1'
 name = 'iacecil'
 version = __version__
 commit = 0

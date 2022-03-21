@@ -273,9 +273,7 @@ async def get_aiogram_messages(
     offset: int = 0,
     limit: int = 0,
 ):
-    logger.debug('1')
     if not await assertIsNotNone([bot_id, chat_id]):
-        logger.debug('2')
         return (0, [{}])
     try:
         logger.debug('3')
@@ -285,10 +283,8 @@ async def get_aiogram_messages(
             chat_id,
         ))
         if not db:
-            logger.debug('4')
             return (0, [{}])
         try:
-            logger.debug('5')
             connection = db.open()
             root = connection.root
             pms = None
@@ -297,9 +293,6 @@ async def get_aiogram_messages(
             except AttributeError:
                 root.messages = BTrees.IOBTree.IOBTree()
                 pms = root.messages
-            logger.debug('6')
-            # ~ logger.debug(str([{k:v for (k,v) in pm.items()} for pm in \
-                # ~ pms.values()]))
             return (len(pms), [{k:v for (k,v) in pm.items()} for pm in \
                 pms.values()][::-1][offset:limit])
         except Exception as e1:
@@ -310,7 +303,6 @@ async def get_aiogram_messages(
     except Exception as exception:
         logger.warning(repr(exception))
         raise
-    logger.debug('7')
     return (0, [{}])
 
 async def get_aiogram_messages_texts(

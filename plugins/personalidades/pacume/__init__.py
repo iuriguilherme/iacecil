@@ -33,13 +33,16 @@ from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
+    error_callback,
 )
+from iacecil.controllers.ffmpeg_wrapper import telegram_voice
 from plugins.personalidades import pave
 from plugins.personalidades.pacume.furhat_handlers import (
     furhat_contains_iterations,
     furhat_endswith_iterations,
     furhat_startswith_iterations,
 )
+from plugins.amazon_boto import get_audio
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
@@ -144,7 +147,8 @@ async def add_handlers(dispatcher):
         text = await welcome(message)
         if str(message['new_chat_member']['first_name']).lower() in \
             [unwant.lower() for unwant in \
-            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
+            dispatcher.bot.config['telegram']['users'].get('unwanted',
+                ['SPAM'])]:
             text = await portaria()
             command_type = 'portaria'
         command = await message.reply(text)
@@ -158,11 +162,13 @@ async def add_handlers(dispatcher):
         content_types = types.ContentTypes.LEFT_CHAT_MEMBER,
     )
     async def bye_callback(message: types.Message):
-        await message_callback(message, ['bye', dispatcher.bot.config['info'].get(
+        await message_callback(message, ['bye',
+            dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type])
         text = await bye(message)
         command = await message.reply(text)
-        await command_callback(command, ['bye', dispatcher.bot.config['info'].get(
+        await command_callback(command, ['bye',
+            dispatcher.bot.config['info'].get(
             'personalidade', 'pacume'), message.chat.type])
 
     ## Piadas sem graça
@@ -248,6 +254,46 @@ async def add_handlers(dispatcher):
         command = await message.reply(random_texts.respostas_quanto())
         await command_callback(command, ['resposta', 'quanto',
             message.chat.type])
+
+    ## Não deixa de graça
+    @dispatcher.message_handler(
+        filters.Regexp(r'\b({})\b'.format('|'.join(
+        random_texts.adjetivos()))),
+        is_reply_to_id = dispatcher.bot.id,
+    )
+    async def resposta_adjetivo_callback(message):
+        await message_callback(message, ['resposta', 'adjetivo',
+            message.chat.type],
+        )
+        command = None
+        audio_text = None
+        opus_file = None
+        try:
+            for adjetivo in random_texts.adjetivos():
+                if adjetivo.lower() == message.text[message.text.lower(
+                    ).find(adjetivo.lower()):][:len(adjetivo.lower())]:
+                    audio_text = adjetivo.lower() + \
+                        ' é tu. E tu é um {}.'.format(
+                        random_texts.respostas_adjetivos().lower()
+                    )
+            if audio_text is not None:
+                vorbis_file = await get_audio(audio_text)
+                opus_file = await telegram_voice(vorbis_file)
+                if opus_file is not None:
+                    with open(opus_file, 'rb') as audio:
+                        command = await message.reply_voice(audio)
+                    await command_callback(command, ['resposta',
+                        'adjetivo', message.chat.type])
+        except Exception as exception:
+            await error_callback(
+                u"Problema tentando mandar audio",
+                message,
+                exception,
+                ['error', 'reposta', 'adjetivo', message.chat.type],
+            )
+        finally:
+            if opus_file is not None:
+                os.remove(opus_file)
 
     ## Responde mensagens que são respostas a mensagens deste bot
     ## Reponde com patada

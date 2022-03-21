@@ -131,7 +131,7 @@ def quart_startup(config, dispatchers):
                     text = u"Mãe tá #off",
                     disable_notification = True,
                 )
-                dispatcher.storage.close()
+                await dispatcher.storage.close()
                 await dispatcher.storage.wait_closed()
             except Exception as exception:
                 logger.critical(u"""logs not configured properly: {}\
