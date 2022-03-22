@@ -38,7 +38,6 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from iacecil.controllers.ffmpeg_wrapper import storify
 from plugins.persistence.zodb_orm import (
     get_aiogram_messages,
     get_aiogram_messages_texts,
@@ -74,47 +73,6 @@ def cmd_tz(args):
         'multi': False,
         'parse_mode': None,
     }
-
-async def storify_callback(message: types.Message):
-    dispatcher = Dispatcher.get_current()
-    videos = []
-    try:
-        file_id = message.video.file_id
-        h, m, s = ('00', '00', '15')
-        if message.get_args() not in [None, '', ' ']:
-            h, m, s = str(timedelta(seconds=int(message.get_args()))
-                ).split(':')
-        elif message.caption and message.caption not in [None, '', ' ']:
-            h, m, s = str(timedelta(seconds=int(message.caption))
-                ).split(':')
-        await message.reply(u"""Peraí que eu vou cortar o vídeo em peda\
-ços de {} e já te mando...""".format(':'.join([h, m, s])))
-        file_object = await dispatcher.bot.get_file(file_id)
-        file_path = file_object.file_path
-        input_file = os.path.join(gettempdir(), "{}.mp4".format(
-            uuid.uuid4()))
-        await dispatcher.bot.download_file(file_path, input_file)
-        videos = await storify(input_file, h, m, s)
-        for index, video in enumerate(sorted(videos)):
-            with open(video, 'rb') as open_video:
-                await message.reply_video(open_video,
-                    caption = u"({}/{})".format(str(index+1),
-                    str(len(videos))))
-    except Exception as exception:
-        await message.reply(u"""Não consegui cortar o vídeo. Já avisei \
-o pessoal do desenvolvimento e o problema é: {}""".format(
-            repr(exception)))
-        await error_callback(
-            u"Problema tentando cortar vídeo",
-            message,
-            exception,
-            ['storify', 'admin', message.chat.type],
-        )
-    finally:
-        if input_file is not None:
-            for video_file in glob.glob('.'.join([input_file.split('.')[
-                0], '*'])):
-                os.remove(video_file)
 
 ## Aiogram
 async def add_handlers(dispatcher):
@@ -607,22 +565,3 @@ para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             await command_callback(command, ['admin', 'nltk',
                 'similar', message.chat.type]
             )
-    
-    ## TODO this is being tested, move to appropriate plugin when done
-    ## Break videos in 15 seconds chunks
-    @dispatcher.message_handler(
-        filters.ChatTypeFilter('private'),
-        content_types = types.ContentTypes.VIDEO,
-    )
-    async def admin_storify_callback(message: types.Message):
-        await message_callback(message, ['storify', message.chat.type])
-        await storify_callback(message)
-    
-    @dispatcher.message_handler(
-        is_reply = True,
-        commands = ['storify', 'cut', 'instagram', 'ig'],
-    )
-    async def reply_storify_callback(message: types.Message):
-        await message_callback(message, ['storify', message.chat.type])
-        if message.reply_to_message:
-            await storify_callback(message.reply_to_message)

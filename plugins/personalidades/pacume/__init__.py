@@ -103,10 +103,6 @@ Para enviar reclamações sobre comportamento indevido, abra processo no \
 Ministério Público Federal, chama a tua mãe, se fode."""
 
 async def add_handlers(dispatcher):
-    try:
-        await add_instance_handlers(dispatcher)
-    except Exception as e:
-        logger.warning("Não achei o arquivo: {}".format(e))
     # ~ ## Saúda com trollada
     # ~ @dispatcher.message_handler(
         # ~ filters.IDFilter(
@@ -318,3 +314,7 @@ async def add_handlers(dispatcher):
         await command_callback(command, ['resposta' 'ignorante', 
             message.chat.type],
         )
+    try:
+        await add_instance_handlers(dispatcher)
+    except Exception as e:
+        logger.warning("Não achei o arquivo: {}".format(e))

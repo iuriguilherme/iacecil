@@ -49,7 +49,8 @@ from plugins import (
     personalidades as plugin_personalidades,
     portaria as plugin_portaria,
     qr as plugin_qr,
-    # ~ totalvoice as plugin_totalvoice
+    storify as plugin_storify,
+    # ~ totalvoice as plugin_totalvoice,
     tropixel as plugin_tropixel,
     tts as plugin_tts,
     welcome as plugin_welcome,
@@ -103,6 +104,7 @@ async def add_handlers(dispatcher: Dispatcher):
     ## Personalidades plugin, loaded first to overwrite methods
     ## (aiogram behaviour)
     # ~ await plugin_portaria.add_handlers(dispatcher)
+    await plugin_storify.add_handlers(dispatcher)
     await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
     if dispatcher.bot.config['info'].get('personalidade', None) in [
