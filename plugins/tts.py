@@ -60,12 +60,7 @@ async def add_handlers(dispatcher):
             else:
                 audio_text = message.get_args()
             if audio_text is not None and audio_text != '':
-                vorbis_file = await get_audio(
-                    audio_text,
-                    Engine = dispatcher.bot.config['furhat'][
-                        'synthesizer']['amazon']['engine'],
-                    VoiceId = dispatcher.bot.config['furhat']['voice'],
-                )
+                vorbis_file = await get_audio(audio_text)
                 opus_file = await telegram_voice(vorbis_file)
                 if opus_file is not None:
                     with open(opus_file, 'rb') as audio:

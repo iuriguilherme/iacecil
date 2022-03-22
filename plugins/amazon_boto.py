@@ -28,6 +28,7 @@ from boto3 import Session
 from botocore.exceptions import BotoCoreError, ClientError
 from contextlib import closing
 from tempfile import gettempdir
+from aiogram import Dispatcher
 
 try:
     from instance.config import Config
@@ -55,6 +56,10 @@ async def get_audio(
     **kwargs,
 ):
     output = None
+    dispatcher = Dispatcher.get_current()
+    Engine = dispatcher.bot.config['furhat']['synthesizer']['amazon'][
+        'engine']
+    VoiceId = dispatcher.bot.config['furhat']['voice']
     try:
         speech = ((await get_session()).client('polly')
             ).synthesize_speech(
