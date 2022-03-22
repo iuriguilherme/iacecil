@@ -81,7 +81,10 @@ async def storify_callback(message: types.Message):
     try:
         file_id = message.video.file_id
         h, m, s = ('00', '00', '15')
-        if message.caption and message.caption not in [None, '', ' ']:
+        if message.get_args() not in [None, '', ' ']:
+            h, m, s = str(timedelta(seconds=int(message.get_args()))
+                ).split(':')
+        elif message.caption and message.caption not in [None, '', ' ']:
             h, m, s = str(timedelta(seconds=int(message.caption))
                 ).split(':')
         await message.reply(u"""Peraí que eu vou cortar o vídeo em peda\
