@@ -63,7 +63,7 @@ async def add_handlers(dispatcher):
                 vorbis_file = await get_audio(
                     audio_text,
                     Engine = dispatcher.bot.config['furhat'][
-                        'syntesizer']['engine'],
+                        'synthesizer']['engine'],
                     VoiceId = dispathcer.bot.config['furhat']['voice'],
                 )
                 opus_file = await telegram_voice(vorbis_file)
