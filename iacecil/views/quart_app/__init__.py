@@ -123,6 +123,7 @@ def quart_startup(config, dispatchers):
     @quart_app.after_serving
     async def quart_after_serving():
         logger.info("Shutting down Quart...")
+        # ~ loop = asyncio.get_event_loop()
         for dispatcher in dispatchers:
             try:
                 await dispatcher.bot.send_message(
@@ -137,4 +138,5 @@ def quart_startup(config, dispatchers):
                 logger.critical(u"""logs not configured properly: {}\
 """.format(exception))
                 raise
+        # ~ loop.close()
     return quart_app

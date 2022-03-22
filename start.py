@@ -287,6 +287,60 @@ o {}""".format(str(canonical)))
                     iacecil.actual_name)
                 )
                 raise
+        elif mode == 'loop':
+            try:
+                logger.info(u"Starting {}".format(iacecil.actual_name))
+                from iacecil.controllers.aiogram_bot import (
+                    aiogram_startup,
+                )
+                config = None
+                try:
+                    from instance.config import Config
+                    config = Config()
+                except Exception as e1:
+                    logger.critical(u"""{} config file not found or som\
+ehow wrong. RTFM.\n{}""".format(actual_name, str(e1)))
+                    raise
+                dispatchers = aiogram_startup(config.bots,
+                    bots.split(','))
+                loop = None
+                try:
+                    loop = asyncio.get_event_loop()
+                except Exception as e2:
+                    logger.debug(repr(e2))
+                    try:
+                        loop = asyncio.new_event_loop()
+                    except Exception as e3:
+                        logger.debug(repr(e3))
+                for dispatcher in dispatchers:
+                    loop.create_task(dispatcher.start_polling(
+                        reset_webhook = True,
+                        timeout = 20,
+                        relax = 0.1,
+                        fast = True,
+                        allowed_updates = None,
+                    ))
+                try:
+                    loop.run_forever()
+                except KeyboardInterrupt:
+                    try:
+                        for dispatcher in dispatchers:
+                            loop.call_soon(dispatcher.storage.close())
+                            loop.call_soon(
+                                dispatcher.storage.wait_closed())
+                        loop.stop()
+                        logger.info('done')
+                    except Exception as e4:
+                        logger.debug(repr(e4))
+                        raise
+                except Exception as e5:
+                    logger.debug(repr(e5))
+                logger.info(u"Finishing {}".format(iacecil.actual_name))
+            except Exception as e:
+                logger.critical(repr(e))
+                logger.warning(u"Finishing with error {}...\
+                ".format(iacecil.actual_name))
+                raise
         else:
             logger.info(u"""Wrong operation mode. RTFM will you please.\
  Bye.""")
