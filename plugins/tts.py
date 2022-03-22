@@ -64,7 +64,7 @@ async def add_handlers(dispatcher):
                     audio_text,
                     Engine = dispatcher.bot.config['furhat'][
                         'synthesizer']['amazon']['engine'],
-                    VoiceId = dispathcer.bot.config['furhat']['voice'],
+                    VoiceId = dispatcher.bot.config['furhat']['voice'],
                 )
                 opus_file = await telegram_voice(vorbis_file)
                 if opus_file is not None:
