@@ -22,7 +22,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import random
+import os, random
 from aiogram import (
     Dispatcher,
     exceptions,
