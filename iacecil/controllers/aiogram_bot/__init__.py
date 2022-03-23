@@ -53,6 +53,7 @@ from plugins import (
     # ~ totalvoice as plugin_totalvoice,
     tropixel as plugin_tropixel,
     tts as plugin_tts,
+    web3_wrapper as plugin_web3_wrapper,
     welcome as plugin_welcome,
     ytdl as plugin_ytdl,
 )
@@ -136,6 +137,7 @@ async def add_handlers(dispatcher: Dispatcher):
     ]:
         try:
             await plugin_cryptoforex.add_handlers(dispatcher)
+            await plugin_web3_wrapper.add_handlers(dispatcher)
         except KeyError:
             logger.warning(u"plugin cryptoforex não configurado")
     ## Plugins gerais

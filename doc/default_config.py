@@ -67,6 +67,19 @@ class Config(BaseSettings):
                 'host': '127.0.0.1',
                 'port': 3000,
             },
+            ## Plugin web3_wrapper
+            'web3': {
+                'binance': {
+                    'bsc_mainnet': 'https://bsc-dataseed1.binance.org:443',
+                    'bsc_testnet': 'https://data-seed-prebsc-1-s1.binance.org:8545',
+                }, # binance
+                'infura': {
+                    ## https://infura.io/register
+                    'eth_mainnet': 'https://mainnet.infura.io/v3/1234567890',
+                    'eth2_mainnet': 'https://1234567890:1234567890@eth2-beacon-mainnet.infura.io',
+                    'filecoin': 'https://1234567890:1234567890@filecoin.infura.io',
+                }, # infura
+            }, # web3
             ### Níveis de permissão (inspirados no Brave New World):
             ###
             ### Os usuários e grupos cujos ids estão na lista 

@@ -50,6 +50,7 @@ ujson = {version = "*", sys_platform = "!= 'win32'"}
 uvloop = {version = "*", sys_platform = "!= 'win32'"}
 uvicorn = "*"
 validators = "*"
+web3 = "*"
 youtube-dl = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
@@ -62,7 +63,7 @@ iacecil = 'python start.py info quart iacecil'
 quart = 'python start.py info quart iacecil 8000 127.0.0.1'
 test = 'python start.py debug quart testing'
 prod = 'python start.py debug quart production'
-dev = 'python start.py debug dev development 8000 127.0.0.1 True'
+dev = 'python start.py debug quart development 8000 127.0.0.1 True'
 stage = 'python start.py debug socket cfb,cfb2,iacecil,matebot_telegram,pacume,pave,tropixel 38000 127.0.0.1 0'
 furhat = 'python start.py debug furhat testing'
 papagaio = 'python start.py debug fpapagaio f239 True'
