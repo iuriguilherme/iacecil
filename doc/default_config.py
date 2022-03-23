@@ -206,7 +206,7 @@ class Config(BaseSettings):
             # Default Amazon Polly Language
             'language': 'pt-BR',
             # Default Amazon Polly Voice
-            'voice': 'Camila-Neural',
+            'voice': 'Camila',
             # Default FaceCore Mask
             'mask': 'adult',
             # Default FaceCore Character

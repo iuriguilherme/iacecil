@@ -57,6 +57,9 @@ async def telegram_voice(input_file):
         logger.warning(u"probably no ffmpeg in the system: {}".format(
             repr(exception)))
         return None
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
     finally:
         if input_file is not None:
             os.remove(input_file)
@@ -95,7 +98,7 @@ async def storify(input_file, h = '00', m = '00', s = '15', **kwargs):
             repr(exception)))
         return None
     except Exception as exception:
-        logger.debug(repr(exception))
+        logger.warning(repr(exception))
         raise
     finally:
         if input_file is not None:
