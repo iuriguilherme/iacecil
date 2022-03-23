@@ -47,7 +47,6 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
             w3 = await get_async_web3(dispatcher.bot.config['info'][
                 'web3']['infura']['eth_mainnet'])
             command = await message.reply(await w3.isConnected())
-            # ~ command = await message.reply(w3.isConnected())
             await command_callback(command, ['web3', 'etest',
                 message.chat.type])
         except Exception as exception:
@@ -69,7 +68,6 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
             if message.get_args() not in [None, '', ' ']:
                 block = message.get_args()
             response = await w3.eth.get_block(block)
-            # ~ response = w3.eth.get_block(block)
             command = await message.reply(str(response))
             await command_callback(command, ['web3', 'eblock',
                 message.chat.type])
@@ -92,7 +90,6 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
                     'web3']['infura']['eth_mainnet'])
                 address = message.get_args()
                 balance = await w3.eth.get_balance(address)
-                # ~ balance = w3.eth.get_balance(address)
                 command = await message.reply(u"Balance: {} ETH".format(
                     w3.fromWei(balance, 'ether')))
                 await command_callback(command, ['web3', 'ebalance',
@@ -116,7 +113,6 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
                     'web3']['infura']['eth_mainnet'])
                 txid = message.get_args()
                 tx = await w3.eth.get_transaction(txid)
-                # ~ tx = w3.eth.get_transaction(txid)
                 reply = u"Transaction not found"
                 if tx is not None:
                     reply = str(tx)
@@ -136,18 +132,11 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
     @dispatcher.message_handler(commands = ['ecreate', 'ecr', 'ec'])
     async def ecreate_callback(message):
         try:
-            # ~ w3 = await get_async_web3(dispatcher.bot.config['info'][
-                # ~ 'web3']['infura']['eth_mainnet'])
-            # ~ w3 = await get_web3(dispatcher.bot.config['info'][
-                # ~ 'web3']['infura']['eth_mainnet'])
             account = None
             if message.get_args() not in [None, '', ' ']:
-                # ~ account = await w3.eth.accounts.privateKeyToAccount(
-                    # ~ message.get_args())
                 account = Account.privateKeyToAccount(
                     message.get_args())
             else:
-                # ~ account = await w3.eth.account.create()
                 account = Account.create()
                 command = await message.reply(
                     ''.join([
