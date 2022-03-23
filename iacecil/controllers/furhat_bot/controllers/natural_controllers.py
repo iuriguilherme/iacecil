@@ -41,7 +41,7 @@ from iacecil.controllers.furhat_bot.remote_api import (
     block_do_say_url,
 )
 from iacecil.models.furhat_models import Status
-from plugins.persistence.zodb_orm import (
+from iacecil.controllers.persistence.zodb_orm import (
     get_messages_texts_list,
     get_furhat_texts_messages,
     set_furhat_text,
@@ -58,7 +58,7 @@ from plugins.natural import (
     similar,
     similar_1,
 )
-from plugins.furhat_experiments.controllers.zodb_controllers import (
+from iacecil.controllers.furhat_bot.controllers.zodb_controllers import (
     zodb_get_session,
     zodb_get_sessions,
 )

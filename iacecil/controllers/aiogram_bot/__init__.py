@@ -32,6 +32,7 @@ from aiogram import (
 
 from iacecil import name
 from iacecil.controllers.aiogram_bot.bot import IACecilBot
+from iacecil.controllers import personalidades
 
 ## Plugins
 from plugins import (
@@ -46,7 +47,6 @@ from plugins import (
     # ~ greatful as plugin_greatful,
     hashes as plugin_hashes,
     mate_matica as plugin_matematica,
-    personalidades as plugin_personalidades,
     portaria as plugin_portaria,
     qr as plugin_qr,
     storify as plugin_storify,
@@ -106,7 +106,7 @@ async def add_handlers(dispatcher: Dispatcher):
     ## (aiogram behaviour)
     # ~ await plugin_portaria.add_handlers(dispatcher)
     await plugin_storify.add_handlers(dispatcher)
-    await plugin_personalidades.add_handlers(dispatcher)
+    # ~ await plugin_personalidades.add_handlers(dispatcher)
     ## Special case plugins
     if dispatcher.bot.config['info'].get('personalidade', None) in [
         'default',

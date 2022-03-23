@@ -28,7 +28,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
 )
-from plugins.personalidades import (
+from iacecil.controllers.personalidades import (
     gerar_texto,
 )
 

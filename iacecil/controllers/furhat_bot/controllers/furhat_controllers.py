@@ -41,7 +41,7 @@ from iacecil.controllers.furhat_bot.remote_api import (
     block_do_say_url,
 )
 from iacecil.models.furhat_models import Status
-from plugins.persistence.zodb_orm import (
+from iacecil.controllers.persistence.zodb_orm import (
     get_messages_texts_list,
     get_furhat_texts_messages,
     set_furhat_text,
@@ -55,37 +55,30 @@ from plugins.natural import (
     similar,
 )
 
-async def zodb_get_session(furhat_id, session_id):
-    messages = await get_furhat_texts_messages(furhat_id, session_id)
-    # ~ logger.debug(str(messages))
-    return messages
+async def shutup(furhat):
+    return furhat.say(text = 'ta', abort = True)
 
-async def zodb_get_sessions(furhat_id):
-    all_messages = list()
-    for session in glob.glob(
-        'instance/zodb/furhats/{}/sessions/*.fs'.format(furhat_id)
-    ):
-        messages = await get_furhat_texts_messages(
-            furhat_id, session.split('/')[-1].split('.')[0]
-        )
-        if isinstance(messages, list):
-            all_messages = all_messages + messages
-        elif isinstance(messages, str):
-            all_messages.append(messages)
-    # ~ logger.debug(str(all_messages))
-    return all_messages
+async def change_voice(furhat, voices, language):
+    await set_voice(furhat, random.choice([voice.name for voice in \
+        voices if voice.language == language]))
 
-async def zodb_get_aiogram():
-    all_messages = list()
-    for bot in glob.glob('instance/zodb/bots/*'):
-        for chat in glob.glob('{}/chats/*.fs'.format(bot)):
-            messages = await get_messages_texts_list(
-                bot.split('/')[-1], chat.split('/')[-1].split('.')[0],
-                -1, 0,
-            )
-            if isinstance(messages[1], list):
-                all_messages = all_messages + messages[1]
-            elif isinstance(messages[1], str):
-                all_messages.append(messages[1])
-            logger.debug(len(all_messages))
-    return all_messages
+async def led_blue(furhat):
+    await set_led(furhat, red = 0, green = 0, blue = 255)
+
+async def led_green(furhat):
+    await set_led(furhat, red = 0, green = 255, blue = 0)
+
+async def led_red(furhat):
+    await set_led(furhat, red = 255, green = 0, blue = 0)
+
+async def led_white(furhat):
+    await set_led(furhat, red = 255, green = 255, blue = 255)
+
+async def led_blank(furhat):
+    await set_led(furhat, red = 0, green = 0, blue = 0)
+
+async def blue_speak(furhat, message):
+    await asyncio.sleep(1)
+    await led_blue(furhat)
+    await do_attend_user(furhat, 'RANDOM')
+    await do_say_text(furhat, message)

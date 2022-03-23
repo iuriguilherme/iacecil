@@ -121,7 +121,7 @@ async def add_handlers(dispatcher):
         command_callback,
         message_callback,
     )
-    from plugins.personalidades import gerar_texto
+    from iacecil.controllers.personalidades import gerar_texto
 
     ## Comando /start padrão
     @dispatcher.message_handler(

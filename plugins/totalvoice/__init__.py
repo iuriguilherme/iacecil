@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 ### Imports
 import json
 from totalvoice.cliente import Cliente
-from plugins.log import log_str
+from iacecil.controllers.log import log_str
 
 def cmd_sms(args):
     tv_config = args['config']['totalvoice']
@@ -336,3 +336,5 @@ def shiva_4(args):
 #response = cliente.did.get_chamada_recebida(chamada_id)
 #print(response)
 
+async def add_handlers(dispatcher):
+    pass

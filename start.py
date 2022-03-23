@@ -217,7 +217,7 @@ o {}""".format(str(canonical)))
         elif mode == 'fpapagaio':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from plugins.furhat_experiments import run_papagaio
+                from iacecil.controllers.furhat_bot import run_papagaio
                 asyncio.run(run_papagaio(
                     bots.split(',')[0],
                     skip_intro,
@@ -232,7 +232,7 @@ o {}""".format(str(canonical)))
         elif mode == 'fpersonas':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from plugins.furhat_experiments import run_personas
+                from iacecil.controllers.furhat_bot import run_personas
                 asyncio.run(run_personas(
                     personas.split(','),
                     skip_intro = skip_intro,
@@ -278,7 +278,7 @@ o {}""".format(str(canonical)))
         elif mode == 'polly':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from plugins import amazon_boto
+                from iacecil.controllers import amazon_boto
                 asyncio.run(amazon_boto.teste())
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:

@@ -53,7 +53,7 @@ from iacecil import (
     commit,
     version,
 )
-from plugins.persistence.zodb_orm import (
+from iacecil.controllers.persistence.zodb_orm import (
     get_aiogram_messages,
     get_messages,
     get_messages_list,

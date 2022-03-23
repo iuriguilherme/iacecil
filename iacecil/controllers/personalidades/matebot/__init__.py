@@ -24,7 +24,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 from iacecil.models import Iteration
-from plugins.personalidades.default import (
+from iacecil.controllers.personalidades.default import (
     start,
     help,
     info,
@@ -40,7 +40,7 @@ try:
     from instance.personalidades.matebot import random_texts
 except:
     logger.info(f"instance não encontrada em {__name__}")
-    from plugins.personalidades.matebot import random_texts
+    from iacecil.controllers.personalidades.matebot import random_texts
 
 async def add_handlers(dispatcher):
     await add_default_handlers(dispatcher)

@@ -37,13 +37,13 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
 )
 from iacecil.controllers.ffmpeg_wrapper import telegram_voice
-from plugins.personalidades import pave
-from plugins.personalidades.pacume.furhat_handlers import (
+from iacecil.controllers.personalidades import pave
+from iacecil.controllers.personalidades.pacume.furhat_handlers import (
     furhat_contains_iterations,
     furhat_endswith_iterations,
     furhat_startswith_iterations,
 )
-from plugins.amazon_boto import get_audio
+from iacecil.controllers.amazon_boto import get_audio
 
 async def add_handlers(dispatcher):
     ## Transforma texto em áudio

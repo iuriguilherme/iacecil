@@ -102,3 +102,6 @@ def cmd_agora(args):
         'parse_mode': None,
         'reply_to_message_id': args['message_id'],
     }
+
+async def add_handlers(dispatcher):
+    pass

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 from aiogram import types
 from quart import current_app
 from iacecil import config
-from plugins.log import (
+from iacecil.controllers.log import (
     debug_logger,
     exception_logger,
     furhat_logger,

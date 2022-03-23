@@ -28,7 +28,7 @@ from contextlib import redirect_stdout
 from nltk import (
     word_tokenize
 )
-from plugins.persistence.zodb_orm import (
+from iacecil.controllers.persistence.zodb_orm import (
     get_messages_texts_list
 )
 
@@ -173,3 +173,6 @@ async def dispersion_plot(sent_list, words):
     except Exception as exception:
         logger.warning(repr(exception))
         raise
+
+async def add_handlers(dispatcher):
+    pass

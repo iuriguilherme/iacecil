@@ -30,7 +30,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 from iacecil.controllers.aiogram_bot.filters import WhoJoinedFilter
-from plugins.personalidades import (
+from iacecil.controllers.personalidades import (
     gerar_texto,
 )
 

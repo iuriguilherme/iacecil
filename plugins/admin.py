@@ -38,7 +38,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     exception_callback,
 )
-from plugins.persistence.zodb_orm import (
+from iacecil.controllers.persistence.zodb_orm import (
     get_aiogram_messages,
     get_aiogram_messages_texts,
     get_messages,

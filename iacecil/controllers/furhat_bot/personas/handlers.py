@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from iacecil.models import Callback
-from plugins.personalidades import (
+from iacecil.controllers.personalidades import (
     get_furhat_startswith_handlers,
     get_furhat_endswith_handlers,
     get_furhat_contains_handlers,
