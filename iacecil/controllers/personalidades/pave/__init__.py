@@ -71,7 +71,7 @@ nto que nunca vai ser pra te agradar. Para enviar sugestões ou relatar \
 problemas para o pessoal que faz manutenção, use o comando /feedback po\
 r exemplo /feedback Obrigado pelo bot!"""
 
-async def portaria():
+async def portaria(message):
     return u"alá @admin, esse guampudo conseguiu voltar!"
 
 ## Pegadinha
@@ -182,7 +182,7 @@ async def add_handlers(dispatcher):
             [unwant.lower() for unwant in \
             dispatcher.bot.config['telegram']['users'].get('unwanted',
                 ['SPAM'])]:
-            text = await portaria()
+            text = await portaria(message)
             command_type = 'portaria'
             command = await message.reply(text)
         else:
@@ -226,7 +226,7 @@ async def add_handlers(dispatcher):
             [unwant.lower() for unwant in \
             dispatcher.bot.config['telegram']['users'].get('unwanted',
                 ['SPAM'])]:
-            text = await portaria()
+            text = await portaria(message)
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,

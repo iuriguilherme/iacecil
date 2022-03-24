@@ -75,7 +75,7 @@ async def welcome(message):
             pass
     return random_texts.welcome(message, count, admin)
 
-async def portaria():
+async def portaria(message):
     return u"Puta que pariu, entrou esse filho da puta aqui ó @admin"
 
 async def bye(message):
@@ -125,7 +125,7 @@ async def add_handlers(dispatcher):
         # ~ if str(message['new_chat_member']['first_name']).lower() in \
             # ~ [unwant.lower() for unwant in \
             # ~ dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            # ~ text = await portaria()
+            # ~ text = await portaria(message)
             # ~ command_type = 'portaria'
             # ~ command = await message.reply(text)
         # ~ else:
@@ -149,7 +149,7 @@ async def add_handlers(dispatcher):
             [unwant.lower() for unwant in \
             dispatcher.bot.config['telegram']['users'].get('unwanted',
                 ['SPAM'])]:
-            text = await portaria()
+            text = await portaria(message)
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
