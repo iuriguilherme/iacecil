@@ -41,17 +41,17 @@ class Config(BaseSettings):
             ## Plugin donate - doações
             'donate': {
                 'btc': "1AG2SX3n9iFQiZExiyS3M5qCuZT5GhArn",
-                'crypto': [
-                    "BCH: `1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL`",
-                    "BTC: `1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2`",
-                    "DOGE: `DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D`",
-                    "ETH: `0x083652085dc46ab2d6146fbb329db0cde48eea81`",
-                    "FLO: `F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp`",
-                    "LTC: `LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3`",
-                    "PIVX: `D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC`",
-                    "TRX: `TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e`",
-                ],
-            },
+                'crypto': {
+                    'BCH': '1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL',
+                    'BTC': '1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2',
+                    'DOGE': 'DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D',
+                    'ETH': '0x083652085dc46ab2d6146fbb329db0cde48eea81',
+                    'FLO': 'F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp',
+                    'LTC': 'LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3',
+                    'PIVX': 'D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC',
+                    'TRX': 'TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e',
+                }, # crypto
+            }, # donate
             ## Plugin tropixel - colar os links aqui no lugar de 
             ## "Não sei !"
             'tropixel': {
@@ -103,6 +103,43 @@ class Config(BaseSettings):
             ### qualquer pessoa ou grupo.
             ###
             'plugins': {
+                ## New way to handle plugins since v0.1.17:
+                ##
+                ## Override bot.config['info']['plugins']['enable'] to
+                ## including only the desired plugins and disabling
+                ## everything else.
+                ##
+                ## Override bot.config['info']['plugins']['disable'] to
+                ## exclude plugins from activation, even if they're
+                ## listed on bot.config['info']['plugins']['enable'].
+                ##
+                ## You can't force activate plugins on the 'enable'
+                ## list, have to make sure they're not present in
+                ## 'disable'.
+                ##
+                ## The old 'alpha' to 'omega' lists are still not
+                ## implemented, so they don't do nothing right now.
+                ##
+                ## The 'all' key is left in the default_config.py for
+                ## reference and may not be up to date. Check the
+                ## plugins folder.
+                ##
+                ## NOTICE: Make sure you organize the list in the order
+                ## that the plugins should be added because aiogram's
+                ## dispatcher.register_handler uses the order in which
+                ## handlers are added. First match will trigger and
+                ## ignore all the next handlers.
+                ##
+                'all': [
+                    'default', 'admin', 'archive', 'cryptoforex',
+                    'donate', 'echo', 'feedback', 'garimpo', 'greatful',
+                    'hashes', 'mate_matica', 'natural', 'portaria',
+                    'qr', 'storify', 'totalvoice', 'tropixel', 'tts',
+                    'web3_wrapper', 'welcome', 'ytdl',
+                ], # all
+                ## Plugins enabled by default
+                'enable': ['default', 'admin'],
+                'disable': [],
                 ## Lista de plugins disponíveis somente para 
                 ## bot.config['telegram']['users']['alpha']
                 ## Sugestão de uso: pessoa que criou o bot, etc.
@@ -269,6 +306,14 @@ class Config(BaseSettings):
                 ## Have to copy all sub dicts
                 defaults['info'].copy(),
                 personalidade = 'iacecil',
+                plugins = dict(
+                    defaults['info']['plugins'].copy(),
+                    enable = defaults['info']['plugins']['enable'] + [
+                        'archive', 'donate', 'hashes', 'mate_matica',
+                        'portaria', 'qr', 'welcome',
+                    ], # enable
+                    disable = ['admin', 'echo'],
+                ), # plugins
             ), # info
             telegram = dict(
                 defaults['telegram'].copy(),
@@ -296,6 +341,15 @@ class Config(BaseSettings):
                 defaults['info'].copy(),
                 ## Changing personalidade
                 personalidade = 'matebot',
+                plugins = dict(
+                    defaults['info']['plugins'].copy(),
+                    enable = defaults['info']['plugins']['enable'] + [
+                        'archive', 'donate', 'echo', 'feedback',
+                        'garimpo', 'hashes', 'mate_matica', 'natural',
+                        'portaria', 'qr', 'storify', 'tropixel', 'tts',
+                        'welcome', 'ytdl',
+                    ], # enable
+                ), # plugins
             ), # info
             telegram = dict(
                 defaults['telegram'].copy(),
@@ -312,6 +366,27 @@ class Config(BaseSettings):
                 ), # users
             ), # telegram
         ), # development
+        ## The @cryptoforexbot
+        'cryptoforexbot': dict(
+            defaults.copy(),
+            info = dict(
+                defaults['info'].copy(),
+                personalidade = 'cryptoforex',
+                plugins = dict(
+                    defaults['info']['plugins'].copy(),
+                    ## Don't copy default enabled plugins, override it
+                    enable = [
+                        'cryptoforex', 'donate', 'feedback', 'hashes',
+                        'mate_matica', 'qr', 'tts', 'web3_wrapper',
+                    ], # enable
+                    disable = ['admin', 'echo', 'portaria', 'welcome'],
+                ), # plugins
+            ), # info
+            telegram = dict(
+                defaults['telegram'].copy(),
+                token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+            ), # telegram
+        ), # cryptoforexbot
         ## Exemplo de bot de discord (usar token do discord no lugar da
         ## token que seria do telegram)
         'discord_bot': dict(
@@ -321,4 +396,25 @@ class Config(BaseSettings):
                 'token': "123456789ABCDEFghijklmno.123456.123456789ABCDEFghijklmnopqr",
             ), # discord
         ), # discord_bot
+        ## Example of furhat only bot, altering configs useful to that
+        ## Remember multiple bots can use a single furhat robot's
+        ## remote api. It'll change the face and led according to the
+        ## bot configured here.
+        ## To use multiple furhat robots, each one should use it's own
+        ## defaults['furhat']['address'].
+        'furhat_bot': dict(
+            defaults.copy(),
+            info = dict(
+                defaults['info'].copy(),
+                personalidade = 'matebot',
+            ), # info
+            furhat = dict(
+                defaults['furhat'].copy(),
+                name = 'f2'
+                character = 'Fedora',
+                voice = 'Salli',
+                language = 'en-US',
+                led = {'red': 6, 'green': 30, 'blue': 240},
+            ), # furhat
+        ), # furhat_bot
     } # bots

@@ -23,42 +23,15 @@
 import logging
 logger = logging.getLogger(__name__)
 
-### Aiogram
+from importlib import import_module
 from aiogram import (
     Dispatcher,
     filters,
     types,
 )
-
 from iacecil import name
 from iacecil.controllers.aiogram_bot.bot import IACecilBot
 from iacecil.controllers import personalidades
-
-## Plugins
-from plugins import (
-    admin as plugin_admin,
-    archive as plugin_archive,
-    cryptoforex as plugin_cryptoforex,
-    default as plugin_default,
-    donate as plugin_donate,
-    echo as plugin_echo,
-    feedback as plugin_feedback,
-    garimpo as plugin_garimpo,
-    # ~ greatful as plugin_greatful,
-    hashes as plugin_hashes,
-    mate_matica as plugin_matematica,
-    portaria as plugin_portaria,
-    qr as plugin_qr,
-    storify as plugin_storify,
-    # ~ totalvoice as plugin_totalvoice,
-    tropixel as plugin_tropixel,
-    tts as plugin_tts,
-    web3_wrapper as plugin_web3_wrapper,
-    welcome as plugin_welcome,
-    ytdl as plugin_ytdl,
-)
-
-## Generic Callbacks
 from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
     command_callback,
@@ -70,8 +43,6 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     any_update_callback,
     any_error_callback,
 )
-
-## Filters
 from iacecil.controllers.aiogram_bot.filters import (
     IsReplyToIdFilter,
     WhoJoinedFilter,
@@ -100,74 +71,73 @@ async def add_filters(dispatcher: Dispatcher):
     dispatcher.filters_factory.bind(WhoJoinedFilter)
 
 async def add_handlers(dispatcher: Dispatcher):
-    await plugin_admin.add_handlers(dispatcher)
-    # ~ await plugin_echo.add_handlers(dispatcher)
-    ## Personalidades plugin, loaded first to overwrite methods
-    ## (aiogram behaviour)
-    # ~ await plugin_portaria.add_handlers(dispatcher)
-    await plugin_storify.add_handlers(dispatcher)
-    # ~ await plugin_personalidades.add_handlers(dispatcher)
-    ## Special case plugins
-    if dispatcher.bot.config['info'].get('personalidade', None) in [
-        'default',
-        'metarec',
-        'pave',
-        'cryptoforex',
-        'iacecil',
-        'matebot',
-    ]:
-        await plugin_donate.add_handlers(dispatcher)
-        await plugin_archive.add_handlers(dispatcher)
-    ## Plugins mais que especiais
-    if dispatcher.bot.config['info'].get('personalidade', None) in [
-        'metarec',
-        'matebot',
-    ]:
-        try:
-            await plugin_welcome.add_handlers(dispatcher)
-        except KeyError:
-            logger.warning(u"plugin welcome não configurado")
-        try:
-            await plugin_tropixel.add_handlers(dispatcher)
-        except KeyError:
-            logger.warning(u"plugin tropixel não configurado")
-    if dispatcher.bot.config['info'].get('personalidade') in [
-        'cryptoforex',
-        'iacecil',
-    ]:
-        try:
-            await plugin_cryptoforex.add_handlers(dispatcher)
-            await plugin_web3_wrapper.add_handlers(dispatcher)
-        except KeyError:
-            logger.warning(u"plugin cryptoforex não configurado")
-    ## Plugins gerais
-    await plugin_hashes.add_handlers(dispatcher)
-    await plugin_matematica.add_handlers(dispatcher)
-    await plugin_qr.add_handlers(dispatcher)
-    await plugin_feedback.add_handlers(dispatcher)
-    await plugin_tts.add_handlers(dispatcher)
-    await plugin_ytdl.add_handlers(dispatcher)
-    await plugin_default.add_handlers(dispatcher)
-    if dispatcher.bot.config['info'].get('personalidade', None) in [
-        'default',
-        'metarec',
-        'matebot',
-        'iacecil',
-    ]:
-        try:
-            await plugin_garimpo.add_handlers(dispatcher)
-        except KeyError:
-            logger.warning(u"plugin garimpo não configurado")
+    await personalidades.add_handlers(dispatcher)
+    ## New plugin handling system since v0.1.17
+    enable = ['default']
+    disable = ['echo']
+    try:
+        enable = dispatcher.bot.config['info']['plugins']['enable']
+        disable = dispatcher.bot.config['info']['plugins']['disable']
+    except Exception as exception:
+        logger.critical(u"Plugins not properly configured. RTFM.")
+        raise
+    for plugin in enable:
+        if plugin not in disable:
+            try:
+                module = import_module('.'.join(['plugins', plugin]))
+                await getattr(module, 'add_handlers')(dispatcher)
+                logger.info(u"Activated plugin {}".format(plugin))
+            except Exception as exception:
+                logger.warning(repr(exception))
+
     ## Todas updates que não forem tratadas por handlers anteriores
     dispatcher.register_message_handler(
         any_message_callback,
-        content_types = types.message.ContentType.ANY,
+        # ~ content_types = types.message.ContentType.ANY,
     )
     dispatcher.register_edited_message_handler(
-        any_edited_message_callback
+        any_edited_message_callback,
+        content_types = types.message.ContentType.ANY,
     )
-    dispatcher.register_channel_post_handler(any_channel_post_callback)
+    dispatcher.register_channel_post_handler(
+        any_channel_post_callback,
+        content_types = types.message.ContentType.ANY,
+    )
     dispatcher.register_edited_channel_post_handler(
         any_edited_channel_post_callback,
+        content_types = types.message.ContentType.ANY,
     )
-    dispatcher.register_errors_handler(any_error_callback)
+    # ~ dispatcher.register_inline_handler(
+        # ~ any_inline_handler_callback,
+    # ~ )
+    # ~ dispatcher.register_chosen_inline_handler(
+        # ~ any_chosen_inline_handler_callback,
+    # ~ )
+    # ~ dispatcher.register_callback_query_handler(
+        # ~ any_callback_query_handler_callback,
+    # ~ )
+    # ~ dispatcher.register_shipping_query_handler(
+        # ~ any_shipping_query_handler_callback,
+    # ~ )
+    # ~ dispatcher.register_pre_checkout_query_handler(
+        # ~ any_pre_checkout_query_handler_callback,
+    # ~ )
+    # ~ dispatcher.register_poll_handler(
+        # ~ any_poll_callback,
+    # ~ )
+    # ~ dispatcher.register_poll_answer_handler(
+        # ~ any_poll_answer_callback,
+    # ~ )
+    # ~ dispatcher.register_my_chat_member_handler(
+        # ~ any_my_chat_member_callback,
+    # ~ )
+    # ~ dispatcher.register_chat_member_handler(
+        # ~ any_chat_member_callback,
+    # ~ )
+    # ~ dispatcher.register_chat_join_request_handler(
+        # ~ any_chat_join_request_callback,
+    # ~ )
+    dispatcher.register_errors_handler(
+        any_error_callback,
+        exception = Exception,
+    )

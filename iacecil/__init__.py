@@ -27,7 +27,7 @@ import os
 import quart.flask_patch
 
 ### Meta
-__version__ = '0.1.16.1'
+__version__ = '0.1.17.0'
 name = 'iacecil'
 version = __version__
 commit = 0
@@ -74,7 +74,7 @@ app = quart_startup(
     config.quart,
     aiogram_startup(
         config.bots,
-        ['iacecil'],
+        ['ic'],
     ),
 )
 
