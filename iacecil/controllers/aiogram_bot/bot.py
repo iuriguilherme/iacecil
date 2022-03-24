@@ -116,23 +116,35 @@ logger groups. Exiting...""")
                 except Exception as e2:
                     logger.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
-            if kwargs['chat'] not in self.config['telegram'][
-                'users']['special'].values():
-                try:
-                    await error_callback(
-                        u"Probably group pressed the red button",
-                        self.command,
-                        exception,
-                        [function_name, 'ChatNotFound', 'exception'],
-                    )
-                except Exception as e1:
+            try:
+                exception_list = [
+                    self.config['telegram']['users']['special'][
+                        'debug'],
+                    self.config['telegram']['users']['special'][
+                        'feedback'],
+                    self.config['telegram']['users']['special']['info'],
+                ]
+                if kwargs['chat_id'] not in exception_list:
                     try:
-                        await exception_callback(
-                            e1,
-                            [function_name, 'ChatNotFound'],
+                        await error_callback(
+                            u"Probably group pressed the red button",
+                            self.command,
+                            exception,
+                            [function_name, 'ChatNotFound', 'exception'],
                         )
-                    except Exception as e2:
-                        logger.critical(repr(e2))
+                    except Exception as e1:
+                        try:
+                            await exception_callback(
+                                e1,
+                                [function_name, 'ChatNotFound'],
+                            )
+                        except Exception as e2:
+                            logger.critical(repr(e2))
+                else:
+                    logger.warning(u"""Bot is not in the logging groups\
+, add them already.""")
+            except Exception as e3:
+                logger.critical(repr(e3))
         except exceptions.UserDeactivated as exception:
             try:
                 await error_callback(
