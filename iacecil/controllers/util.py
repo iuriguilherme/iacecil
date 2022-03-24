@@ -23,10 +23,12 @@
 import logging
 logger = logging.getLogger(__name__)
 
-async def assertIsNotNone(args):
-    if not isinstance(args, list):
-        return False
-    for arg in args:
-        if arg is None:
-            return False
-    return True
+import random
+
+## Probability
+async def dice(number):
+    return random.randint(1, number)
+async def dice_low(number):
+    return (await dice(number)) == 1
+async def dice_high(number):
+    return (await dice(number)) > 1

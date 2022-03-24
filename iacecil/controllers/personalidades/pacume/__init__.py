@@ -43,6 +43,10 @@ from iacecil.controllers.personalidades.pacume.furhat_handlers import (
     furhat_startswith_iterations,
 )
 from iacecil.controllers.amazon_boto import get_audio
+from iacecil.controllers.util import (
+    dice_high,
+    dice_low,
+)
 
 ## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
@@ -219,11 +223,12 @@ async def add_handlers(dispatcher):
             dispatcher.bot.get('personalidade', 'pacume'),
             message.chat.type],
         )
-        command = await message.reply(random_texts.rimas_ao())
-        await command_callback(command, ['rima', 'ao',
-            dispatcher.bot.get('personalidade', 'pacume'),
-            message.chat.type],
-        )
+        if (await dice_low(3)):
+            command = await message.reply(random_texts.rimas_ao())
+            await command_callback(command, ['rima', 'ao',
+                dispatcher.bot.get('personalidade', 'pacume'),
+                message.chat.type],
+            )
 
     ## Responde toda referência a bebidas
     @dispatcher.message_handler(
@@ -234,10 +239,12 @@ async def add_handlers(dispatcher):
         await message_callback(message, ['resposta', 'bebida',
             message.chat.type],
         )
-        command = await message.reply(random_texts.respostas_bebida())
-        await command_callback(command, ['resposta', 'bebida',
-            message.chat.type],
-        )
+        if (await dice_high(3)):
+            command = await message.reply(
+                random_texts.respostas_bebida())
+            await command_callback(command, ['resposta', 'bebida',
+                message.chat.type],
+            )
 
     ## Responde "quanto vale"
     @dispatcher.message_handler(
@@ -247,9 +254,11 @@ async def add_handlers(dispatcher):
     async def resposta_quanto_callback(message):
         await message_callback(message, ['resposta', 'quanto',
             message.chat.type])
-        command = await message.reply(random_texts.respostas_quanto())
-        await command_callback(command, ['resposta', 'quanto',
-            message.chat.type])
+        if (await dice_high(3)):
+            command = await message.reply(
+                random_texts.respostas_quanto())
+            await command_callback(command, ['resposta', 'quanto',
+                message.chat.type])
 
     ## Não deixa de graça
     @dispatcher.message_handler(
