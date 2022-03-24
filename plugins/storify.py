@@ -85,13 +85,18 @@ async def add_handlers(dispatcher):
             await message_callback(message, ['storify',
                 message.chat.type])
             h, m, s = ('00', '00', '15')
+            if message.caption:
+                try:
+                    h, m, s = str(timedelta(seconds=int(message.caption
+                        ))).split(':')
+                except ValueError:
+                    pass
             if message.get_args() not in [None, '', ' ']:
-                h, m, s = str(timedelta(seconds=int(message.get_args()))
-                    ).split(':')
-            elif message.caption and message.caption not in [None, '',
-                ' ']:
-                h, m, s = str(timedelta(seconds=int(message.caption))
-                    ).split(':')
+                try:
+                    h, m, s = str(timedelta(seconds=int(
+                        message.get_args()))).split(':')
+                except ValueError:
+                    pass
             await storify_callback(message, h, m, s)
         
         @dispatcher.message_handler(
@@ -103,15 +108,19 @@ async def add_handlers(dispatcher):
                 message.chat.type])
             if message.reply_to_message:
                 h, m, s = ('00', '00', '15')
-                logger.debug(message.get_args())
+                if message.reply_to_message.caption:
+                    try:
+                        h, m, s = str(timedelta(seconds=int(
+                            message.reply_to_message.caption))).split(
+                            ':')
+                    except ValueError:
+                        pass
                 if message.get_args() not in [None, '', ' ']:
-                    h, m, s = str(timedelta(seconds=int(
-                        message.get_args()))).split(':')
-                elif message.reply_to_message.caption and \
-                    message.reply_to_message.caption not in [None, '',
-                        ' ']:
-                    h, m, s = str(timedelta(seconds=int(
-                        message.reply_to_message.caption))).split(':')
+                    try:
+                        h, m, s = str(timedelta(seconds=int(
+                            message.get_args()))).split(':')
+                    except ValueError:
+                        pass
                 await storify_callback(message.reply_to_message, h, m,
                     s)
     except Exception as exception:
