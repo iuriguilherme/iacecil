@@ -41,8 +41,9 @@ async def add_handlers(dispatcher):
     ## configurar isto na personalidade.
     @dispatcher.message_handler(
         WhoJoinedFilter(
-            unwanted = [unwant.lower() for unwant in 
-                dispatcher.bot.config['telegram'].get('unwanted', ['SPAM'])],
+            unwanted = [unwant.lower() for unwant in \
+                dispatcher.bot.config['telegram'].get('unwanted',
+                ['SPAM'])],
         ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )

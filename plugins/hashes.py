@@ -93,27 +93,31 @@ def inner_hash(algo, text):
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Gera hashes a partir de texto
-    @dispatcher.message_handler(
-        commands = ['hash'],
-    )
-    async def hash_callback(message):
-        await message_callback(message, ['hash', message.chat.type])
-        ## lol
-        try:
-            hashes = cmd_hash({
-                'command_type': None,
-                'message_id': None,
-                'command_list': message.get_args().split(),
-                'parse_mode': None,
-            })
-            command = await message.reply(
-                u"{}".format(hashes['response']),
-                parse_mode = hashes['parse_mode'],
-            )
-        except Exception as exception:
-            await error_callback(u"Erro tentando calcular hash", message, exception,
-                                                     ['hash'])
-            command = await message.reply(u"""Não consegui calcular o hash por probl\
-emas técnicos. Os (ir)responsáveis serão avisados...""")
-        await command_callback(command, ['hash', message.chat.type])
+    try:
+        ## Gera hashes a partir de texto
+        @dispatcher.message_handler(
+            commands = ['hash'],
+        )
+        async def hash_callback(message):
+            await message_callback(message, ['hash', message.chat.type])
+            command = None
+            ## lol
+            try:
+                hashes = cmd_hash({
+                    'command_type': None,
+                    'message_id': None,
+                    'command_list': message.get_args().split(),
+                    'parse_mode': None,
+                })
+                command = await message.reply(
+                    u"{}".format(hashes['response']),
+                    parse_mode = hashes['parse_mode'],
+                )
+            except Exception as exception:
+                await error_callback(u"Erro tentando calcular hash",
+                    message, exception, ['hash', 'exception'])
+                command = await message.reply(u"""Não consegui calcular\
+o hash por problemas técnicos. Os (ir)responsáveis serão avisados...""")
+            await command_callback(command, ['hash', message.chat.type])
+    except Exception as exception:
+        raise

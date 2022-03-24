@@ -123,9 +123,12 @@ onda uma mensagem que tem um link com {comando} na resposta.""".format(
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Extrai vídeo ou áudio de vários serviços
-    @dispatcher.message_handler(
-        commands = ['y', 'yt', 'ytdl', 'youtube', 'baixar', 'video'],
-    )
-    async def ytdl_callback(message):
-        await ytdl(dispatcher, message)
+    try:
+        ## Extrai vídeo ou áudio de vários serviços
+        @dispatcher.message_handler(
+            commands = ['y', 'yt', 'ytdl', 'youtube', 'baixar', 'video'],
+        )
+        async def ytdl_callback(message):
+            await ytdl(dispatcher, message)
+    except Exception as exception:
+        raise

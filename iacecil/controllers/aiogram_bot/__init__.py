@@ -71,7 +71,6 @@ async def add_filters(dispatcher: Dispatcher):
     dispatcher.filters_factory.bind(WhoJoinedFilter)
 
 async def add_handlers(dispatcher: Dispatcher):
-    await personalidades.add_handlers(dispatcher)
     ## New plugin handling system since v0.1.17
     enable = ['default']
     disable = ['echo']
@@ -88,7 +87,11 @@ async def add_handlers(dispatcher: Dispatcher):
                 await getattr(module, 'add_handlers')(dispatcher)
                 logger.info(u"Activated plugin {}".format(plugin))
             except Exception as exception:
-                logger.warning(repr(exception))
+                logger.warning(
+                    u"Failed to activate plugin {}:\n{}".format(
+                        plugin, repr(exception))
+                )
+    await personalidades.add_handlers(dispatcher)
 
     ## Todas updates que não forem tratadas por handlers anteriores
     dispatcher.register_message_handler(

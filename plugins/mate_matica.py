@@ -126,39 +126,44 @@ def cmd_r(args):
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Gera números aleatórios
-    @dispatcher.message_handler(
-        commands = ['random', 'rand', 'r'],
-    )
-    async def random_callback(message):
-        await message_callback(message, ['random', message.chat.type])
-        ## lol
-        r = cmd_r({
-            'message_id': None,
-            'command_list': message.get_args(),
-        })
-        command = await message.reply(
-            u"{}".format(r['response']),
-            parse_mode = r['parse_mode'],
+    try:
+        ## Gera números aleatórios
+        @dispatcher.message_handler(
+            commands = ['random', 'rand', 'r'],
         )
-        await command_callback(command, ['random', message.chat.type])
+        async def random_callback(message):
+            await message_callback(message, ['random',
+                message.chat.type])
+            ## lol
+            r = cmd_r({
+                'message_id': None,
+                'command_list': message.get_args(),
+            })
+            command = await message.reply(
+                u"{}".format(r['response']),
+                parse_mode = r['parse_mode'],
+            )
+            await command_callback(command, ['random',
+                message.chat.type])
 
-    ## Uma boa aproximação de pi
-    @dispatcher.message_handler(
-        commands = ['pi'],
-    )
-    async def pi_callback(message):
-        await message_callback(message, ['pi', message.chat.type])
-        command = await message.reply(str(math.pi))
-        await command_callback(command, ['pi', message.chat.type])
-
-    ## Uma boa aproximação de φ
-    @dispatcher.message_handler(
-        commands = ['phi'],
-    )
-    async def phi_callback(message):
-        await message_callback(message, ['phi', message.chat.type])
-        command = await message.reply(
-            str(( 1 + math.sqrt(5) ) / 2),
+        ## Uma boa aproximação de pi
+        @dispatcher.message_handler(
+            commands = ['pi'],
         )
-        await command_callback(command, ['phi', message.chat.type])
+        async def pi_callback(message):
+            await message_callback(message, ['pi', message.chat.type])
+            command = await message.reply(str(math.pi))
+            await command_callback(command, ['pi', message.chat.type])
+
+        ## Uma boa aproximação de φ
+        @dispatcher.message_handler(
+            commands = ['phi'],
+        )
+        async def phi_callback(message):
+            await message_callback(message, ['phi', message.chat.type])
+            command = await message.reply(
+                str(( 1 + math.sqrt(5) ) / 2),
+            )
+            await command_callback(command, ['phi', message.chat.type])
+    except Exception as exception:
+        raise

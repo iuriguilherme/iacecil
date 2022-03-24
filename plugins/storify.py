@@ -75,36 +75,44 @@ o pessoal do desenvolvimento e o problema é: {}""".format(
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Break videos in 15 seconds chunks
-    @dispatcher.message_handler(
-        filters.ChatTypeFilter('private'),
-        content_types = types.ContentTypes.VIDEO,
-    )
-    async def admin_storify_callback(message: types.Message):
-        await message_callback(message, ['storify', message.chat.type])
-        h, m, s = ('00', '00', '15')
-        if message.get_args() not in [None, '', ' ']:
-            h, m, s = str(timedelta(seconds=int(message.get_args()))
-                ).split(':')
-        elif message.caption and message.caption not in [None, '', ' ']:
-            h, m, s = str(timedelta(seconds=int(message.caption))
-                ).split(':')
-        await storify_callback(message, h, m, s)
-    
-    @dispatcher.message_handler(
-        is_reply = True,
-        commands = ['storify', 'cut', 'instagram', 'ig'],
-    )
-    async def reply_storify_callback(message: types.Message):
-        await message_callback(message, ['storify', message.chat.type])
-        if message.reply_to_message:
+    try:
+        ## Break videos in 15 seconds chunks
+        @dispatcher.message_handler(
+            filters.ChatTypeFilter('private'),
+            content_types = types.ContentTypes.VIDEO,
+        )
+        async def admin_storify_callback(message: types.Message):
+            await message_callback(message, ['storify',
+                message.chat.type])
             h, m, s = ('00', '00', '15')
-            logger.debug(message.get_args())
             if message.get_args() not in [None, '', ' ']:
                 h, m, s = str(timedelta(seconds=int(message.get_args()))
                     ).split(':')
-            elif message.reply_to_message.caption and \
-                message.reply_to_message.caption not in [None, '', ' ']:
-                h, m, s = str(timedelta(seconds=int(
-                    message.reply_to_message.caption))).split(':')
-            await storify_callback(message.reply_to_message, h, m, s)
+            elif message.caption and message.caption not in [None, '',
+                ' ']:
+                h, m, s = str(timedelta(seconds=int(message.caption))
+                    ).split(':')
+            await storify_callback(message, h, m, s)
+        
+        @dispatcher.message_handler(
+            is_reply = True,
+            commands = ['storify', 'cut', 'instagram', 'ig'],
+        )
+        async def reply_storify_callback(message: types.Message):
+            await message_callback(message, ['storify',
+                message.chat.type])
+            if message.reply_to_message:
+                h, m, s = ('00', '00', '15')
+                logger.debug(message.get_args())
+                if message.get_args() not in [None, '', ' ']:
+                    h, m, s = str(timedelta(seconds=int(
+                        message.get_args()))).split(':')
+                elif message.reply_to_message.caption and \
+                    message.reply_to_message.caption not in [None, '',
+                        ' ']:
+                    h, m, s = str(timedelta(seconds=int(
+                        message.reply_to_message.caption))).split(':')
+                await storify_callback(message.reply_to_message, h, m,
+                    s)
+    except Exception as exception:
+        raise

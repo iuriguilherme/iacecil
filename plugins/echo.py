@@ -21,12 +21,15 @@ logger = logging.getLogger(__name__)
 from aiogram import types
 
 async def add_handlers(dispatcher):
-    from iacecil.controllers.aiogram_bot.callbacks import (
-        command_callback,
-        message_callback,
-    )
-    @dispatcher.message_handler()
-    async def echo(message: types.Message):
-        await message_callback(message, ['echo', message.chat.type])
-        command = await message.answer(message.text)
-        await command_callback(command, ['echo', message.chat.type])
+    try:
+        from iacecil.controllers.aiogram_bot.callbacks import (
+            command_callback,
+            message_callback,
+        )
+        @dispatcher.message_handler()
+        async def echo(message: types.Message):
+            await message_callback(message, ['echo', message.chat.type])
+            command = await message.answer(message.text)
+            await command_callback(command, ['echo', message.chat.type])
+    except Exception as exception:
+        raise

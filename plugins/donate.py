@@ -26,21 +26,23 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Mostra opções de doação
-    @dispatcher.message_handler(
-        commands = ['donate', 'doar'],
-    )
-    async def donate_callback(message):
-        await message_callback(message, ['donate', message.chat.type])
-        command = await message.reply(
-            text = '\n'.join([
-                u"List of addresses to donate for the bot developers:",
-                *[''.join([f'{k}', escape_md(': '), code(f'{v}')]) for \
-                    k, v in dispatcher.bot.config['info'][
-                    'donate']['crypto'].items()],
-                '',
-                u"Missing one? Send /feedback",
-            ]),
-            parse_mode = "MarkdownV2",
+    try:
+        ## Mostra opções de doação
+        @dispatcher.message_handler(
+            commands = ['donate', 'doar'],
         )
-        await command_callback(command, ['donate', message.chat.type])
+        async def donate_callback(message):
+            await message_callback(message, ['donate',
+                message.chat.type])
+            command = await message.reply(
+                text = '\n'.join([u"""List of addresses to donate for t\
+he bot developers:""", *[''.join([f'{k}', escape_md(': '), code(f'{v}')]
+                    ) for k, v in dispatcher.bot.config['info'][
+                    'donate']['crypto'].items()], '',
+                    u"Missing one? Send /feedback",]),
+                parse_mode = "MarkdownV2",
+            )
+            await command_callback(command, ['donate',
+                message.chat.type])
+    except Exception as exception:
+        raise

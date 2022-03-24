@@ -33,6 +33,7 @@ from iacecil.controllers.personalidades import (
 )
 
 async def add_handlers(dispatcher):
+    logger.info(u"Activating {} plugin".format(__name__))
     ## Padrão de boas vindas. Exclui grupos 'omega' pra evitar de mandar
     ## mensagem de boas vindas em grupos onde o bot só é utilizado com
     ## os comandos básicos. Requer que grupos que queiram ativar o 

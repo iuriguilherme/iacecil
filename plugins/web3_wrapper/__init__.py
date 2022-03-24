@@ -68,5 +68,8 @@ async def get_async_web3(provider):
     )
 
 async def add_handlers(dispatcher):
-    await add_bsc_handlers(dispatcher, get_web3, get_async_web3)
-    await add_eth_handlers(dispatcher, get_web3, get_async_web3)
+    try:
+        await add_bsc_handlers(dispatcher, get_web3, get_async_web3)
+        await add_eth_handlers(dispatcher, get_web3, get_async_web3)
+    except Exception as exception:
+        raise

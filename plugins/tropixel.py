@@ -32,55 +32,68 @@ from iacecil.controllers.personalidades import (
 )
 
 async def add_handlers(dispatcher):
-    ## Tropixel Café / Rede Metareciclagem
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
-        ),
-        content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
-    )
-    async def welcome_tropixel_callback(message: types.Message):
-        await message_callback(message, ['welcome', 'tropixel', message.chat.type])
-        text = await gerar_texto('tropixel', dispatcher.bot, message)
-        command = await message.reply(text)
-        await command_callback(command, ['welcome', 'tropixel', message.chat.type])
-
-    ## Link para o Boteco Tropixel
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
-        ),
-        commands = ['boteco'],
-    )
-    async def tropixel_boteco_callback(message):
-        await message_callback(message, ['tropixel', 'boteco', message.chat.type])
-        command = await message.reply(
-            u"Link para o boteco: {}".format(
-                dispatcher.bot.config['info'].get(
-                    'tropixel', dict(boteco = u"Não sei"),
-                ).get('boteco', u"Não sei"),
+    try:
+        ## Tropixel Café / Rede Metareciclagem
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                chat_id = dispatcher.bot.config['telegram']['users'
+                    ].get('tropixel', -1),
             ),
-            disable_web_page_preview = True,
-            disable_notification = True,
+            content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
-        await command_callback(command, ['tropixel', 'boteco', message.chat.type])
+        async def welcome_tropixel_callback(message: types.Message):
+            await message_callback(message, ['welcome', 'tropixel',
+                message.chat.type])
+            text = await gerar_texto('tropixel', dispatcher.bot,
+                message)
+            command = await message.reply(text)
+            await command_callback(command, ['welcome', 'tropixel',
+                message.chat.type])
 
-    ## Link para a Rede Tropixel
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            chat_id = dispatcher.bot.config['telegram']['users'].get('tropixel', -1),
-        ),
-        commands = ['forum', 'rede', 'site', 'wiki'],
-    )
-    async def tropixel_site_callback(message):
-        await message_callback(message, ['tropixel', 'site', message.chat.type])
-        command = await message.reply(
-            u"Link para o site/rede/forum/wiki: {}".format(
+        ## Link para o Boteco Tropixel
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                chat_id = dispatcher.bot.config['telegram']['users'
+                    ].get('tropixel', -1),
+            ),
+            commands = ['boteco'],
+        )
+        async def tropixel_boteco_callback(message):
+            await message_callback(message, ['tropixel', 'boteco',
+                message.chat.type])
+            command = await message.reply(
+                u"Link para o boteco: {}".format(
                     dispatcher.bot.config['info'].get(
-                    'tropixel', dict(site = u"Não sei"),
-                ).get('site', u"Não sei"),
+                        'tropixel', dict(boteco = u"Não sei"),
+                    ).get('boteco', u"Não sei"),
+                ),
+                disable_web_page_preview = True,
+                disable_notification = True,
+            )
+            await command_callback(command, ['tropixel', 'boteco',
+                message.chat.type])
+
+        ## Link para a Rede Tropixel
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                chat_id = dispatcher.bot.config['telegram']['users'
+                    ].get('tropixel', -1),
             ),
-            disable_web_page_preview = True,
-            disable_notification = True,
+            commands = ['forum', 'rede', 'site', 'wiki'],
         )
-        await command_callback(command, ['tropixel', 'site', message.chat.type])
+        async def tropixel_site_callback(message):
+            await message_callback(message, ['tropixel', 'site',
+                message.chat.type])
+            command = await message.reply(
+                u"Link para o site/rede/forum/wiki: {}".format(
+                        dispatcher.bot.config['info'].get(
+                        'tropixel', dict(site = u"Não sei"),
+                    ).get('site', u"Não sei"),
+                ),
+                disable_web_page_preview = True,
+                disable_notification = True,
+            )
+            await command_callback(command, ['tropixel', 'site',
+                message.chat.type])
+    except Exception as exception:
+        raise

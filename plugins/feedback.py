@@ -65,70 +65,82 @@ def cmd_f(args):
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    @dispatcher.message_handler(
-        commands = ['feedback', 'feed'],
-    )
-    async def feedback_callback(message):
-        await message_callback(message, ['feedback', message.chat.type])
-        if message.get_args():
-            try:
-                url = await message.chat.export_invite_link()
-            except exceptions.BadRequest as exception:
-                await error_callback(u"Erro com método chat.export_invite_link",
-                                                         message, exception, ['feedback'])
-                url = None
-            try:
-                await dispatcher.bot.send_message(
-                    chat_id = dispatcher.bot.config['telegram']['users']['special']['feedback'],
-                    text = u"#feedback enviado\nde" + 
-                        u"{chat} {user} (<b>{user_id}</b>):\n{link}\n""".format(
-                        user = message.from_user.mention,
-                        user_id = message.from_user.id,
-                        chat = u" {chat_link} (<b>{chat_id}</b>)\npor".format(
-                            chat_link = u"<a href='{url}'>{title}</a>".format(
-                                    url = url,
-                                    title = message.chat.title,
-                                ) if url else
-                                u"{title}".format(
-                                    title = message.chat.title,
-                                ),
-                            chat_id = message.chat.id,
-                        ) if 
-                            message.chat.type in ['group', 'supergroup'] else ' ',
-                        link = u"{}\n".format(message.link('link')) if
-                            message.chat.type in ['group', 'supergroup'] else '',
-                    ) + u"<pre>{feedback}</pre>".format(
-                        feedback = message.get_args(),
-                    ),
-                    parse_mode = "HTML",
-                )
-                command = await message.reply(u"""Muito obrigado pelo feedback, vós so\
-is muito gentil! Alguém em algum momento vai ler, eu acho...""")
-            except KeyError as exception:
-                await error_callback(u"""
-Erro tentando enviar resposta avisando que o feedback deu certo. O problema é \
-que não tá configurado certo no arquivo de configuração os parâmetros pertinen\
-tes. Eu acho.""",
-                    message, exception, ['feedback'])
-                print(u"""Alguém mandou /feedback mas não tem nenhum grupo registrado \
-para receber!\nExceção: {}""".format(json.dumps(repr(e), indent=2)))
-                command = await message.reply(u"""Muito obrigado pelo feedback, vós so\
-is muito gentil! Infelizmente ninguém vai ler porque não me configuraram para \
-receber feedback...    \U0001f61e""")
-            except Exception as exception:
-                await error_callback(u"""
-Erro tentando enviar resposta avisando que o feedback deu certo. Ver log de de\
-puração acima pra tentar entender o que aconteceu.""", message, exception,
-                                                         ['feedback'])
-                print(u"""Exceção: {}""".format(json.dumps(repr(e), indent=2)))
-                command = await message.reply(u"""Muito obrigado pelo feedback, vós so\
-is muito gentil! Infelizmente ninguém vai ler porque eu tive um problema técni\
-co. Mas o erro que aconteceu enquanto eu tentava enviar feedback, vão ler! Des\
-culpe por isto \U0001f61e""")
-        else:
-            command = await message.reply(escape_md(u"""Obrigado pela tentativa, mas\
-se for pra mandar feedback tem que escrever alguma coisa! Exemplo:\n""") +
-                u"`{} Muito obrigado pelo bot!`".format(message.get_command()),
-                parse_mode = "MarkdownV2",
-            )
-        await command_callback(command, ['feedback', message.chat.type])
+    try:
+        @dispatcher.message_handler(
+            commands = ['feedback', 'feed'],
+        )
+        async def feedback_callback(message):
+            await message_callback(message, ['feedback',
+                message.chat.type])
+            if message.get_args():
+                try:
+                    url = await message.chat.export_invite_link()
+                except exceptions.BadRequest as exception:
+                    await error_callback(u"""Erro com método chat.expor\
+t_invite_link""", message, exception, ['feedback'])
+                    url = None
+                try:
+                    await dispatcher.bot.send_message(
+                        chat_id = dispatcher.bot.config['telegram'][
+                            'users']['special']['feedback'],
+                        text = u"#feedback enviado\nde" + u"""{chat} \
+{user} (<b>{user_id}</b>):\n{link}\n""".format(
+                                user = message.from_user.mention,
+                                user_id = message.from_user.id,
+                                chat = u""" {chat_link} (<b>{chat_id}</\
+b>)\npor""".format(
+                                    chat_link = u"""<a href='{url}'>\
+{title}</a>""".format(
+                                            url = url,
+                                            title = message.chat.title,
+                                        ) if url else
+                                        u"{title}".format(
+                                            title = message.chat.title,
+                                        ),
+                                    chat_id = message.chat.id,
+                                ) if 
+                                    message.chat.type in ['group',
+                                        'supergroup'] else ' ',
+                                link = u"{}\n".format(
+                                    message.link('link')
+                                ) if message.chat.type in ['group',
+                                    'supergroup'] else '',
+                            ) + u"<pre>{feedback}</pre>".format(
+                                feedback = message.get_args(),
+                        ),
+                        parse_mode = "HTML",
+                    )
+                    command = await message.reply(u"""Muito obrigado pe\
+lo feedback, vós sois muito gentil! Alguém em algum momento vai ler, eu\
+ acho...""")
+                except KeyError as exception:
+                    await error_callback(u"""Erro tentando enviar respo\
+sta avisando que o feedback deu certo. O problema é que não tá configur\
+ado certo no arquivo de configuração os parâmetros pertinentes. Eu acho\
+.""", message, exception, ['feedback'])
+                    logger.warning(u"""Alguém mandou /feedback mas não \
+tem nenhum grupo registrado para receber!\nExceção: {}""".format(
+                        json.dumps(repr(e), indent=2)))
+                    command = await message.reply(u"""Muito obrigado pe\
+lo feedback, vós sois muito gentil! Infelizmente ninguém vai ler porque\
+ não me configuraram para receber feedback... \U0001f61e""")
+                except Exception as exception:
+                    await error_callback(u"""Erro tentando enviar respo\
+sta avisando que o feedback deu certo. Ver log de depuração acima pra t\
+entar entender o que aconteceu.""", message, exception, ['feedback'])
+                    logger.warning(u"Exceção: {}".format(json.dumps(
+                        repr(exception), indent=2))
+                    )
+                    command = await message.reply(u"""Muito obrigado pe\
+lo feedback, vós sois muito gentil! Infelizmente ninguém vai ler porque\
+ eu tive um problema técnico. Mas o erro que aconteceu enquanto eu tent\
+ava enviar feedback, vão ler! Desculpe por isto \U0001f61e""")
+            else:
+                command = await message.reply(escape_md(u"""Obrigado pe\
+la tentativa, mas se for pra mandar feedback tem que escrever alguma co\
+isa! Exemplo:\n""") + u"`{} Muito obrigado pelo bot!`".format(
+                    message.get_command()), parse_mode = "MarkdownV2")
+            await command_callback(command, ['feedback',
+                message.chat.type])
+    except Exception as exception:
+        raise
