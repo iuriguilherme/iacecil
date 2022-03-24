@@ -18,6 +18,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from aiogram.utils.markdown import code, escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
@@ -32,12 +33,14 @@ async def add_handlers(dispatcher):
     async def donate_callback(message):
         await message_callback(message, ['donate', message.chat.type])
         command = await message.reply(
-            text = u"""List of addresses to donate for the bot develope\
-rs:\n\n{}\n\nMissing one? Send /feedback""".format(
-                addresses = '\n'.join(
-                    dispatcher.bot.config['info']['donate']['crypto']
-                ),
-            ),
+            text = '\n'.join([
+                u"List of addresses to donate for the bot developers:",
+                *[''.join([f'{k}', escape_md(': '), code(f'{v}')]) for \
+                    k, v in dispatcher.bot.config['info'][
+                    'donate']['crypto'].items()],
+                '',
+                u"Missing one? Send /feedback",
+            ]),
             parse_mode = "MarkdownV2",
         )
         await command_callback(command, ['donate', message.chat.type])
