@@ -116,21 +116,23 @@ logger groups. Exiting...""")
                 except Exception as e2:
                     logger.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
-            try:
-                await error_callback(
-                    u"Probably group pressed the red button",
-                    self.command,
-                    exception,
-                    [function_name, 'ChatNotFound', 'exception'],
-                )
-            except Exception as e1:
+            if kwargs['chat'] not in self.config['telegram'][
+                'users']['special'].values():
                 try:
-                    await exception_callback(
-                        e1,
-                        [function_name, 'ChatNotFound'],
+                    await error_callback(
+                        u"Probably group pressed the red button",
+                        self.command,
+                        exception,
+                        [function_name, 'ChatNotFound', 'exception'],
                     )
-                except Exception as e2:
-                    logger.critical(repr(e2))
+                except Exception as e1:
+                    try:
+                        await exception_callback(
+                            e1,
+                            [function_name, 'ChatNotFound'],
+                        )
+                    except Exception as e2:
+                        logger.critical(repr(e2))
         except exceptions.UserDeactivated as exception:
             try:
                 await error_callback(

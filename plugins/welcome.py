@@ -40,10 +40,11 @@ async def add_handlers(dispatcher):
     ## plugin de boas vindas sejam adicionados pelo menos às listas 
     ## 'delta' ou 'gama'.
     @dispatcher.message_handler(
-        filters.IDFilter(
-            chat_id = dispatcher.bot.config['telegram']['users'].get('delta', -1) +
-                dispatcher.bot.config['telegram']['users'].get('gamma', -1),
-        ),
+        # ~ filters.IDFilter(
+            # ~ chat_id = dispatcher.bot.config['telegram']['users'].get(
+                # ~ 'delta', -1) + dispatcher.bot.config['telegram'][
+                # ~ 'users'].get('gamma', -1),
+        # ~ ),
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
     )
     async def welcome_callback(message: types.Message):
@@ -53,8 +54,8 @@ async def add_handlers(dispatcher):
         )
         text = await gerar_texto('welcome', dispatcher.bot, message)
         if str(message['new_chat_member']['first_name']).lower() in \
-            [unwant.lower() for unwant in \
-            dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
+            [unwant.lower() for unwant in  dispatcher.bot.config[
+            'telegram']['users'].get('unwanted', ['SPAM'])]:
             text = await gerar_texto('portaria', dispatcher.bot,
                 message,
             )
