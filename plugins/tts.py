@@ -45,36 +45,69 @@ from iacecil.controllers.personalidades.pacume.furhat_handlers import (
 )
 from iacecil.controllers.amazon_boto import get_audio
 
+async def fala_callback(message, audio_text):
+    await message_callback(message, ['fala', message.chat.type])
+    dispatcher = Dispatcher.get_current()
+    command = None
+    opus_file = None
+    try:
+        vorbis_file = await get_audio(audio_text)
+        opus_file = await telegram_voice(vorbis_file)
+        if opus_file is not None:
+            with open(opus_file, 'rb') as audio:
+                command = await message.reply_voice(audio)
+            if command is not None:
+                await command_callback(command, ['fala',
+                    message.chat.type])
+    except Exception as exception:
+        await error_callback(
+            u"Problema tentando mandar audio",
+            message,
+            exception,
+            ['error', 'fala', message.chat.type],
+        )
+    finally:
+        if opus_file is not None:
+            os.remove(opus_file)
+
+async def fala_wrapper(message):
+    audio_text = message.get_args()
+    if audio_text not in [None, '', ' ']:
+        await fala_callback(message, audio_text)
+async def fala_reply_wrapper(message):
+    audio_text = ' '.join([message.reply_to_message.get_args(),
+        message.get_args()])
+    if audio_text not in [None, '', ' ']:
+        await fala_callback(message, audio_text)
+async def fala_nl_wrapper(message):
+    audio_text = ''.join(message.text.split(' ')[1:])
+    if audio_text not in [None, '', ' ']:
+        await fala_callback(message, audio_text)
+
 async def add_handlers(dispatcher):
-    ## Transforma texto em áudio
-    @dispatcher.message_handler(
-        commands = ['fala'],
-    )
-    async def fala_callback(message):
-        await message_callback(message, ['fala', message.chat.type])
-        command = None
-        opus_file = None
-        try:
-            if message.reply_to_message:
-                audio_text = message.reply_to_message.text
-            else:
-                audio_text = message.get_args()
-            if audio_text is not None and audio_text != '':
-                vorbis_file = await get_audio(audio_text)
-                opus_file = await telegram_voice(vorbis_file)
-                if opus_file is not None:
-                    with open(opus_file, 'rb') as audio:
-                        command = await message.reply_voice(audio)
-                    if command is not None:
-                        await command_callback(command, ['fala',
-                            message.chat.type])
-        except Exception as exception:
-            await error_callback(
-                u"Problema tentando mandar audio",
-                message,
-                exception,
-                ['error', 'fala', message.chat.type],
-            )
-        finally:
-            if opus_file is not None:
-                os.remove(opus_file)
+    try:
+        ## Text to speech as a telegram voice message
+        ## (pt-BR: áudio de zap)
+        triggers = ['fala', 'speak', 'say', 'diz']
+        ## Natural language trigger
+        dispatcher.register_message_handler(
+            fala_nl_wrapper,
+            filters.Text(startswith = triggers, ignore_case = True),
+            is_reply_to_id = dispatcher.bot.id,
+            content_types = types.ContentTypes.TEXT,
+        )
+        ## Uses the text from a replied message with /fala
+        dispatcher.register_message_handler(
+            fala_reply_wrapper,
+            is_reply = True,
+            commands = triggers,
+            content_types = types.ContentTypes.TEXT,
+        )
+        ## Uses provided text in arguments or croak
+        dispatcher.register_message_handler(
+            fala_wrapper,
+            commands = triggers,
+            content_types = types.ContentTypes.TEXT,
+        )
+    except Exception as exception:
+        raise
