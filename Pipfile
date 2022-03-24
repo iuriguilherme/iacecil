@@ -59,12 +59,12 @@ ZODB = "*"
 python_version = "3.9"
 
 [scripts]
-iacecil = 'python start.py info quart iacecil'
-quart = 'python start.py info quart iacecil 8000 127.0.0.1'
-test = 'python start.py debug quart testing'
-prod = 'python start.py debug quart production'
-dev = 'python start.py debug quart development 8000 127.0.0.1 True'
-stage = 'python start.py debug socket cfb,cfb2,iacecil,matebot_telegram,pacume,pave,tropixel 38000 127.0.0.1 0'
-furhat = 'python start.py debug furhat testing'
+iacecil = 'python start.py info quart ic'
+quart = 'python start.py info quart ic 8000 127.0.0.1'
+test = 'python start.py debug quart test'
+prod = 'python start.py debug quart prod'
+dev = 'python start.py debug quart dev 8000 127.0.0.1 True'
+stage = 'python start.py debug socket cf,cf2,ic,mbt,mr,pc,pc2,pv 38000 127.0.0.1 0'
+furhat = 'python start.py debug furhat test'
 papagaio = 'python start.py debug fpapagaio f239 True'
 personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
