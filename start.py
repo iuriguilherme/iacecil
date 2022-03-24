@@ -217,8 +217,9 @@ o {}""".format(str(canonical)))
         elif mode == 'fpapagaio':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from iacecil.controllers.furhat_bot import run_papagaio
-                asyncio.run(run_papagaio(
+                from iacecil.controllers.furhat_bot.papagaio import \
+                    papagaio
+                asyncio.run(papagaio(
                     bots.split(',')[0],
                     skip_intro,
                 ))
@@ -232,8 +233,9 @@ o {}""".format(str(canonical)))
         elif mode == 'fpersonas':
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
-                from iacecil.controllers.furhat_bot import run_personas
-                asyncio.run(run_personas(
+                from iacecil.controllers.furhat_bot.personas import \
+                    personas
+                asyncio.run(personas(
                     personas.split(','),
                     skip_intro = skip_intro,
                     log_messages = log_messages,

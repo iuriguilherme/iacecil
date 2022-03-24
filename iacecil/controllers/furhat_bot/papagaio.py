@@ -85,6 +85,16 @@ from iacecil.controllers.furhat_bot.controllers.zodb_controllers import(
     zodb_get_aiogram,
 )
 
+try:
+    from instance.config import Config
+    config = Config()
+    bots_config = config.bots
+    furhat_config = config.furhat
+except Exception as exception:
+    logger.critical(u"""{} config file not found or somehow wrong. RTFM\
+.\n{}""".format(actual_name, str(exception)))
+    raise
+
 async def papagaio(furhat_config, skip_intro):
     try:
         furhat_id = furhat_config['furhat']['bot']

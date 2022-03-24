@@ -83,6 +83,16 @@ from iacecil.controllers.furhat_bot.personas.handlers import (
     furhat_handler,
 )
 
+try:
+    from instance.config import Config
+    config = Config()
+    bots_config = config.bots
+    furhat_config = config.furhat
+except Exception as exception:
+    logger.critical(u"""{} config file not found or somehow wrong. RTFM\
+.\n{}""".format(actual_name, str(exception)))
+    raise
+
 async def personas(
     bots,
     furhat_config,
