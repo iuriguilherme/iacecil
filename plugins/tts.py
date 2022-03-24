@@ -75,8 +75,15 @@ async def fala_wrapper(message):
     if audio_text not in [None, '', ' ']:
         await fala_callback(message, audio_text)
 async def fala_reply_wrapper(message):
-    audio_text = ' '.join([message.reply_to_message.get_args(),
-        message.get_args()])
+    audio_text = ''
+    reply_args = message.reply_to_message.get_args()
+    message_args = message.get_args()
+    if reply_args not in [None, '', ' ']:
+        audio_text = audio_text + reply_args
+    elif message.reply_to_message.text not in [None, '', ' ']:
+        audio_text = audio_text + message.reply_to_message.text
+    if message_args not in [None, '', ' ']:
+        audio_text = audio_text + message_args
     if audio_text not in [None, '', ' ']:
         await fala_callback(message, audio_text)
 async def fala_nl_wrapper(message):
