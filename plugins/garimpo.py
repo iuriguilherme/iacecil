@@ -103,104 +103,111 @@ async def varre_link(message):
         )
 
 async def add_handlers(dispatcher):
-    garimpo_id = dispatcher.bot.config['telegram']['users']['special'][
-        'garimpo']
+    try:
+        garimpo_id = dispatcher.bot.config['telegram']['users'][
+            'special']['garimpo']
 
-    ## Salva link em outro grupo
+        ## Salva link em outro grupo
 
-    ## FIXME implementar garimpo total (garimpa_tudo_callback) com
-    ## filtro de chat_id em grupos exclusivos, e estes dois outros
-    ## filtros em todos grupos
-    # ~ @dispatcher.message_handler(filters.Command([
-        # ~ 'g', 'garimpo', 'garimpa', 'salva', 'verdepois', 'vouver',
-    # ~ ]))
-    # ~ async def garimpo_callback(message):
-        # ~ await info_logger(message, ['garimpo', message.chat.type])
-        # ~ command = await varre_link(message)
-        # ~ await info_logger(command, ['command', 'garimpo',
-            # ~ message.chat.type],
-        # ~ )
-
-    # ~ @dispatcher.message_handler(filters.Text([
-        # ~ 'depois eu vejo',
-        # ~ 'um dia eu vejo',
-        # ~ 'uma hora eu vejo',
-        # ~ 'vou ver',
-        # ~ 'já vejo',
-        # ~ 'salva',
-        # ~ 'garimpo',
-        # ~ 'garimpa',
-    # ~ ]))
-    # ~ async def procastinacao_callback(message):
-        # ~ await info_logger(message, ['procastinacao',
-            # ~ message.chat.type])
-        # ~ if message.reply_to_message is not None:
-            # ~ command = await varre_link(message.reply_to_message)
-            # ~ await info_logger(command, ['command', 'procastinacao',
-                # ~ message.chat.type]
+        ## FIXME implementar garimpo total (garimpa_tudo_callback) com
+        ## filtro de chat_id em grupos exclusivos, e estes dois outros
+        ## filtros em todos grupos
+        # ~ @dispatcher.message_handler(filters.Command([
+            # ~ 'g', 'garimpo', 'garimpa', 'salva', 'verdepois', 'vouver',
+        # ~ ]))
+        # ~ async def garimpo_callback(message):
+            # ~ await info_logger(message, ['garimpo', message.chat.type])
+            # ~ command = await varre_link(message)
+            # ~ await info_logger(command, ['command', 'garimpo',
+                # ~ message.chat.type],
             # ~ )
 
-    ## Encaminha respostas para links
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            chat_id = garimpo_id,
-        ),
-    )
-    async def forward_reply_callback(message):
-        await zodb_logger(message)
-        if 'reply_to_message' in message \
-            and message.reply_to_message.is_forward:
-                db = None
-                try:
-                    db, pms = await get_messages(str(garimpo_id) + \
-                        '.garimpo')
+        # ~ @dispatcher.message_handler(filters.Text([
+            # ~ 'depois eu vejo',
+            # ~ 'um dia eu vejo',
+            # ~ 'uma hora eu vejo',
+            # ~ 'vou ver',
+            # ~ 'já vejo',
+            # ~ 'salva',
+            # ~ 'garimpo',
+            # ~ 'garimpa',
+        # ~ ]))
+        # ~ async def procastinacao_callback(message):
+            # ~ await info_logger(message, ['procastinacao',
+                # ~ message.chat.type])
+            # ~ if message.reply_to_message is not None:
+                # ~ command = await varre_link(message.reply_to_message)
+                # ~ await info_logger(command, ['command', 'procastinacao',
+                    # ~ message.chat.type]
+                # ~ )
+
+        ## Encaminha respostas para links
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                chat_id = garimpo_id,
+            ),
+        )
+        async def forward_reply_callback(message):
+            await zodb_logger(message)
+            if 'reply_to_message' in message \
+                and message.reply_to_message.is_forward:
+                    db = None
                     try:
-                        pfm = pms[
-                            message.reply_to_message.message_id]
-                        await dispatcher.bot.send_message(
-                            chat_id = pfm['chat_id'],
-                            # ~ text = f"""[{message.from_user.first_name}]\
-# ~ (tg://user?id={message.from_user.id}) disse: {escape_md(message.text)}\
-# ~ """,
-                            text = f"""{message.from_user.first_name}\
-disse: {escape_md(message.text)}""",
-                            reply_to_message_id = pfm[
-                                'reply_to_message_id'],
-                            parse_mode = 'MarkdownV2',
-                            allow_sending_without_reply = True,
-                        )
-                    except KeyError:
-                        pass
-                    except Exception as e1:
-                        await debug_logger(
-                            u"Message NOT retreived from database",
-                            message,
-                            e1,
-                            ['garimpo', 'forward_reply', 'zodb',
-                                'exception'],
-                        )
-                    finally:
+                        db, pms = await get_messages_garimpo(garimpo_id)
                         try:
-                            db.close()
-                        except Exception as e2:
-                            logger.warning(u"""db was never created on\
-{}: {}""".format(__name__, repr(e2),))
-                except Exception as exception:
-                    await exception_logger(
-                        exception,
-                        ['garimpo', 'forward_reply', 'zodb'],
-                    )
+                            pfm = pms[
+                                message.reply_to_message.message_id]
+                            await dispatcher.bot.send_message(
+                                chat_id = pfm['chat_id'],
+                                # ~ text = f"""
+# ~ [{message.from_user.first_name}](tg://user?id={message.from_user.id}) \
+# ~ disse: {escape_md(message.text)}""",
+                                text = f"""
+{message.from_user.first_name} disse: {escape_md(message.text)}""",
+                                reply_to_message_id = pfm[
+                                    'reply_to_message_id'],
+                                parse_mode = 'MarkdownV2',
+                                allow_sending_without_reply = True,
+                            )
+                        except KeyError:
+                            pass
+                        except Exception as e1:
+                            await debug_logger(
+                                u"Message NOT retreived from database",
+                                message,
+                                e1,
+                                ['garimpo', 'forward_reply', 'zodb',
+                                    'exception'],
+                            )
+                        finally:
+                            try:
+                                db.close()
+                            except Exception as e2:
+                                logger.warning(u"""db was never created\
+on {}: {}""".format(__name__, repr(e2),))
+                    except Exception as exception:
+                        await exception_logger(
+                            exception,
+                            ['garimpo', 'forward_reply', 'zodb'],
+                        )
 
-    ## TODO garimpa todos links de todos grupos pra estas personalidades
-    @dispatcher.message_handler(filters.ContentTypeFilter(
-        types.message.ContentType.TEXT
-    ))
-    async def garimpa_tudo_callback(message):
-        await zodb_logger(message)
-        command = await varre_link(message)
-        if command is not None:
-            await info_logger(
-                command,
-                ['command', 'garimpo', message.chat.type],
-            )
-
+        ## TODO garimpa todos links de todos grupos pra estas
+        ## personalidades
+        ## WARNING this must be placed last in handlers
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                chat_id = dispatcher.bot.config['telegram']['users'][
+                    'garimpo'],
+            ),
+            filters.ContentTypeFilter(types.message.ContentType.TEXT),
+        )
+        async def garimpa_tudo_callback(message):
+            await zodb_logger(message)
+            command = await varre_link(message)
+            if command is not None:
+                await info_logger(
+                    command,
+                    ['command', 'garimpo', message.chat.type],
+                )
+    except Exception:
+        raise

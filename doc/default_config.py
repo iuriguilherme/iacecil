@@ -199,6 +199,8 @@ class Config(BaseSettings):
                 'pegadinha': [-1001233916997,],
                 ## Plugin Tropixel
                 'tropixel': [-1001233916997,],
+                ## Plugin garimpo: allowed groups for garimpa_tudo
+                'garimpo': [-1001207858341],
                 ### Não tem 'omega' porque 'omega' é qualquer outro id
                 ### Usuários e grupos especiais (que são referenciados 
                 ### pelo nome da chave)
