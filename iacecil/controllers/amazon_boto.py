@@ -57,9 +57,11 @@ async def get_audio(
 ):
     output = None
     dispatcher = Dispatcher.get_current()
-    Engine = dispatcher.bot.config['furhat']['synthesizer']['amazon'][
-        'engine']
-    VoiceId = dispatcher.bot.config['furhat']['voice']
+    if dispatcher is not None:
+        Engine = dispatcher.bot.config['furhat']['synthesizer'][
+            'amazon']['engine']
+        VoiceId = dispatcher.bot.config['furhat']['voice']
+    Extension = kwargs.get('Extension', 'ogg')
     try:
         speech = ((await get_session()).client('polly')
             ).synthesize_speech(
@@ -71,8 +73,8 @@ async def get_audio(
         )
         if 'AudioStream' in speech:
             with closing(speech['AudioStream']) as stream:
-                output = os.path.join(gettempdir(), "{}.ogg".format(
-                    uuid.uuid4()))
+                output = os.path.join(gettempdir(), "{}.{}".format(
+                    uuid.uuid4(), Extension))
                 with open(output, "wb") as file:
                     file.write(stream.read())
                 return output

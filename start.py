@@ -92,6 +92,7 @@ try:
         personas = 'default'
         add_startswith = None
         add_endswith = None
+        text = None
         
         ### Args parsing
         if len(sys.argv) > 2:
@@ -99,7 +100,10 @@ try:
             logger.info(u"Setting operation MODE to {}".format(
                 mode)
             )
-            if len(sys.argv) > 3:
+            if mode in ['polly']:
+                text = sys.argv[3:]
+                logger.info(u"Setting TEXT to {}".format(text))
+            elif len(sys.argv) > 3:
                 bots = sys.argv[3]
                 logger.info(u"""Using configuration from BOTS "{}" f\
 rom config file.""".format(bots))
@@ -281,7 +285,16 @@ o {}""".format(str(canonical)))
             try:
                 logger.info(u"Starting {}".format(iacecil.actual_name))
                 from iacecil.controllers import amazon_boto
-                asyncio.run(amazon_boto.teste())
+                print(u"\n\nFile is: {}\n\n".format(asyncio.run(
+                    amazon_boto.get_audio(
+                        Text = ' '.join(text),
+                        LanguageCode = 'pt-BR',
+                        VoiceId = 'Camila',
+                        # ~ OutputFormat = 'pcm',
+                        Engine = 'neural',
+                        # ~ Extension = 'wav',
+                    )
+                )))
                 logger.info(u"Finishing {}".format(iacecil.actual_name))
             except Exception as exception:
                 logger.critical(repr(exception))
