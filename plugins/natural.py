@@ -23,15 +23,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# ~ import base64, json, os, subprocess, sys, uuid
-# ~ from io import BytesIO
-# ~ from matplotlib.figure import Figure
-# ~ from contextlib import closing
-# ~ from tempfile import gettempdir
-# ~ import base64, json, os
-# ~ from matplotlib.figure import Figure
-# ~ from matplotlib import pyplot
-
 import io, nltk, pandas, string
 from contextlib import redirect_stdout
 from io import BytesIO
@@ -220,7 +211,7 @@ async def dispersion_plot_1(sent_list, words):
         pyplot.xlabel("<== mais recente para mais antigo ==>")
         figure_buffer = BytesIO()
         pyplot.savefig(figure_buffer, format = "png")
-        return figure_buffer.getbuffer()
+        return figure_buffer
     except Exception as exception:
         logger.warning(repr(exception))
         raise
@@ -391,10 +382,24 @@ async def add_handlers(dispatcher):
                     offset = 0,
                     limit = None,
                 )
-                plot = await dispersion_plot_1(texts[1], words)
-                command = await message.reply_photo(plot)
-                await command_callback(command, ['natural',
-                    'dispersion', message.chat.type])
+                plot = BytesIO()
+                try:
+                    plot.close()
+                    plot = await dispersion_plot_1(texts[1], words)
+                    command = await message.reply_photo(
+                        plot.getbuffer(), caption = u"""Dispersão léxic\
+a para os termos: {}""".format(' '.join(words)))
+                    await command_callback(command, ['natural',
+                        'dispersion', message.chat.type])
+                except Exception as exception:
+                    await erro_callback(
+                        u"Error trying to send graphic",
+                        message,
+                        exception,
+                        ['natural', 'dispersion', 'exception'],
+                    )
+                finally:
+                    plot.close()
         @dispatcher.message_handler(
             filters.IDFilter(
                 user_id = dispatcher.bot.config['telegram']['users'][

@@ -73,7 +73,7 @@ async def get_audio(
         )
         if 'AudioStream' in speech:
             with closing(speech['AudioStream']) as stream:
-                output = os.path.join(gettempdir(), "{}.{}".format(
+                output = os.path.join(gettempdir(), "ic.{}.{}".format(
                     uuid.uuid4(), Extension))
                 with open(output, "wb") as file:
                     file.write(stream.read())

@@ -18,7 +18,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import os, random, validators, youtube_dl
+import os, random, uuid, validators, youtube_dl
+from tempfile import gettempdir
 from aiogram.utils.markdown import escape_md, pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
@@ -27,8 +28,8 @@ from iacecil.controllers.aiogram_bot.callbacks import (
 )
 
 async def baixar(url):
-    video_rand = '%030x' % random.randrange(16**30)
-    video_file_name = '/tmp/ytdl_%s.mp4' % video_rand
+    video_file_name = os.path.join(gettempdir(), "ic.{}.mp4".format(
+        uuid.uuid4()))
     options = {
         'outtmpl' : video_file_name,
         #'format': 'worstvideo+worstaudio/worst',
@@ -46,24 +47,19 @@ async def baixar(url):
     return video_file_name
 
 async def ytdl(dispatcher, message):
-        await message_callback(message, ['ytdl', message.chat.type])
         url = None
         command = u"Não deu certo..."
         ## Será que é link?
         if message.entities is not None:
             for entity in message.entities:
                 if entity['type'] == "url":
-                    url =  message.text[
-                        entity['offset']:entity['length'] + \
-                        entity['offset']
-                    ]
+                    url =  message.text[entity['offset']:entity[
+                        'length'] + entity['offset']]
         if not url and message.reply_to_message is not None:
             for entity in message.reply_to_message.entities:
                 if entity['type'] == "url":
-                    url = message.reply_to_message.text[
-                        entity['offset']:entity['length'] + \
-                            entity['offset']
-                    ]
+                    url = message.reply_to_message.text[entity[
+                        'offset']:entity['length'] + entity['offset']]
         if url and validators.url(url):
             pass
         else:
@@ -72,40 +68,43 @@ async def ytdl(dispatcher, message):
             video_file = None
             try:
                 video_file = await baixar(url)
-            except Exception as e:
+            except Exception as exception:
                 await error_callback(
                     u"Erro tentando baixar vídeo",
                     message,
-                    e,
+                    exception,
                     ['ytdl'],
                 )
                 command = await message.reply(
                     escape_md(u"""Não consegui extrair a mídia. Olha o \
-que o servidor me disse: """) + pre("{}".format(str(e))),
+que o servidor me disse: """) + pre("{}".format(str(exception))),
                     parse_mode = "MarkdownV2",
                     disable_notification = True,
                 )
+            video = None
             try:
                 if video_file:
-                    video = open(video_file, 'rb')
-                    await message.reply_video(
-                        video = video,
-                        caption = url,
-                    )
-                    video.close()
-                    if os.path.exists(video_file):
-                        os.remove(video_file)
-            except Exception as e:
+                    with open(video_file, 'rb') as video:
+                        await message.reply_video(
+                            video = video,
+                            caption = url,
+                        )
+            except Exception as exception:
                 await error_callback(
                     u"Erro tentando subir vídeo",
                     message,
-                    e,
-                    ['ytdl'],
+                    exception,
+                    ['ytdl', 'exception'],
                 )
                 command = await message.reply(u"""Não consegui enviar o\
  arquivo. Tentei avisar o pessoal do desenvolvimento...""",
                     disable_notification = True,
                 )
+            finally:
+                if video is not None:
+                    video.close()
+                if os.path.exists(video_file):
+                    os.remove(video_file)
         else:
             command = await message.reply(escape_md(u"""\nO comando \
 {comando} serve pra extrair um vídeo ou áudio de algum site com suporte\
@@ -125,10 +124,11 @@ onda uma mensagem que tem um link com {comando} na resposta.""".format(
 async def add_handlers(dispatcher):
     try:
         ## Extrai vídeo ou áudio de vários serviços
-        @dispatcher.message_handler(
-            commands = ['y', 'yt', 'ytdl', 'youtube', 'baixar', 'video'],
-        )
+        @dispatcher.message_handler(commands = ['y', 'yt', 'ytdl',
+            'youtube', 'baixar', 'video', 'download', 'dl'])
         async def ytdl_callback(message):
+            await message_callback(message, ['ytdl', message.chat.type])
+            await message.reply(u"ok, vou baixar o vídeo e já te aviso")
             await ytdl(dispatcher, message)
     except Exception as exception:
         raise

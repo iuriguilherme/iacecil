@@ -48,7 +48,7 @@ async def storify_callback(
 ços de {} e já te mando...""".format(':'.join([h, m, s])))
         file_object = await dispatcher.bot.get_file(file_id)
         file_path = file_object.file_path
-        input_file = os.path.join(gettempdir(), "{}.mp4".format(
+        input_file = os.path.join(gettempdir(), "ic.{}.mp4".format(
             uuid.uuid4()))
         await dispatcher.bot.download_file(file_path, input_file)
         videos = await storify(input_file, h, m, s)

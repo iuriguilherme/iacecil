@@ -18,7 +18,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import os, pyqrcode, tempfile
+import os, pyqrcode
+from io import BytesIO
 from aiogram.utils.markdown import pre
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
@@ -26,14 +27,11 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 
-def create_qrcode(text):
-    photo = tempfile.mkstemp(suffix='.png')
+async def create_qrcode(text):
+    photo = BytesIO()
     qrcode = pyqrcode.create(str(text), version=10)
-    qrcode.png(photo[1], scale=6)
-    return {
-        'photo': photo, 
-        'text': str(text),
-    }
+    qrcode.png(photo, scale=6)
+    return photo
 
 ## Aiogram
 async def add_handlers(dispatcher):
@@ -44,13 +42,12 @@ async def add_handlers(dispatcher):
         )
         async def qr_callback(message):
             await message_callback(message, ['qr', message.chat.type])
-            if message.get_args():
+            if message.get_args() not in [None, '', ' ']:
+                photo = None
                 try:
-                    photo = open(str(
-                        create_qrcode(message.get_args())['photo'][1],
-                    ), 'rb')
+                    photo = await create_qrcode(message.get_args())
                     command = await message.reply_photo(
-                        photo = photo,
+                        photo = photo.getbuffer(),
                         caption = message.get_args(),
                     )
                 except Exception as exception:
@@ -62,6 +59,9 @@ async def add_handlers(dispatcher):
                     )
                     command = await message.reply(u"""Não consegui gera\
 r qr code, avisei o pessoal do desenvolvimento...""")
+                finally:
+                    if photo is not None:
+                        photo.close()
             else:
                 command = await message.reply(pre(u"""\nO comando \
 {comando} serve pra gerar um qr code a partir de um texto. Digite "\
