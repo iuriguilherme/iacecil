@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # ~ from matplotlib.figure import Figure
 # ~ from matplotlib import pyplot
 
-import io, nltk, string
+import io, nltk, pandas, string
 from contextlib import redirect_stdout
 from io import BytesIO
 from matplotlib import pyplot
@@ -44,6 +44,7 @@ from aiogram import (
     filters,
 )
 from iacecil.controllers.persistence.zodb_orm import (
+    get_aiogram_messages,
     get_aiogram_messages_texts,
     get_messages_texts_list,
 )
@@ -394,6 +395,63 @@ async def add_handlers(dispatcher):
                 command = await message.reply_photo(plot)
                 await command_callback(command, ['natural',
                     'dispersion', message.chat.type])
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                user_id = dispatcher.bot.config['telegram']['users'][
+                    'alpha'] + dispatcher.bot.config['telegram'][
+                        'users']['beta'],
+            ),
+            commands = ['nstats', 'nstatistics'],
+        )
+        async def nstatistics_callback(message):
+            await message_callback(message, ['natural', 'statistics',
+                message.chat.type])
+            limit = None
+            if message.get_args() not in [None, '', ' '] and \
+                message.get_args().isdigit():
+                limit = int(message.get_args())
+            messages = await get_aiogram_messages(
+                bot_id = dispatcher.bot.id,
+                chat_id = message.chat.id,
+                offset = 0,
+                limit = limit,
+            )
+            dataframe_messages = [{
+                'date': message['date'],
+                'text': message.get('text', ''),
+                'message_id': message['message_id'],
+                'from_id': message['from']['id'],
+                'from_is_bot': message['from']['is_bot'],
+                'from_first_name': message['from']['first_name'],
+                'from_last_name': message['from'].get('last_name', ''),
+                'from_username': message['from'].get('username', ''),
+                'from_language_code': message['from'].get(
+                    'language_code', ''),
+                } for message in messages[1]]
+            df = pandas.DataFrame(dataframe_messages)
+            texts = [message.get('text', '') for message in messages[1]]
+            words = await text_from_list(texts)
+            series = pandas.Series(words)
+            reply_text = f"""
+Estatísticas para {message.chat.mention}:
+
+Mensagens pesquisadas: últimas {len(messages[1])} de um total de \
+{messages[0]}
+Total de palavras: {len(words)}
+Diversidade léxica (porcentagem de palavras únicas): \
+{(len(set(words)) / len(words)):.2f}% ({len(set(words))} palavras única\
+s)
+Palavra mais usada: {words.vocab().most_common(1)[0][0]} (\
+{words.vocab().most_common(1)[0][1]} vezes)
+Pessoa que escreve mais: \
+{df['from_first_name'].value_counts().idxmax()} \
+({len([message for message in dataframe_messages if 
+message['from_first_name'] == df['from_first_name'
+].value_counts().idxmax()])} mensagens)
+"""
+            command = await message.reply(reply_text)
+            await command_callback(command, ['natural', 'statistics',
+                message.chat.type])
     except Exception as exception:
         logger.warning(repr(exception))
         raise
