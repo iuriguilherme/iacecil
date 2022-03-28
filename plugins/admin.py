@@ -45,11 +45,7 @@ from iacecil.controllers.persistence.zodb_orm import (
     get_messages_texts_list,
     get_messages_admin,
 )
-from iacecil.controllers.util import (
-    dice,
-    dice_high,
-    dice_low,
-)
+from iacecil.controllers.util import dice
 
 ## TODO migrar para aiogram - este código era do telepot
 ## Testar timezone do servidor
@@ -470,7 +466,7 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 number = int(message.get_args())
             rdice = await dice(number)
             result = u"perdeu"
-            if await dice_high(rdice):
+            if rdice > 1:
                 result = u"ganhou"
             command = await message.reply(
                 u"Resultado: {}, {} a aposta".format(rdice, result))
@@ -494,7 +490,7 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 number = int(message.get_args())
             rdice = await dice(number)
             result = u"perdeu"
-            if await dice_low(rdice):
+            if rdice == 1:
                 result = u"ganhou"
             command = await message.reply(
                 u"Resultado: {}, {} a aposta".format(rdice, result))
