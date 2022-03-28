@@ -45,6 +45,11 @@ from iacecil.controllers.persistence.zodb_orm import (
     get_messages_texts_list,
     get_messages_admin,
 )
+from iacecil.controllers.util import (
+    dice,
+    dice_high,
+    dice_low,
+)
 
 ## TODO migrar para aiogram - este código era do telepot
 ## Testar timezone do servidor
@@ -446,5 +451,54 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
             await command_callback(command, ['admin', 'sticker',
                 message.chat.type]
             )
+        ## Dice test
+        @dispatcher.message_handler(
+            # ~ filters.IDFilter(
+                # ~ user_id = dispatcher.bot.config['telegram']['users'][
+                    # ~ 'alpha'] + dispatcher.bot.config['telegram'][
+                    # ~ 'users']['beta'],
+            # ~ ),
+            commands = ['dado_alto', 'dice_high', 'dice_h', 'dh',
+                'dda'],
+        )
+        async def dice_high_callback(message):
+            await message_callback(message, ['admin', 'dice',
+                message.chat.type])
+            number = 2
+            if message.get_args() not in [None, '', ' '] and \
+                message.get_args().isdigit():
+                number = int(message.get_args())
+            rdice = await dice(number)
+            result = u"perdeu"
+            if await dice_high(rdice):
+                result = u"ganhou"
+            command = await message.reply(
+                u"Resultado: {}, {} a aposta".format(rdice, result))
+            await command_callback(command, ['admin', 'dice',
+                message.chat.type])
+        @dispatcher.message_handler(
+            # ~ filters.IDFilter(
+                # ~ user_id = dispatcher.bot.config['telegram']['users'][
+                    # ~ 'alpha'] + dispatcher.bot.config['telegram'][
+                    # ~ 'users']['beta'],
+            # ~ ),
+            commands = ['dado_baixo', 'dice_low', 'dice_l', 'dl',
+                'ddb'],
+        )
+        async def dice_low_callback(message):
+            await message_callback(message, ['admin', 'dice',
+                message.chat.type])
+            number = 2
+            if message.get_args() not in [None, '', ' '] and \
+                message.get_args().isdigit():
+                number = int(message.get_args())
+            rdice = await dice(number)
+            result = u"perdeu"
+            if await dice_low(rdice):
+                result = u"ganhou"
+            command = await message.reply(
+                u"Resultado: {}, {} a aposta".format(rdice, result))
+            await command_callback(command, ['admin', 'dice',
+                message.chat.type])
     except Exception as exception:
         raise
