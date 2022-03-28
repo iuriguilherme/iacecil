@@ -28,9 +28,9 @@ import ffmpeg, glob, os
 ## Converts audio files to telegram sendVoice format
 async def telegram_voice(input_file):
     output_file = '.'.join([
-        input_file.split('.')[0],
+        *input_file.split('.')[:2],
         'opus',
-        input_file.split('.')[1]
+        input_file.split('.')[2]
     ])
     try:
         proccess = (
