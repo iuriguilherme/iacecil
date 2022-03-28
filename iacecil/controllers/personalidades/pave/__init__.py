@@ -162,6 +162,30 @@ async def pegadinha(message):
 
 ## Aiogram
 async def add_handlers(dispatcher):
+    ## Responde mensagens que são respostas a mensagens deste bot
+    ## Reponde com patada
+    @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+    async def resposta_ignorante_callback(message):
+        await message_callback(
+            message,
+            ['resposta', 'ignorante', message.chat.type],
+        )
+        admin = message.from_user.first_name
+        if message.chat.type in ['group', 'supergroup']:
+            try:
+                admin = [member.user for member in \
+                    await dispatcher.bot.get_chat_administrators(
+                    message.chat.id
+                    ) if member.status == 'creator'][0].first_name
+            except IndexError:
+                pass
+        command = await message.reply(
+            random_texts.respostas_ignorante(admin),
+        )
+        await command_callback(command, ['resposta' 'ignorante',
+            message.chat.type],
+        )
+    
     ## Saúda com trollada
     @dispatcher.message_handler(
         filters.IDFilter(
@@ -304,29 +328,5 @@ async def add_handlers(dispatcher):
         )
         command = await message.reply(random_texts.respostas_bebida())
         await command_callback(command, ['resposta', 'bebida',
-            message.chat.type],
-        )
-
-    ## Responde mensagens que são respostas a mensagens deste bot
-    ## Reponde com patada
-    @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
-    async def resposta_ignorante_callback(message):
-        await message_callback(
-            message,
-            ['resposta', 'ignorante', message.chat.type],
-        )
-        admin = message.from_user.first_name
-        if message.chat.type in ['group', 'supergroup']:
-            try:
-                admin = [member.user for member in \
-                    await dispatcher.bot.get_chat_administrators(
-                    message.chat.id
-                    ) if member.status == 'creator'][0].first_name
-            except IndexError:
-                pass
-        command = await message.reply(
-            random_texts.respostas_ignorante(admin),
-        )
-        await command_callback(command, ['resposta' 'ignorante',
             message.chat.type],
         )

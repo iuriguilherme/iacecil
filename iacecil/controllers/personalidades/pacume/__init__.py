@@ -107,33 +107,70 @@ Para enviar reclamações sobre comportamento indevido, abra processo no \
 Ministério Público Federal, chama a tua mãe, se fode."""
 
 async def add_handlers(dispatcher):
-    # ~ ## Saúda com trollada
-    # ~ @dispatcher.message_handler(
-        # ~ filters.IDFilter(
-            # ~ ## Somente grupos configurados pra receber novas pessoas com
-            # ~ ## pegadinha
-            # ~ ## Atualmente só o @ZaffariPoa
-            # ~ chat_id = dispatcher.bot.config['telegram']['users'].get('pegadinha', -1),
-        # ~ ),
-        # ~ content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
-    # ~ )
-    # ~ async def welcome_pegadinha_callback(message: types.Message):
-        # ~ command_type = 'welcome'
-        # ~ await message_callback(message, [command_type, 'pegadinha',
-            # ~ message.chat.type],
-        # ~ )
-        # ~ if str(message['new_chat_member']['first_name']).lower() in \
-            # ~ [unwant.lower() for unwant in \
-            # ~ dispatcher.bot.config['telegram']['users'].get('unwanted', ['SPAM'])]:
-            # ~ text = await portaria(message)
-            # ~ command_type = 'portaria'
-            # ~ command = await message.reply(text)
-        # ~ else:
-            # ~ command = await pave.pegadinha(message)
-        # ~ await command_callback(command, [command_type, 'pegadinha',
-            # ~ message.chat.type],
-        # ~ )
-
+    ## Não deixa de graça
+    @dispatcher.message_handler(
+        filters.Regexp(r'\b({})\b'.format('|'.join(
+        random_texts.adjetivos()))),
+        is_reply_to_id = dispatcher.bot.id,
+    )
+    async def resposta_adjetivo_callback(message):
+        await message_callback(message, ['resposta', 'adjetivo',
+            message.chat.type],
+        )
+        command = None
+        audio_text = None
+        opus_file = None
+        try:
+            for adjetivo in random_texts.adjetivos():
+                if adjetivo.lower() == message.text[message.text.lower(
+                    ).find(adjetivo.lower()):][:len(adjetivo.lower())]:
+                    audio_text = adjetivo.lower() + \
+                        ' é tu. E tu é um {}.'.format(
+                        random_texts.respostas_adjetivos().lower()
+                    )
+            if audio_text is not None:
+                vorbis_file = await get_audio(audio_text)
+                opus_file = await telegram_voice(vorbis_file)
+                if opus_file is not None:
+                    with open(opus_file, 'rb') as audio:
+                        command = await message.reply_voice(audio)
+                    await command_callback(command, ['resposta',
+                        'adjetivo', message.chat.type])
+        except Exception as exception:
+            await error_callback(
+                u"Problema tentando mandar audio",
+                message,
+                exception,
+                ['error', 'reposta', 'adjetivo', message.chat.type],
+            )
+        finally:
+            if opus_file is not None:
+                os.remove(opus_file)
+    
+    ## Responde mensagens que são respostas a mensagens deste bot
+    ## Reponde com patada
+    @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+    async def resposta_ignorante_callback(message):
+        await message_callback(
+            message,
+            ['resposta', 'ignorante', message.chat.type],
+        )
+        admin = message.from_user.first_name
+        if message.chat.type in ['group', 'supergroup']:
+            try:
+                admin = [member.user for member in \
+                    await dispatcher.bot.get_chat_administrators(
+                    message.chat.id
+                    ) if member.status == 'creator'][0].first_name
+            except IndexError:
+                pass
+        command = await message.reply(
+            random_texts.respostas_ignorante(admin),
+        )
+        await command_callback(command, ['resposta' 'ignorante', 
+            message.chat.type],
+        )
+    
     ## Seja mau vindo
     @dispatcher.message_handler(
         content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
@@ -260,69 +297,7 @@ async def add_handlers(dispatcher):
             await command_callback(command, ['resposta', 'quanto',
                 message.chat.type])
 
-    ## Não deixa de graça
-    @dispatcher.message_handler(
-        filters.Regexp(r'\b({})\b'.format('|'.join(
-        random_texts.adjetivos()))),
-        is_reply_to_id = dispatcher.bot.id,
-    )
-    async def resposta_adjetivo_callback(message):
-        await message_callback(message, ['resposta', 'adjetivo',
-            message.chat.type],
-        )
-        command = None
-        audio_text = None
-        opus_file = None
-        try:
-            for adjetivo in random_texts.adjetivos():
-                if adjetivo.lower() == message.text[message.text.lower(
-                    ).find(adjetivo.lower()):][:len(adjetivo.lower())]:
-                    audio_text = adjetivo.lower() + \
-                        ' é tu. E tu é um {}.'.format(
-                        random_texts.respostas_adjetivos().lower()
-                    )
-            if audio_text is not None:
-                vorbis_file = await get_audio(audio_text)
-                opus_file = await telegram_voice(vorbis_file)
-                if opus_file is not None:
-                    with open(opus_file, 'rb') as audio:
-                        command = await message.reply_voice(audio)
-                    await command_callback(command, ['resposta',
-                        'adjetivo', message.chat.type])
-        except Exception as exception:
-            await error_callback(
-                u"Problema tentando mandar audio",
-                message,
-                exception,
-                ['error', 'reposta', 'adjetivo', message.chat.type],
-            )
-        finally:
-            if opus_file is not None:
-                os.remove(opus_file)
 
-    ## Responde mensagens que são respostas a mensagens deste bot
-    ## Reponde com patada
-    @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
-    async def resposta_ignorante_callback(message):
-        await message_callback(
-            message,
-            ['resposta', 'ignorante', message.chat.type],
-        )
-        admin = message.from_user.first_name
-        if message.chat.type in ['group', 'supergroup']:
-            try:
-                admin = [member.user for member in \
-                    await dispatcher.bot.get_chat_administrators(
-                    message.chat.id
-                    ) if member.status == 'creator'][0].first_name
-            except IndexError:
-                pass
-        command = await message.reply(
-            random_texts.respostas_ignorante(admin),
-        )
-        await command_callback(command, ['resposta' 'ignorante', 
-            message.chat.type],
-        )
     try:
         await add_instance_handlers(dispatcher)
     except Exception as e:
