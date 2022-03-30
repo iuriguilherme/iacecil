@@ -23,6 +23,28 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# ~ from pytz import utc
+
+# ~ from apscheduler.schedulers.background import BackgroundScheduler
+# ~ from apscheduler.jobstores.mongodb import MongoDBJobStore
+# ~ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+# ~ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
+
+
+# ~ jobstores = {
+    # ~ 'mongo': MongoDBJobStore(),
+    # ~ 'default': SQLAlchemyJobStore(url='sqlite:///jobs.sqlite')
+# ~ }
+# ~ executors = {
+    # ~ 'default': ThreadPoolExecutor(20),
+    # ~ 'processpool': ProcessPoolExecutor(5)
+# ~ }
+# ~ job_defaults = {
+    # ~ 'coalesce': False,
+    # ~ 'max_instances': 3
+# ~ }
+# ~ scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=utc)
+
 import asyncio, json, secrets
 from quart import (
     Quart,
@@ -40,6 +62,7 @@ from iacecil import name
 from iacecil.controllers.aiogram_bot import (
     add_filters,
     add_handlers,
+    add_jobs,
 )
 from iacecil.views.quart_app.blueprints import (
     admin,
@@ -101,6 +124,8 @@ def quart_startup(config, dispatchers):
         for dispatcher in dispatchers:
             await add_filters(dispatcher)
             await add_handlers(dispatcher)
+            await add_jobs(dispatcher)
+            dispatcher.scheduler.start()
             loop.create_task(dispatcher.start_polling(
                 reset_webhook = True,
                 timeout = 20,
@@ -123,8 +148,8 @@ def quart_startup(config, dispatchers):
     @quart_app.after_serving
     async def quart_after_serving():
         logger.info("Shutting down Quart...")
-        # ~ loop = asyncio.get_event_loop()
         for dispatcher in dispatchers:
+            dispatcher.scheduler.shutdown(wait = True)
             try:
                 await dispatcher.bot.send_message(
                     chat_id = dispatcher.config['telegram']['users'][
@@ -132,11 +157,12 @@ def quart_startup(config, dispatchers):
                     text = u"Mãe tá #off",
                     disable_notification = True,
                 )
-                await dispatcher.storage.close()
-                await dispatcher.storage.wait_closed()
             except Exception as exception:
                 logger.critical(u"""logs not configured properly: {}\
 """.format(exception))
                 raise
-        # ~ loop.close()
+            await dispatcher.storage.close()
+            await dispatcher.storage.wait_closed()
+        ## https://docs.aiohttp.org/en/stable/client_advanced.html
+        await asyncio.sleep(0.250)
     return quart_app

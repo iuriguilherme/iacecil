@@ -69,7 +69,8 @@
 
 try:
     if __name__ == '__main__':
-        import asyncio, iacecil, logging, sys, uvicorn
+        import asyncio, iacecil, locale, logging, sys, uvicorn
+        locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
         log_level = 'info'
         if len(sys.argv) > 1:
             log_level = sys.argv[1]

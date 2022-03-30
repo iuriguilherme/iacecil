@@ -47,6 +47,10 @@ from iacecil.controllers.aiogram_bot.filters import (
     IsReplyToIdFilter,
     WhoJoinedFilter,
 )
+from plugins.calendar import (
+    get_scheduler,
+    add_job,
+)
 
 def aiogram_startup(config, names):
     logger.info(u"Starting up Aiogram...")
@@ -62,8 +66,14 @@ def aiogram_startup(config, names):
         setattr(dispatcher, 'info', config[name]['info'])
         setattr(dispatcher, 'users', config[name]['telegram']['users'])
         setattr(dispatcher, 'plugins', config[name]['info']['plugins'])
+        setattr(dispatcher, 'scheduler', get_scheduler())
         dispatchers.append(dispatcher)
     return dispatchers
+
+async def add_jobs(dispatcher: Dispatcher):
+    for job in dispatcher.config['info']['jobs']:
+        await add_job(job, dispatcher.scheduler,
+            tz = dispatcher.config['info']['timezone'])
 
 async def add_filters(dispatcher: Dispatcher):
     ### Filters

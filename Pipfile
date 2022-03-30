@@ -57,6 +57,7 @@ youtube-dl = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
 tabulate = "*"
+apscheduler = "*"
 
 [requires]
 python_version = "3.9"

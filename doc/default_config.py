@@ -80,6 +80,9 @@ class Config(BaseSettings):
                     'filecoin': 'https://1234567890:1234567890@filecoin.infura.io',
                 }, # infura
             }, # web3
+            ## Plugin calendar
+            'jobs': [],
+            'timezone': 'America/Sao_Paulo',
             ### Níveis de permissão (inspirados no Brave New World):
             ###
             ### Os usuários e grupos cujos ids estão na lista 
@@ -352,6 +355,13 @@ class Config(BaseSettings):
                         'welcome', 'ytdl',
                     ], # enable
                 ), # plugins
+                jobs = defaults['info']['jobs'] + [
+                    {
+                        'name': 'test_now',
+                        'args': [],
+                        'kwargs': {},
+                    },
+                ], # jobs
             ), # info
             telegram = dict(
                 defaults['telegram'].copy(),
