@@ -357,10 +357,26 @@ class Config(BaseSettings):
                 ), # plugins
                 jobs = defaults['info']['jobs'] + [
                     {
-                        'name': 'test_now',
+                        'pack': 'test',
+                        'func': 'test_now',
+                        'name': 'this_is_a_test',
                         'args': [],
                         'kwargs': {},
-                    },
+                        'trigger': {'minutes': 1},
+                    }, # test_now
+                    ## This sends good afternoon everyday at 2pm
+                    {
+                        'pack': 'bom_dia',
+                        'func': 'bom_dia',
+                        'name': 'boa_tarde',
+                        'args': [],
+                        'kwargs': {
+                            'message': u"Boa tarde.",
+                            'groups': ['-1'],
+                        }, # kwargs
+                        'trigger': {'hour': 14},
+                        'reschedule': {'hour': 0},
+                    }, # boa_tarde
                 ], # jobs
             ), # info
             telegram = dict(

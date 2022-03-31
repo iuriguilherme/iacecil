@@ -72,8 +72,7 @@ def aiogram_startup(config, names):
 
 async def add_jobs(dispatcher: Dispatcher):
     for job in dispatcher.config['info']['jobs']:
-        await add_job(job, dispatcher.scheduler,
-            tz = dispatcher.config['info']['timezone'])
+        await add_job(job, dispatcher.scheduler, dispatcher)
 
 async def add_filters(dispatcher: Dispatcher):
     ### Filters

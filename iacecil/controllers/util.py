@@ -23,12 +23,17 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import random
+import random, uuid
 
 ## Probability
 async def dice(number):
     return random.randint(1, number)
+
 async def dice_low(number):
     return (await dice(number)) == 1
+
 async def dice_high(number):
     return (await dice(number)) > 1
+
+async def get_job_id(*args):
+    return str(uuid.uuid5(uuid.UUID(int = 0), '.'.join(args)))
