@@ -36,6 +36,7 @@ from iacecil.controllers.personalidades import (
     matebot,
     metarec,
     pacume,
+    pasoca,
     pave,
 )
 
@@ -47,6 +48,7 @@ personalidades = {
     'matebot': matebot,
     'metarec': metarec,
     'pacume': pacume,
+    'pasoca': pasoca,
     'pave': pave,
 }
 

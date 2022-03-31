@@ -80,3 +80,5 @@ v0.1.12.0, 2022-03-09 -- Experiments with Furhat Robot
 v0.1.14.0, 2022-03-15 -- Furhat Robots changing faces and voices according to personalities
 v0.1.16.1, 2022-03-23 -- Text to Speech for Telegram Voice Messages and web3 integration
 v0.1.18.0, 2022-03-29 -- Scheduling
+v0.1.18.0, 2022-03-29 -- Scheduling
+v0.1.18.2, 2022-03-31 -- Tia do Zap personality
