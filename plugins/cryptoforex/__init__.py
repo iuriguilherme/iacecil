@@ -47,7 +47,7 @@ async def price(dispatcher, message, converts, comando):
     ## TODO verificar se a moeda existe
     try:
         resposta = await coinmarketcap_price(
-            dispatcher.bot.config['info']['coinmarketcap_token'], moeda, converts)
+            dispatcher.config['info']['coinmarketcap']['token'], moeda, converts)
         logger.info(resposta)
         logger.info(type(resposta))
         if resposta['status']['error_code'] > 0:
