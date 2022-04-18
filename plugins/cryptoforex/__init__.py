@@ -25,8 +25,10 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     message_callback,
 )
-from plugins.cryptoforex.api_coinmarketcap import price_v1\
-    as coinmarketcap_price
+from plugins.cryptoforex.api_coinmarketcap import (
+    price_v1 as coinmarketcap_price,
+    conv_v2 as coinmarketcap_conv,
+)
 
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -47,16 +49,23 @@ async def price(dispatcher, message, converts, comando):
     ## TODO verificar se a moeda existe
     try:
         resposta = await coinmarketcap_price(
-            dispatcher.config['info']['coinmarketcap']['token'], moeda, converts)
-        # ~ logger.info(resposta)
-        # ~ logger.info(type(resposta))
+            dispatcher.config['info']['coinmarketcap']['token'],
+            moeda,
+            converts,
+        )
+        logger.info(resposta)
+        logger.info(type(resposta))
         if resposta['status']['error_code'] > 0:
-            await error_callback(resposta['status']['error_message'],
-                                 message, None,
-                                 ['cryptoforex', 'coinmarketcap', 'price'])
-            await message.reply(u"""Erro tentando calcular preço. O pessoa\
-l que cuida do desenvolvimento já foi avisado, eu acho. Verifique se a moeda e\
-xiste e o símbolo está correto (por exemplo BTC, LTC, ETH)...""")
+            await error_callback(
+                resposta['status']['error_message'],
+                message,
+                None,
+                ['cryptoforex', 'coinmarketcap', 'price'],
+            )
+            await message.reply(u"""Erro tentando calcular preço. O pes\
+soal que cuida do desenvolvimento já foi avisado, eu acho. Verifique se\
+ a moeda existe e o símbolo está correto (por exemplo BTC, LTC, ETH)...\
+""")
         else:
             text = """
 Price information for {nome} (from coinmarketcap.com)
@@ -83,59 +92,134 @@ Total supply: {oferta_total} {simbolo}
 """.format(
                 nome = resposta['data'][moeda.upper()]['name'],
                 # '2021-05-03T22:52:02.000Z'
-                data = datetime.datetime.strptime(
-                    resposta['data'][moeda.upper()]['last_updated'],
-                    '%Y-%m-%dT%H:%M:%S.000Z').strftime('%c'),
-                marketcap = '{:,.2f}'.format(float(
-                    resposta['data'][moeda.upper()]['quote']['USD']['market_cap'])),
+                # ~ data = datetime.datetime.strptime(resposta['data'][
+                    # ~ moeda.upper()]['last_updated'],
+                    # ~ '%Y-%m-%dT%H:%M:%S.000Z').strftime('%c'),
+                ## FIXME: Above code sometimes short circuits
+                data = str(datetime.datetime.now()),
+                marketcap = '{:,.2f}'.format(float(resposta['data'][
+                    moeda.upper()]['quote']['USD']['market_cap'])),
                 simbolo = resposta['data'][moeda.upper()]['symbol'],
-                preco_dolar = '{:,.2f}'.format(float(
-                    resposta['data'][moeda.upper()]['quote']['USD']['price'])),
+                preco_dolar = '{:,.2f}'.format(float(resposta['data'][
+                    moeda.upper()]['quote']['USD']['price'])),
                 ## FIXME converter pra euro e real
-                ## tem que pagar um plano mais caro da api da coinmarketcap
-                ## e usar o parâmetro convert com EUR,BRL,BTC
-                preco_euro='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
-                preco_real='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
-                preco_btc='{:,.8f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
-                variacao_1h='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_1h']),
-                variacao_1d='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_24h']),
-                variacao_1s='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_7d']),
-                variacao_1m='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_30d']),
-                variacao_2m='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_60d']),
-                variacao_3m='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD'][
-                        'percent_change_90d']),
-                volume_1d='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['volume_24h']),
-                volume_1s='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['volume_7d']),
-                volume_1m='{:,.2f}'.format(
-                    resposta['data'][moeda.upper()]['quote']['USD']['volume_30d']),
-                oferta='{:,.8f}'.format(
-                    resposta['data'][moeda.upper()]['circulating_supply']),
-                oferta_total='{:,.8f}'.format(
-                    resposta['data'][moeda.upper()]['total_supply']),
+                ## tem que pagar um plano mais caro da api da
+                ## coinmarketcap e usar o parâmetro convert com
+                ## EUR,BRL,BTC
+                # ~ preco_euro='{:,.2f}'.format(resposta['data'][
+                    # ~ moeda.upper()]['quote']['USD']['price']),
+                # ~ preco_real='{:,.2f}'.format(resposta['data'][
+                    # ~ moeda.upper()]['quote']['USD']['price']),
+                # ~ preco_btc='{:,.8f}'.format(resposta['data'][
+                    # ~ moeda.upper()]['quote']['USD']['price']),
+                variacao_1h='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_1h'
+                    ]),
+                variacao_1d='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_24h'
+                    ]),
+                variacao_1s='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_7d']
+                    ),
+                variacao_1m='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_30d']
+                    ),
+                variacao_2m='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_60d']
+                    ),
+                variacao_3m='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['percent_change_90d']
+                    ),
+                volume_1d='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['volume_24h']),
+                volume_1s='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['volume_7d']),
+                volume_1m='{:,.2f}'.format(resposta['data'][
+                    moeda.upper()]['quote']['USD']['volume_30d']),
+                oferta='{:,.8f}'.format(resposta['data'][moeda.upper()][
+                    'circulating_supply']),
+                oferta_total='{:,.8f}'.format(resposta['data'][
+                    moeda.upper()]['total_supply']),
             )
             command = await message.reply(text)
-            await command_callback(command, [comando, message.chat.type])
+            await command_callback(
+                command,
+                [comando, message.chat.type],
+            )
     except Exception as exception:
-        await error_callback(u"Erro contatando coinmarketcap.com", message,
-                             exception, ['cryptoforex', 'price'])
-        await message.reply(u"""Erro tentando calcular preço. O pessoal qu\
-    e cuida do desenvolvimento já foi avisado, eu acho...""")
+        await error_callback(
+            u"Erro contatando coinmarketcap.com",
+            message,
+            exception,
+            ['cryptoforex', 'price'],
+        )
+        await message.reply(u"""Erro tentando calcular preço. O pessoal\
+ que cuida do desenvolvimento já foi avisado, eu acho...""")
+
+async def conv(dispatcher, message, comando):
+    # Presumindo bitcoin quando não há argumentos
+    left = "BTC"
+    right = "USD"
+    try:
+        much, left, right = *message.get_args().split(' ')[:2], \
+            message.get_args().split(' ')[2:]
+    except Exception as exception:
+        logger.warning(repr(exception))
+        return f"""
+Usage: {message.get_command()} 1 BTC USD
+
+Where 1 is the desired amount to convert, BTC is the crypto/fiat to con\
+vert FROM and USD is the crypto/fiat to convert TO. In this example we \
+convert one Bitcoin to American Dollars, which is the same behaviour of\
+ the /price command.
+
+Another example: {message.get_command()} 0.2 ETH BRL
+
+This one show the current value in Brazilian Reals of 0.2 Ethereum.
+"""
+## FIXME the current plan doesn't allow this
+# ~ + """
+# ~ You can convert to up to 120 fiat / cryptos like this:
+
+# ~ {message.get_command()} 1 BTC USD BRL EUR
+
+# ~ This would show the price of 1 BTC in American Dollars, Brazilian Reals\
+# ~ and Euros, respectively.
+# ~ """
+    ## TODO verificar se a moeda existe
+    try:
+        response = await coinmarketcap_conv(
+            dispatcher.config['info']['coinmarketcap']['token'],
+            float(much),
+            left,
+            ','.join(right),
+        )
+        if response['status']['error_code'] > 0:
+            await error_callback(
+                response['status']['error_message'],
+                message,
+                None,
+                ['cryptoforex', 'coinmarketcap', 'conv'],
+            )
+            await message.reply(u"""Erro tentando converter valores. O \
+pessoal que cuida do desenvolvimento já foi avisado, eu acho. Verifique\
+ se a moeda existe, a quantidade é um número e o símbolo está correto (\
+por exemplo BTC, LTC, ETH)...""")
+        else:
+            return '\n'.join([f"""(from coinmarketcap.com): \
+{conv['amount']} {conv['name']}\n{result}\
+""" for result in [f"""
+{conv['quote'][quote.upper()]['price']} \
+{quote.upper()}""" for quote in right] for conv in response['data']])
+    except Exception as exception:
+        await error_callback(
+            u"Erro contatando coinmarketcap.com",
+            message,
+            exception,
+            ['cryptoforex', 'price'],
+        )
+        return """Erro tentando calcular preço. O pessoal que cuida do\
+ desenvolvimento já foi avisado, eu acho..."""
 
 ## Aiogram
 async def add_handlers(dispatcher):
@@ -145,7 +229,10 @@ async def add_handlers(dispatcher):
             commands=['price', 'p'],
         )
         async def price_callback(message):
-            await message_callback(message, ['price', message.chat.type])
+            await message_callback(
+                message,
+                ['price', message.chat.type],
+            )
             await price(dispatcher, message, 'USD', 'price')
 
         # ## Dados de exchanges brasileiras
@@ -191,95 +278,18 @@ async def add_handlers(dispatcher):
     #         await command_callback(command, ['preco', message.chat.type])
 
         ## Converte valores entre moedas (criptomoeda ou fiduciário)
-
-        async def conv_erro(message):
-            await message.reply("""Command not yet implemented, check curre\
-    nt status at @matebotnews""")
-            # ~ await message.reply("""
-    # ~ Command usage: /{comando} 1 BTC USD
-
-    # ~ Where 1 is the desired amount to convert, BTC is the crypto/fiat to convert FR\
-    # ~ OM and USD is the crypto/fiat to convert TO. In this example we convert one bi\
-    # ~ tcoin to american dollars, which is the same behaviour of the /price command.
-    # ~ """.format(comando = message.get_command()))
-            await error_callback(
-                # ~ "Usaram o comando de forma incorreta: {}".format(
-                "Tentaram usar um comando que ainda não existe: {}".format(
-                    message.get_full_command()),
-                message,
-                None,
-                ['cryptoforex', 'conv'],
-            )
-
         @dispatcher.message_handler(
             commands=['conv', 'convert', 'converter', 'c'],
         )
         async def conv_callback(message):
             await message_callback(message, ['conv', message.chat.type])
-            mensagem = message.get_args()
-            await conv_erro(message)
-            # ~ if mensagem:
-                # ~ if len(mensagem) == 4:
-                    # ~ ## /conv 1 BTC BRL
-                    # ~ parametros = {
-                        # ~ 'valor': mensagem[1],
-                        # ~ 'de': mensagem[2],
-                        # ~ 'para': mensagem[3],
-                    # ~ }
-                    # ~ try:
-                        # ~ float(parametros['valor'])
-                    # ~ except ValueError:
-                        # ~ await conv_erro(message)
-                    # ~ ## FIXME dados fictícios
-                    # ~ ## https://coinmarketcap.com/api/documentation/v1/#operation/getV1ToolsPriceconversion
-                    # ~ resposta_da_api = {
-                        # ~ "data": {
-                            # ~ "symbol": "BTC",
-                            # ~ "id": "1",
-                            # ~ "name": "Bitcoin",
-                            # ~ "amount": 50,
-                            # ~ "last_updated": "2018-06-06T08:04:36.000Z",
-                            # ~ "quote": {
-                                # ~ "GBP": {
-                                    # ~ "price": 284656.08465608465,
-                                    # ~ "last_updated": "2018-06-06T06:00:00.000Z"
-                                # ~ },
-                                # ~ "LTC": {
-                                    # ~ "price": 3128.7279766396537,
-                                    # ~ "last_updated": "2018-06-06T08:04:02.000Z"
-                                # ~ },
-                                # ~ "USD": {
-                                    # ~ "price": 381442,
-                                    # ~ "last_updated": "2018-06-06T08:06:51.968Z"
-                                # ~ }
-                            # ~ }
-                        # ~ },
-                        # ~ "status": {
-                            # ~ "timestamp": "2021-04-27T05:57:31.757Z",
-                            # ~ "error_code": 0,
-                            # ~ "error_message": "",
-                            # ~ "elapsed": 10,
-                            # ~ "credit_count": 1
-                        # ~ }
-                    # ~ }
-                    # ~ ## TODO formatar fiat de forma diferente - $ {:,.2f}
-                    # ~ resultado = """
-    # ~ (from coinmarketcap.com):",
-    # ~ {amount_from} {symbol_from} = {amount_to} {symbol_to}
-    # ~ """.format(
-                        # ~ amount_from = '{:,.8f}'.format(
-                            # ~ resposta_da_api['data']['amount']),
-                        # ~ symbol_from = resposta_da_api['data']['symbol'],
-                        # ~ amount_to = '{:,.8f}'.format(
-                            # ~ resposta_da_api['data']['quote'][
-                                # ~ parametros['para']]['price']),
-                        # ~ symbol_to = parametros['para']
-                    # ~ )
-                    # ~ command = await message.reply(resultado)
-                    # ~ await command_callback(command, ['conv', message.chat.type])
-                # ~ else:
-                    # ~ await conv_erro(message)
-            # ~ else:
-                # ~ await conv_erro(message)
+            command = await message.reply(await conv(dispatcher,
+                message, 'conv'))
+            await command_callback(
+                command,
+                ['conv', message.chat.type],
+            )
     except Exception as exception:
+        logger.warning(f"""Error importing plugin {__name__}: \
+{repr(exception)}""")
         raise
