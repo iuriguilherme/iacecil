@@ -156,7 +156,7 @@ Total supply: {oferta_total} {simbolo}
         await message.reply(u"""Erro tentando calcular preço. O pessoal\
  que cuida do desenvolvimento já foi avisado, eu acho...""")
 
-async def conv(dispatcher, message, comando):
+async def conv(dispatcher, message):
     # Presumindo bitcoin quando não há argumentos
     left = "BTC"
     right = "USD"
@@ -177,7 +177,7 @@ Another example: {message.get_command()} 0.2 ETH BRL
 
 This one show the current value in Brazilian Reals of 0.2 Ethereum.
 """
-## FIXME the current plan doesn't allow this
+## FIXME current plan doesn't allow this
 # ~ + """
 # ~ You can convert to up to 120 fiat / cryptos like this:
 
@@ -201,13 +201,13 @@ This one show the current value in Brazilian Reals of 0.2 Ethereum.
                 None,
                 ['cryptoforex', 'coinmarketcap', 'conv'],
             )
-            await message.reply(u"""Erro tentando converter valores. O \
-pessoal que cuida do desenvolvimento já foi avisado, eu acho. Verifique\
- se a moeda existe, a quantidade é um número e o símbolo está correto (\
-por exemplo BTC, LTC, ETH)...""")
+            return """Erro tentando converter valores. O pessoal que cu\
+ida do desenvolvimento já foi avisado, eu acho. Verifique se a moeda ex\
+iste, a quantidade é um número e o símbolo está correto (por exemplo BT\
+C, LTC, ETH)..."""
         else:
             return '\n'.join([f"""(from coinmarketcap.com): \
-{conv['amount']} {conv['name']}\n{result}\
+{conv['amount']} {conv['name']} = {result}\
 """ for result in [f"""
 {conv['quote'][quote.upper()]['price']} \
 {quote.upper()}""" for quote in right] for conv in response['data']])
@@ -218,8 +218,8 @@ por exemplo BTC, LTC, ETH)...""")
             exception,
             ['cryptoforex', 'price'],
         )
-        return """Erro tentando calcular preço. O pessoal que cuida do\
- desenvolvimento já foi avisado, eu acho..."""
+        return """Erro tentando calcular preço. O pessoal que cuida do \
+desenvolvimento já foi avisado, eu acho..."""
 
 ## Aiogram
 async def add_handlers(dispatcher):
@@ -284,7 +284,7 @@ async def add_handlers(dispatcher):
         async def conv_callback(message):
             await message_callback(message, ['conv', message.chat.type])
             command = await message.reply(await conv(dispatcher,
-                message, 'conv'))
+                message))
             await command_callback(
                 command,
                 ['conv', message.chat.type],
