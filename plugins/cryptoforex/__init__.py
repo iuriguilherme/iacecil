@@ -48,8 +48,8 @@ async def price(dispatcher, message, converts, comando):
     try:
         resposta = await coinmarketcap_price(
             dispatcher.config['info']['coinmarketcap']['token'], moeda, converts)
-        logger.info(resposta)
-        logger.info(type(resposta))
+        # ~ logger.info(resposta)
+        # ~ logger.info(type(resposta))
         if resposta['status']['error_code'] > 0:
             await error_callback(resposta['status']['error_message'],
                                  message, None,
@@ -81,53 +81,53 @@ Last month volume: U$$ {volume_1m}
 Available supply: {oferta} {simbolo}
 Total supply: {oferta_total} {simbolo}
 """.format(
-                nome = resposta['data'][moeda]['name'],
+                nome = resposta['data'][moeda.upper()]['name'],
                 # '2021-05-03T22:52:02.000Z'
                 data = datetime.datetime.strptime(
-                    resposta['data'][moeda]['last_updated'],
+                    resposta['data'][moeda.upper()]['last_updated'],
                     '%Y-%m-%dT%H:%M:%S.000Z').strftime('%c'),
                 marketcap = '{:,.2f}'.format(float(
-                    resposta['data'][moeda]['quote']['USD']['market_cap'])),
-                simbolo = resposta['data'][moeda]['symbol'],
+                    resposta['data'][moeda.upper()]['quote']['USD']['market_cap'])),
+                simbolo = resposta['data'][moeda.upper()]['symbol'],
                 preco_dolar = '{:,.2f}'.format(float(
-                    resposta['data'][moeda]['quote']['USD']['price'])),
+                    resposta['data'][moeda.upper()]['quote']['USD']['price'])),
                 ## FIXME converter pra euro e real
                 ## tem que pagar um plano mais caro da api da coinmarketcap
                 ## e usar o parâmetro convert com EUR,BRL,BTC
                 preco_euro='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['price']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
                 preco_real='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['price']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
                 preco_btc='{:,.8f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['price']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['price']),
                 variacao_1h='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_1h']),
                 variacao_1d='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_24h']),
                 variacao_1s='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_7d']),
                 variacao_1m='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_30d']),
                 variacao_2m='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_60d']),
                 variacao_3m='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD'][
+                    resposta['data'][moeda.upper()]['quote']['USD'][
                         'percent_change_90d']),
                 volume_1d='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['volume_24h']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['volume_24h']),
                 volume_1s='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['volume_7d']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['volume_7d']),
                 volume_1m='{:,.2f}'.format(
-                    resposta['data'][moeda]['quote']['USD']['volume_30d']),
+                    resposta['data'][moeda.upper()]['quote']['USD']['volume_30d']),
                 oferta='{:,.8f}'.format(
-                    resposta['data'][moeda]['circulating_supply']),
+                    resposta['data'][moeda.upper()]['circulating_supply']),
                 oferta_total='{:,.8f}'.format(
-                    resposta['data'][moeda]['total_supply']),
+                    resposta['data'][moeda.upper()]['total_supply']),
             )
             command = await message.reply(text)
             await command_callback(command, [comando, message.chat.type])
