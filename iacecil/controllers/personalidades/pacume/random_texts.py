@@ -30,7 +30,7 @@ import random
 try:
     import instance.personalidades.pave.random_texts as pave
 except Exception as exception:
-    import plugins.personalidades.pave.random_texts as pave
+    import iacecil.controllers.personalidades.pave.random_texts as pave
     logger.debug(u"Não consegui achar o arquivo: {}".format(
         repr(exception)))
 
