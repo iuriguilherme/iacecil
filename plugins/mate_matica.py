@@ -19,12 +19,22 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import math, binascii, os
+import binascii, math, numpy, os
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
     message_callback,
 )
+
+def dice(faces = 6, seed = None, *args, **kwargs) -> int:
+    """Retorna um valor pseudo aleatório de uma das faces de um dado."""
+    numpy.random.seed(seed)
+    return numpy.random.randint(1, faces + 1)
+
+def coord(seed = None, *args, **kwargs) -> float:
+    """Retorna um valor pseudo aleatório entre zero e um."""
+    numpy.random.seed(seed)
+    return numpy.random.rand()
 
 ## π
 def cmd_pi(args):
@@ -165,5 +175,28 @@ async def add_handlers(dispatcher):
                 str(( 1 + math.sqrt(5) ) / 2),
             )
             await command_callback(command, ['phi', message.chat.type])
+
+        @dispatcher.message_handler(
+            commands = ['dice', 'dado', 'd'],
+        )
+        async def dice_callback(message):
+            """
+            Retorna um valor pseudo aleatório de uma face de um dado com 
+            tantos lados quantos o primeiro argumento. Padrão: 6
+            """
+            await message_callback(message, ['dice', message.chat.type])
+            faces = 6
+            try:
+                if message.get_args() not in [None, '', ' ', 0]:
+                    faces = int(message.get_args())
+                    if not faces > 0:
+                        raise ValueError()
+            except ValueError:
+                await message.reply(f"""{message.get_args()} não é um \
+número de faces de um dado válido, vou usar um dado de seis faces normal.\
+""")
+            command = await message.reply(dice(faces))
+            await command_callback(command, ['dice', message.chat.type])
+        
     except Exception as exception:
         raise

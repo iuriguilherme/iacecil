@@ -21,19 +21,44 @@ import logging
 logger = logging.getLogger(__name__)
 
 import numpy
+from aiogram import Dispatcher
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
     message_callback,
 )
+from iacecil.controllers.persistence.zodb_orm import (
+    get_tc_levels,
+    set_tc_level,
+    set_tc_roll,
+)
+from plugins.mate_matica import dice
 
-def dice(faces = 6, seed = None, *args, **kwargs) -> int:
-    numpy.random.seed(seed)
-    return numpy.random.randint(1, faces + 1)
+## Valores padrão
+faces = 3
+comando = '/torre'
 
-def coord(seed = None, *args, **kwargs) -> float:
-    numpy.random.seed(seed)
-    return numpy.random.rand()
+async def level_down(bot_id: str, user_id: str, levels: list) -> int:
+    level = max(0, levels[-1] - 1)
+    await set_tc_level(bot_id, user_id, level)
+    return (level, 0)
+
+async def level_up(bot_id: str, user_id: str, levels: list) -> int:
+    level = levels[-1] + 1
+    await set_tc_level(bot_id, user_id, level)
+    return (level, 0)
+
+async def levels_up(bot_id: str, user_id: str, levels: list) -> int:
+    roll = dice(faces)
+    level = levels[-1] + roll
+    await set_tc_level(bot_id, user_id, level)
+    return (level, roll)
+
+mapa = {
+    1: level_down,
+    2: level_up,
+    3: levels_up,
+}
 
 async def add_handlers(dispatcher):
     """
@@ -41,28 +66,54 @@ async def add_handlers(dispatcher):
     habilitado.
     """
     try:
-        ## Rola um dado
         @dispatcher.message_handler(
-            commands = ['dice', 'dado', 'd'],
+            commands = ['torre'],
         )
-        async def dice_callback(message):
+        async def torre_callback(message):
             """
-            Retorna um valor pseudo aleatório de uma face de um dado com 
-            tantos lados quantos o primeiro argumento. Padrão: 6
+            Instruções e ajuda para Jogo Torre
             """
-            await message_callback(message, ['tc', 'dice', message.chat.type])
-            faces = 6
+            await message_callback(message, ['tc', 'torre', message.chat.type])
+            command = await message.reply(f"""Instruções: Cada jogador começa \
+no térreo de uma torre de andares infinitos. Use o comando /rolar ou /roll \
+para rolar um dado de {faces} faces. Caso o resultado seja:\n\n\
+1: Desça um andar;\n\
+2: Suba um andar;\n\
+3: Role o dado novamente e suba tantos andares quanto o valor do segundo \
+dado.\n\n\
+Não é possível descer além do térreo (andar 0). Para ver as estatísticas do \
+jogo, espere este comando existir. Para apagar todas as estatísticas, espere \
+este comando existir.""")
+            await command_callback(command, ['tc', 'torre', message.chat.type])
+
+        @dispatcher.message_handler(
+            commands = ['roll', 'rolar'],
+        )
+        async def roll_callback(message):
+            """
+            Acrescenta uma rolagem de dados para este usuário no banco de 
+            dados, e retorna o próximo nível.
+            """
+            await message_callback(message, ['tc', 'roll', message.chat.type])
             try:
-                if message.get_args() not in [None, '', ' ', 0]:
-                    faces = int(message.get_args())
-                    if not faces > 0:
-                        raise ValueError()
-            except ValueError:
-                pass
-                # ~ await message.reply(f"""{message.get_args()} não é um \
-# ~ número de faces de um dado válido, vou usar um dado de seis faces normal.\
-# ~ """)
-            command = await message.reply(dice(faces))
-            await command_callback(command, ['tc', 'dice', message.chat.type])
+                bot_id = Dispatcher.get_current().bot.id
+                roll = dice(faces)
+                rolled = await set_tc_roll(bot_id, message.from_id, roll)
+                levels = [v[1] for v in await get_tc_levels(bot_id,
+                    message.from_id)]
+                level, new_roll = await mapa[roll](bot_id, message.from_id,
+                    levels)
+                if new_roll > 0:
+                    command = await message.reply(f"""Resultado: {str(roll)}! \
+Segundo dado: {str(new_roll)}. Novo nível: {str(level)}. Para instruções, \
+clique em {comando}""")
+                else:
+                    command = await message.reply(f"""Resultado: {str(roll)}. \
+Novo nível: {str(level)}. Para instruções, clique em {comando}""")
+            except Exception as exception:
+                logger.exception(exception)
+                command = await message.reply("""Problemas técnicos. Avise o \
+desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
+            await command_callback(command, ['tc', 'roll', message.chat.type])
     except Exception as exception:
         raise
