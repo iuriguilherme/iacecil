@@ -82,3 +82,4 @@ v0.1.16.1, 2022-03-23 -- Text to Speech for Telegram Voice Messages and web3 int
 v0.1.18.0, 2022-03-29 -- Scheduling
 v0.1.18.0, 2022-03-29 -- Scheduling
 v0.1.18.2, 2022-03-31 -- Tia do Zap personality
+v0.1.19, 2022-08-22 -- Fixed uncontiguous tags and new tag system. Torre Game
