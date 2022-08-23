@@ -176,15 +176,15 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
             Exibe um gráfico com o histórico de níveis deste user_id
             """
             await message_callback(message, ['tc', 'where', message.chat.type])
-            figure_buffer = BytesIO()
             try:
+                figure_buffer = BytesIO()
                 levels = await get_tc_levels(dispatcher.bot.id,
                     message.from_id)
                 pyplot.plot([v[1] for v in levels])
                 ## Essas três linhas estão tentando forçar escala em inteiros
                 # ~ level_ticks = zip(levels)
-                pyplot.xticks([v[0] for v in levels])
-                pyplot.yticks([v[1] for v in levels])
+                # ~ pyplot.xticks([v[0] for v in levels])
+                # ~ pyplot.yticks([v[1] for v in levels])
                 pyplot.title(f"""nível a cada jogada de \
 {message['from']['first_name']}""")
                 pyplot.xlabel("número da jogada")
@@ -194,8 +194,9 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     await message.reply_photo(
                         figure_buffer.getbuffer(),
                         caption = f"""Para abrir a próxima porta, clique em \
-/andar\nPara ver as estatísticas, clique em /aonde\nPara instruções, clique \
-em {comando}""",
+/andar\n\
+Para ver as estatísticas, clique em /aonde\n\
+Para instruções, clique em {comando}""",
                     )
                 except Exception as exception:
                     await erro_callback(
@@ -205,6 +206,12 @@ em {comando}""",
                         ['tc', 'where', 'exception'],
                     )
                     raise
+                finally:
+                    figure_buffer.close()
+                    # ~ pyplot.figure().clear()
+                    # ~ pyplot.cla()
+                    pyplot.clf()
+                    # ~ pyplot.close()
             except Exception as exception:
                 logger.exception(exception)
                 await message.reply("""Problemas técnicos. Avise o \
@@ -215,8 +222,6 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     exception,
                     ['tc', 'where', 'exception', message.chat.type],
                 )
-            finally:
-                figure_buffer.close()
 
         @dispatcher.message_handler(
             filters.Text(equals = icones),

@@ -744,48 +744,6 @@ async def get_tc_levels(bot_id, user_id):
         logger.exception(exception)
         raise
 
-# ~ async def set_tc_level(bot_id, user_id, level):
-    # ~ if not await assertIsNotNone([bot_id, user_id, level]):
-        # ~ return False
-    # ~ try:
-        # ~ db = await get_db('{}/bots/{}/tc/{}.fs'.format(
-            # ~ zodb_path,
-            # ~ bot_id,
-            # ~ user_id,
-        # ~ ))
-        # ~ if not db:
-            # ~ return False
-        # ~ try:
-            # ~ connection = db.open()
-            # ~ root = connection.root
-            # ~ data = None
-            # ~ try:
-                # ~ data = root.data
-            # ~ except AttributeError:
-                # ~ root.data = BTrees.OOBTree.OOBTree()
-                # ~ data = root.data
-            # ~ try:
-                # ~ data.update(level = level, name = {
-                    # ~ 'version': version,
-                    # ~ 'commit': commit,
-                    # ~ 'plugin': 'aiogram',
-                # ~ })
-                # ~ transaction.commit()
-                # ~ return True
-            # ~ except Exception as e2:
-                # ~ logger.exception(e2)
-                # ~ await croak_transaction(transaction)
-                # ~ raise
-            # ~ finally:
-                # ~ await croak_db(db)
-        # ~ except Exception as e1:
-            # ~ logger.exception(e1)
-            # ~ await croak_db(db)
-            # ~ raise
-    # ~ except Exception as exception:
-        # ~ logger.warning(repr(exception))
-        # ~ raise
-
 async def set_tc_roll(bot_id, user_id, roll):
     if not await assertIsNotNone([bot_id, user_id, roll]):
         return False
@@ -815,8 +773,6 @@ async def set_tc_roll(bot_id, user_id, roll):
                     raise
             try:
                 rolls[len(rolls)] = roll
-                logger.debug(f"""\
-rolls = {str(rolls)}, len(rolls) = {len(rolls)}""")
                 transaction.commit()
                 return True
             except Exception as e2:
@@ -863,13 +819,7 @@ async def set_tc_level(bot_id, user_id, level):
                     await croak_transaction()
                     raise
             try:
-                logger.debug(f"""\
-levels = {str(levels)}, len(levels) = {len(levels)}, all levels: \
-{sorted(levels.items(), key = lambda i: i[0])}""")
                 levels[len(levels)] = level
-                logger.debug(f"""\
-levels = {str(levels)}, len(levels) = {len(levels)}, all levels: \
-{sorted(levels.items(), key = lambda i: i[0])}""")
                 transaction.commit()
             except Exception as e2:
                 await croak_transaction(transaction)
