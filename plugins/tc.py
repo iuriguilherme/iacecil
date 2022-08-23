@@ -21,9 +21,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 import numpy
+import random
+from aiogram import filters
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from matplotlib import pyplot
 from io import BytesIO
+from iacecil import (
+    commit,
+    version,
+)
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
@@ -39,21 +45,39 @@ from plugins.mate_matica import dice
 ## Valores padrão
 faces = 6
 comando = '/torre'
+icones = [
+    u"\U00002764",
+    u"\U0001f9e1",
+    u"\U0001f49b",
+    u"\U0001f49a",
+    u"\U0001f499",
+    u"\U0001f49c",
+    u"\U0001f5a4",
+    u"\U0001f90d",
+    u"\U0001f90e",
+    # ~ 'A',
+    # ~ 'B',
+    # ~ 'C',
+    # ~ 'D',
+    # ~ 'E',
+    # ~ 'F',
+    # ~ 'G',
+]
 
-async def level_down(dispatcher.bot.id: str, user_id: str, levels: list) -> int:
+async def level_down(bot_id: str, user_id: str, levels: list) -> int:
     level = max(0, levels[-1] - 1)
-    await set_tc_level(dispatcher.bot.id, user_id, level)
+    await set_tc_level(bot_id, user_id, level)
     return (level, 0)
 
-async def level_up(dispatcher.bot.id: str, user_id: str, levels: list) -> int:
+async def level_up(bot_id: str, user_id: str, levels: list) -> int:
     level = levels[-1] + 1
-    await set_tc_level(dispatcher.bot.id, user_id, level)
+    await set_tc_level(bot_id, user_id, level)
     return (level, 0)
 
-async def levels_up(dispatcher.bot.id: str, user_id: str, levels: list) -> int:
+async def levels_up(bot_id: str, user_id: str, levels: list) -> int:
     roll = dice(faces)
     level = levels[-1] + roll
-    await set_tc_level(dispatcher.bot.id, user_id, level)
+    await set_tc_level(bot_id, user_id, level)
     return (level, roll)
 
 mapa = {
@@ -79,22 +103,23 @@ async def add_handlers(dispatcher):
             Instruções e ajuda para Jogo Torre
             """
             await message_callback(message, ['tc', 'torre', message.chat.type])
-            command = await message.reply(f"""Instruções: Cada jogador começa \
-no térreo de uma torre de andares infinitos. Use o comando /rolar ou /roll \
-para rolar um dado de {faces} faces. Caso o resultado seja:\n\n\
-1, 2 ou 3: Desça um andar;\n\
-4 ou 5: Suba um andar;\n\
-6: Role o dado novamente e suba tantos andares quanto o valor do segundo \
-dado.\n\n\
+            command = await message.reply(f"""Instruções: Cada jogador(a)(e) \
+começa no térreo de uma torre de andares infinitos. Use o comando /andar ou \
+/level para escolher entre {faces} portas. Cada porta pode ter uma escada que \
+faz:\n\n\
+50% de chance: descer um andar;\n\
+33.3~% de chance: subir um andar;\n\
+16.6~% de chance: um atalho com uma escada para subir um número aleatório de \
+andares entre 1 e {faces}.\n\n\
 Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
 (andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
 Para ver as estatísticas individuais, use o comando /aonde ou /where\n\
 Para ver as estatísticas globais (ranking), espere este comando existir.\n\
-Para apagar todas as estatísticas, espere este comando existir.\n\
+Para apagar todas as estatísticas e remover os dados, espere este comando \
+existir.\n\
 Para doar dinheiro e ajudar a manter o jogo no ar (e provavelmente adicionar \
 mais elementos de jogo), fale com o desenvolvedor.\n\
-Quem quiser começar no andar três mil pode propor relações mutuamente \
-benéficas envolvendo favores sexuais para o desenvolvedor.""")
+Versão do jogo: v{version} (commit {commit})""")
             await command_callback(command, ['tc', 'torre', message.chat.type])
 
         @dispatcher.message_handler(
@@ -108,11 +133,22 @@ benéficas envolvendo favores sexuais para o desenvolvedor.""")
             await message_callback(message, ['tc', 'roll', message.chat.type])
             try:
                 roll = dice(faces)
-                rolled = await set_tc_roll(dispatcher.bot.id, message.from_id, roll)
+                if not await set_tc_roll(
+                    dispatcher.bot.id,
+                    message.from_id,
+                    roll,
+                ):
+                    raise
                 levels = [v[1] for v in await get_tc_levels(dispatcher.bot.id,
                     message.from_id)]
-                level, new_roll = await mapa[roll](dispatcher.bot.id, message.from_id,
-                    levels)
+                level, new_roll = await mapa.get(
+                    roll,
+                    lambda x, y, z: (-1, 0),
+                )(
+                    dispatcher.bot.id,
+                    message.from_id,
+                    levels,
+                )
                 if new_roll > 0:
                     command = await message.reply(f"""Resultado: {str(roll)}! \
 Segundo dado: {str(new_roll)}. Novo nível: {str(level)}.\nPara jogar de novo, \
@@ -138,22 +174,24 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
             await message_callback(message, ['tc', 'where', message.chat.type])
             figure_buffer = BytesIO()
             try:
-                levels = [v[1] for v in await get_tc_levels(dispatcher.bot.id,
-                    message.from_id)]
-                pyplot.plot(levels)
+                levels = await get_tc_levels(dispatcher.bot.id,
+                    message.from_id)
+                pyplot.plot([v[1] for v in levels])
+                ## Essas três linhas estão tentando forçar escala em inteiros
+                # ~ level_ticks = zip(levels)
+                pyplot.xticks([v[0] for v in levels])
+                pyplot.yticks([v[1] for v in levels])
                 pyplot.title(f"""nível a cada jogada de \
 {message['from']['first_name']}""")
                 pyplot.xlabel("número da jogada")
                 pyplot.ylabel("andar da torre")
-                pyplot.xaxis.get_major_locator().set_params(integer=True)
-                pyplot.yaxis.get_major_locator().set_params(integer=True)
                 pyplot.savefig(figure_buffer, format = "png")
                 try:
                     command = await message.reply_photo(
                         figure_buffer.getbuffer(),
-                        caption = f"""Para jogar de novo, clique em /rolar\n\
-Para ver as estatísticas, clique em /aonde\nPara instruções, clique em \
-{comando}""",
+                        caption = f"""Para abrir a próxima porta, clique em \
+/andar\nPara ver as estatísticas, clique em /aonde\nPara instruções, clique \
+em {comando}""",
                     )
                 except Exception as exception:
                     await erro_callback(
@@ -170,6 +208,91 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
             finally:
                 figure_buffer.close()
             await command_callback(command, ['tc', 'where', message.chat.type])
+
+        @dispatcher.message_handler(
+            filters.Text(equals = icones),
+        )
+        async def door_callback(message):
+            """
+            Acrescenta uma rolagem de dados caracterizada como porta ou 
+            elevador para este usuário no banco de dados, e retorna o próximo 
+            nível.
+            """
+            await message_callback(message, ['tc', 'door', message.chat.type])
+            try:
+                roll = dice(faces)
+                if not await set_tc_roll(
+                    dispatcher.bot.id,
+                    message.from_id,
+                    roll,
+                ):
+                    raise
+                levels = [v[1] for v in await get_tc_levels(dispatcher.bot.id,
+                    message.from_id)]
+                level, new_roll = await mapa.get(
+                    roll,
+                    lambda x, y, z: (-1, 0),
+                )(
+                    dispatcher.bot.id,
+                    message.from_id,
+                    levels,
+                )
+                if new_roll > 0:
+                    command = await message.reply(
+                        u"\U0001f51d" + u"\U000023eb" + f""" Parabéns! Esta \
+porta tem um atalho para subir {str(new_roll)} andares!\n\
+Andar atual: {str(level)}.\n\
+Para abrir a próxima porta, clique em /andar\n\
+Para ver as estatísticas, clique em /aonde\n\
+Para instruções, clique em {comando}""")
+                elif level > levels[-1]:
+                    command = await message.reply(
+                        u"\U00002705" + u"\U00002b06" + f""" Esta porta tinha \
+uma escada para subir para o próximo andar.\n\
+Andar atual: {str(level)}.\n\
+Para abrir a próxima porta, clique em /andar\n\
+Para ver as estatísticas, clique em /aonde\n\
+Para instruções, clique em {comando}""")
+                else:
+                    command = await message.reply(
+                        u"\U0000274c" + u"\U00002b07" + f""" Esta porta tinha \
+uma escada para descer para o andar anterior.\n\
+Andar atual: {str(level)}.\n\
+Para abrir a próxima porta, clique em /andar\n\
+Para ver as estatísticas, clique em /aonde\n\
+Para instruções, clique em {comando}""")
+            except Exception as exception:
+                logger.exception(exception)
+                command = await message.reply("""Problemas técnicos. Avise o \
+desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
+            await command_callback(command, ['tc', 'door', message.chat.type])
+
+        @dispatcher.message_handler(
+            commands = ['andar', 'level'],
+        )
+        async def andar_callback(message):
+            """
+            Menu com escolhas como alternativa a rolar dados
+            """
+            await message_callback(message, ['tc', 'level', message.chat.type])
+            try:
+                ## Para faces = 6, escolhas = [1,2,3,4,5,6]
+                # ~ escolhas = list(range(1, faces + 1))
+                ## Ordem pseudo aleatória a cada geração do menu
+                # ~ numpy.random.default_rng().shuffle(escolhas)
+                # ~ portas = zip(escolhas, icones[:len(escolhas)])
+                menu = ReplyKeyboardMarkup()
+                menu.row(*[KeyboardButton(icone) for icone in icones[:faces]])
+                command = await message.reply(f"""Neste andar há \
+{faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
+pode subir ou descer. Escolha o símbolo de uma porta para entrar""",
+                    reply_markup = menu)
+            except Exception as exception:
+                logger.exception(exception)
+                command = await message.reply("""Problemas técnicos. Avise o \
+desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
+            await command_callback(command, ['tc', 'level', message.chat.type])
+
     except Exception as exception:
         logger.exception(exception)
         raise

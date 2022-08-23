@@ -818,6 +818,7 @@ async def set_tc_roll(bot_id, user_id, roll):
                 logger.debug(f"""\
 rolls = {str(rolls)}, len(rolls) = {len(rolls)}""")
                 transaction.commit()
+                return True
             except Exception as e2:
                 await croak_transaction(transaction)
                 logger.exception(e2)
@@ -832,6 +833,7 @@ rolls = {str(rolls)}, len(rolls) = {len(rolls)}""")
     except Exception as exception:
         logger.exception(exception)
         raise
+    return False
 
 async def set_tc_level(bot_id, user_id, level):
     if not await assertIsNotNone([bot_id, user_id, level]):
