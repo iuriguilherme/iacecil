@@ -150,19 +150,24 @@ Versão do jogo: v{version} (commit {commit})""")
                     levels,
                 )
                 if new_roll > 0:
-                    command = await message.reply(f"""Resultado: {str(roll)}! \
+                    await message.reply(f"""Resultado: {str(roll)}! \
 Segundo dado: {str(new_roll)}. Novo nível: {str(level)}.\nPara jogar de novo, \
 clique em /rolar\nPara ver as estatísticas, clique em /aonde\nPara \
 instruções, clique em {comando}""")
                 else:
-                    command = await message.reply(f"""Resultado: {str(roll)}. \
+                    await message.reply(f"""Resultado: {str(roll)}. \
 Novo nível: {str(level)}.\nPara jogar de novo, clique em /rolar\nPara ver as \
 estatísticas, clique em /aonde\nPara instruções, clique em {comando}""")
             except Exception as exception:
                 logger.exception(exception)
-                command = await message.reply("""Problemas técnicos. Avise o \
+                await message.reply("""Problemas técnicos. Avise o \
 desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
-            await command_callback(command, ['tc', 'roll', message.chat.type])
+                await error_callback(
+                    "Problema tentando rodar /roll",
+                    message,
+                    exception,
+                    ['tc', 'roll', 'exception', message.chat.type],
+                )
 
         @dispatcher.message_handler(
             commands = ['where', 'aonde'],
@@ -187,7 +192,7 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 pyplot.ylabel("andar da torre")
                 pyplot.savefig(figure_buffer, format = "png")
                 try:
-                    command = await message.reply_photo(
+                    await message.reply_photo(
                         figure_buffer.getbuffer(),
                         caption = f"""Para abrir a próxima porta, clique em \
 /andar\nPara ver as estatísticas, clique em /aonde\nPara instruções, clique \
@@ -203,11 +208,16 @@ em {comando}""",
                     raise
             except Exception as exception:
                 logger.exception(exception)
-                command = await message.reply("""Problemas técnicos. Avise o \
+                await message.reply("""Problemas técnicos. Avise o \
 desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
+                await error_callback(
+                    "Problema tentando rodar /where",
+                    message,
+                    exception,
+                    ['tc', 'where', 'exception', message.chat.type],
+                )
             finally:
                 figure_buffer.close()
-            await command_callback(command, ['tc', 'where', message.chat.type])
 
         @dispatcher.message_handler(
             filters.Text(equals = icones),
@@ -238,7 +248,7 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     levels,
                 )
                 if new_roll > 0:
-                    command = await message.reply(
+                    await message.reply(
                         u"\U0001f51d" + u"\U000023eb" + f""" Parabéns! Esta \
 porta tem um atalho para subir {str(new_roll)} andares!\n\
 Andar atual: {str(level)}.\n\
@@ -246,7 +256,7 @@ Para abrir a próxima porta, clique em /andar\n\
 Para ver as estatísticas, clique em /aonde\n\
 Para instruções, clique em {comando}""")
                 elif level > levels[-1]:
-                    command = await message.reply(
+                    await message.reply(
                         u"\U00002705" + u"\U00002b06" + f""" Esta porta tinha \
 uma escada para subir para o próximo andar.\n\
 Andar atual: {str(level)}.\n\
@@ -254,7 +264,7 @@ Para abrir a próxima porta, clique em /andar\n\
 Para ver as estatísticas, clique em /aonde\n\
 Para instruções, clique em {comando}""")
                 else:
-                    command = await message.reply(
+                    await message.reply(
                         u"\U0000274c" + u"\U00002b07" + f""" Esta porta tinha \
 uma escada para descer para o andar anterior.\n\
 Andar atual: {str(level)}.\n\
@@ -263,9 +273,14 @@ Para ver as estatísticas, clique em /aonde\n\
 Para instruções, clique em {comando}""")
             except Exception as exception:
                 logger.exception(exception)
-                command = await message.reply("""Problemas técnicos. Avise o \
+                await message.reply("""Problemas técnicos. Avise o \
 desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
-            await command_callback(command, ['tc', 'door', message.chat.type])
+                await error_callback(
+                    "Problema tentando rodar /door",
+                    message,
+                    exception,
+                    ['tc', 'door', 'exception', message.chat.type],
+                )
 
         @dispatcher.message_handler(
             commands = ['andar', 'level'],
@@ -283,15 +298,20 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 # ~ portas = zip(escolhas, icones[:len(escolhas)])
                 menu = ReplyKeyboardMarkup()
                 menu.row(*[KeyboardButton(icone) for icone in icones[:faces]])
-                command = await message.reply(f"""Neste andar há \
+                await message.reply(f"""Neste andar há \
 {faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
 pode subir ou descer. Escolha o símbolo de uma porta para entrar""",
                     reply_markup = menu)
             except Exception as exception:
                 logger.exception(exception)
-                command = await message.reply("""Problemas técnicos. Avise o \
+                await message.reply("""Problemas técnicos. Avise o \
 desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
-            await command_callback(command, ['tc', 'level', message.chat.type])
+                await error_callback(
+                    "Problema tentando rodar /level",
+                    message,
+                    exception,
+                    ['tc', 'level', 'exception', message.chat.type],
+                )
 
     except Exception as exception:
         logger.exception(exception)
