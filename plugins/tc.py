@@ -300,12 +300,17 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 ## Ordem pseudo aleatória a cada geração do menu
                 # ~ numpy.random.default_rng().shuffle(escolhas)
                 # ~ portas = zip(escolhas, icones[:len(escolhas)])
-                menu = ReplyKeyboardMarkup()
+                menu = ReplyKeyboardMarkup(
+                    resize_keyboard = True,
+                    one_time_keyboard = True,
+                    selective = True,
+                )
                 menu.row(*[KeyboardButton(icone) for icone in icones[:faces]])
                 await message.reply(f"""Neste andar há \
 {faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
 pode subir ou descer. Escolha o símbolo de uma porta para entrar""",
-                    reply_markup = menu)
+                    reply_markup = menu,
+                )
             except Exception as exception:
                 logger.exception(exception)
                 await message.reply("""Problemas técnicos. Avise o \
