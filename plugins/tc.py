@@ -103,7 +103,7 @@ async def add_handlers(dispatcher):
             Instruções e ajuda para Jogo Torre
             """
             await message_callback(message, ['tc', 'torre', message.chat.type])
-            command = await message.reply(f"""Instruções: Cada jogador(a)(e) \
+            await message.reply(f"""Instruções: Cada jogador(a)(e) \
 começa no térreo de uma torre de andares infinitos. Use o comando /andar ou \
 /level para escolher entre {faces} portas. Cada porta pode ter uma escada que \
 faz:\n\n\
@@ -120,7 +120,6 @@ existir.\n\
 Para doar dinheiro e ajudar a manter o jogo no ar (e provavelmente adicionar \
 mais elementos de jogo), fale com o desenvolvedor.\n\
 Versão do jogo: v{version} (commit {commit})""")
-            await command_callback(command, ['tc', 'torre', message.chat.type])
 
         @dispatcher.message_handler(
             commands = ['roll', 'rolar'],
