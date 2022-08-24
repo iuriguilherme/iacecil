@@ -142,7 +142,7 @@ async def level_zero(dispatcher: Dispatcher, message: Message,
     levels: list[int]) -> None:
     level: int = 0
     await set_tc_level(dispatcher.bot.id, message.from_id, level)
-    await message.reply(u"\U0000274c" + u"\U00002b07" + f""" Puta que pariu! \
+    await message.reply(u"\U0001f629" + u"\U000023ec" + f""" Puta que pariu! \
 Esta porta tinha um buraco, voltando pro começo!\n\
 Andar atual: {str(level)}.\n\
 Para abrir a próxima porta, clique em /andar\n\
