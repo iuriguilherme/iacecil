@@ -77,7 +77,12 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
     ## Eu sei que a pessoa passou por um nível múltiplo de 60 se o
     ## módulo (resto da divisão) de algum nível para todo nível
     ## entre o último nível e o nível atual for igual a zero.
-    if 0 in [lvl % 60 for lvl in range(int(levels[-1]), int(level))]:
+    ## Caso especial: 0 dividido por 60 tem resto 0.
+    if 0 in [
+        lvl % 60 \
+        for lvl in range(int(levels[-1]), int(level)) \
+        if lvl > 0
+    ]:
         prizes: set = await get_tc_prizes(dispatcher.bot.id)
         last_prize: int = 1
         try:
@@ -132,9 +137,14 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
             for i in search.get_dict()['images_results'] \
             if i['position'] == last_prize + 1
         ][0]
-        await message.reply_photo(photo = image_url,
-            caption = u"\U0001f3c6" + u"\U0001f973" + f""" \
-Parabéns! A cada 60 níveis, uma frase motivacional. Continue subindo!""")
+        await command_callback(
+            await message.reply_photo(
+                photo = image_url,
+                caption = u"\U0001f3c6" + u"\U0001f973" + f""" \
+Parabéns! A cada 60 níveis, uma frase motivacional. Continue subindo!""",
+            ),
+            ['tc', 'prize', message.chat.type],
+        )
         ## Armazena imagens que já foram utilizadas
         await set_tc_prize(dispatcher.bot.id, image_position)
 
@@ -343,7 +353,7 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 # ~ portas = zip(escolhas, icones[:len(escolhas)])
                 menu = ReplyKeyboardMarkup(
                     resize_keyboard = True,
-                    one_time_keyboard = True,
+                    # ~ one_time_keyboard = True,
                     selective = True,
                 )
                 menu.row(*[KeyboardButton(icone) for icone in icones[:faces]])
