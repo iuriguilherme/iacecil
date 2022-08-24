@@ -55,17 +55,17 @@ from plugins.mate_matica import dice
 
 ## Valores padrão
 faces = 6
-comando = '/torre'
+comando = 'torre'
 icones = [
-    u"\U00002764",
-    u"\U0001f9e1",
-    u"\U0001f49b",
-    u"\U0001f49a",
-    u"\U0001f499",
-    u"\U0001f49c",
-    u"\U0001f5a4",
-    u"\U0001f90d",
-    u"\U0001f90e",
+    u"\U00002764", # vermelho
+    u"\U0001f9e1", # laranja
+    u"\U0001f49b", # amarelo
+    u"\U0001f49a", # verde
+    u"\U0001f499", # azul
+    u"\U0001f49c", # roxo
+    u"\U0001f5a4", # preto
+    u"\U0001f90d", # branco
+    u"\U0001f90e", # marrom
 ]
 
 async def prize(dispatcher: Dispatcher, message: Message, level: int,
@@ -141,7 +141,11 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
             await message.reply_photo(
                 photo = image_url,
                 caption = u"\U0001f3c6" + u"\U0001f973" + f""" \
-Parabéns! A cada 60 níveis, uma frase motivacional. Continue subindo!""",
+Parabéns! A cada 60 níveis, uma frase motivacional. Continue subindo!\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
+Para instruções, clique no """ + u"\U00002753" + ".",
             ),
             ['tc', 'prize', message.chat.type],
         )
@@ -155,9 +159,10 @@ async def level_zero(dispatcher: Dispatcher, message: Message,
     await message.reply(u"\U0001f629" + u"\U000023ec" + f""" Puta que pariu! \
 Esta porta tinha um buraco, voltando pro começo!\n\
 Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /andar\n\
-Para ver as estatísticas, clique em /aonde\n\
-Para instruções, clique em {comando}""")
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
+Para instruções, clique no """ + u"\U00002753" + ".")
 
 async def level_down(dispatcher: Dispatcher, message: Message,
     levels: list[int]) -> None:
@@ -168,9 +173,10 @@ async def level_down(dispatcher: Dispatcher, message: Message,
     await message.reply(u"\U0000274c" + u"\U00002b07" + f""" Esta porta tinha \
 uma escada para descer para o andar anterior.\n\
 Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /andar\n\
-Para ver as estatísticas, clique em /aonde\n\
-Para instruções, clique em {comando}""")
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
+Para instruções, clique no """ + u"\U00002753" + ".")
 
 async def level_up(dispatcher: Dispatcher, message: Message,
     levels: list[int]) -> None:
@@ -180,9 +186,10 @@ async def level_up(dispatcher: Dispatcher, message: Message,
     await message.reply(u"\U00002705" + u"\U00002b06" + f""" Esta porta tinha \
 uma escada para subir para o próximo andar.\n\
 Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /andar\n\
-Para ver as estatísticas, clique em /aonde\n\
-Para instruções, clique em {comando}""")
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
+Para instruções, clique no """ + u"\U00002753" + ".")
     await prize(dispatcher, message, level, levels)
 
 async def levels_up(dispatcher: Dispatcher, message: Message,
@@ -197,9 +204,10 @@ async def levels_up(dispatcher: Dispatcher, message: Message,
     await message.reply(u"\U0001f51d" + u"\U000023eb" + f""" Parabéns! Esta \
 porta tem um atalho para subir {str(roll)} andares!\n\
 Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /andar\n\
-Para ver as estatísticas, clique em /aonde\n\
-Para instruções, clique em {comando}""")
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
+Para instruções, clique no """ + u"\U00002753" + ".")
     await prize(dispatcher, message, level, levels)
 
 mapa = {
@@ -219,7 +227,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     """
     try:
         @dispatcher.message_handler(
-            commands = ['torre'],
+            filters.Text(equals = [u"\U00002753"]),
         )
         async def torre_callback(message: Message) -> None:
             """
@@ -227,9 +235,9 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
             """
             await message_callback(message, ['tc', 'torre', message.chat.type])
             await message.reply(f"""Instruções: Cada jogador(a)(e) \
-começa no térreo de uma torre de andares infinitos. Use o comando /andar ou \
-/level para escolher entre {faces} portas. Cada porta pode ter uma escada que \
-faz:\n\n\
+começa no térreo de uma torre de andares infinitos. Use o comando /{comando} \
+para abrir o teclado e escolher entre {faces} portas. Cada porta pode ter uma \
+escada que faz:\n\n\
 50% de chance: descer um andar;\n\
 33.3~% de chance: subir um andar;\n\
 16.6~% de chance: um atalho com uma escada para subir um número aleatório de \
@@ -237,7 +245,8 @@ andares entre 1 e {faces}.\n\
 0.6% de chance: um buraco para voltar ao térreo.\n\n\
 Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
 (andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
-Para ver as estatísticas individuais, use o comando /aonde ou /where\n\
+Para ver as estatísticas individuais, use o ícone do teclado \
+""" + u"\U0001f4c8" + f""".\n\
 Para ver as estatísticas globais (ranking), espere este comando existir.\n\
 Para apagar todas as estatísticas e remover os dados, espere este comando \
 existir.\n\
@@ -246,7 +255,7 @@ mais elementos de jogo), fale com o desenvolvedor.\n\
 Versão do jogo: v{version} (commit {commit})""")
 
         @dispatcher.message_handler(
-            commands = ['where', 'aonde'],
+            filters.Text(equals = [u"\U0001f4c8"]),
         )
         async def where_callback(message: Message) -> None:
             """
@@ -272,9 +281,10 @@ Versão do jogo: v{version} (commit {commit})""")
                         figure_buffer.getbuffer(),
                         caption = f"""Jogadas: {len(levels)}, andar atual: \
 {str([v[1] for v in levels][-1])}\n\
-Para abrir a próxima porta, clique em /andar\n\
-Para ver as estatísticas, clique em /aonde\n\
-Para instruções, clique em {comando}""",
+Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
+teclado.\n\
+Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f"""\n\
+Para instruções, clique no """ + u"\U00002753",
                     )
                 except Exception as exception:
                     await erro_callback(
@@ -338,7 +348,7 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 )
 
         @dispatcher.message_handler(
-            commands = ['andar', 'level'],
+            commands = [comando],
         )
         async def andar_callback(message: Message) -> None:
             """
@@ -356,10 +366,16 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     # ~ one_time_keyboard = True,
                     selective = True,
                 )
-                menu.row(*[KeyboardButton(icone) for icone in icones[:faces]])
+                menu.row(
+                    *[KeyboardButton(icone) for icone in icones[:faces]],
+                    KeyboardButton(u"\U0001f4c8"),
+                    KeyboardButton(u"\U00002753"),
+                )
                 await message.reply(f"""Neste andar há \
 {faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
-pode subir ou descer. Escolha o símbolo de uma porta para entrar""",
+pode subir ou descer. Escolha o símbolo de uma porta para entrar. Clique em \
+""" + u"\U0001f4c8" + " para ver as estatísticas, ou em " + u"\U00002753" + \
+" para ver as instruções.",
                     reply_markup = menu,
                 )
             except Exception as exception:
