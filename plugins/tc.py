@@ -55,6 +55,7 @@ from plugins.mate_matica import dice
 
 ## Valores padrão
 faces = 6
+premio =  60
 comando = 'torre'
 icones = [
     u"\U00002764", # vermelho
@@ -79,7 +80,7 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
     ## entre o último nível e o nível atual for igual a zero.
     ## Caso especial: 0 dividido por 60 tem resto 0.
     if 0 in [
-        lvl % 60 \
+        lvl % premio \
         for lvl in range(int(levels[-1]), int(level)) \
         if lvl > 0
     ]:
@@ -243,6 +244,7 @@ escada que faz:\n\n\
 16.6~% de chance: um atalho com uma escada para subir um número aleatório de \
 andares entre 1 e {faces}.\n\
 0.6% de chance: um buraco para voltar ao térreo.\n\n\
+A cada {str(premio)} níveis, uma supresa!\n\n\
 Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
 (andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
 Para ver as estatísticas individuais, use o ícone do teclado \
@@ -361,6 +363,8 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 ## Ordem pseudo aleatória a cada geração do menu
                 # ~ numpy.random.default_rng().shuffle(escolhas)
                 # ~ portas = zip(escolhas, icones[:len(escolhas)])
+                level: int = [v[1] for v in await get_tc_levels(
+                    dispatcher.bot.id, message.from_id)][-1]
                 menu = ReplyKeyboardMarkup(
                     resize_keyboard = True,
                     # ~ one_time_keyboard = True,
@@ -371,11 +375,11 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     KeyboardButton(u"\U0001f4c8"),
                     KeyboardButton(u"\U00002753"),
                 )
-                await message.reply(f"""Neste andar há \
+                await message.reply(f"""No andar {str(level)} da torre há \
 {faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
 pode subir ou descer. Escolha o símbolo de uma porta para entrar. Clique em \
-""" + u"\U0001f4c8" + " para ver as estatísticas, ou em " + u"\U00002753" + \
-" para ver as instruções.",
+""" + u"\U0001f4c8" + " para ver as estatísticas, ou em " + \
+u"\U00002753" + " para ver as instruções.",
                     reply_markup = menu,
                 )
             except Exception as exception:
