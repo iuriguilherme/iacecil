@@ -58,6 +58,7 @@ web3 = "*"
 youtube-dl = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
+google-search-results = "*"
 
 [requires]
 python_version = "3.9"

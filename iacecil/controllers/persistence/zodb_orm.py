@@ -683,7 +683,7 @@ async def get_ts_rolls(bot_id, user_id):
                     transaction.commit()
                 except Exception as e3:
                     logger.exception(e3)
-                    await croak_transaction()
+                    await croak_transaction(transaction)
                     raise
             try:
                 return sorted(rolls.items(), key = lambda i: i[0])
@@ -726,7 +726,7 @@ async def get_tc_levels(bot_id, user_id):
                     transaction.commit()
                 except Exception as e3:
                     logger.exception(e3)
-                    await croak_transaction()
+                    await croak_transaction(transaction)
                     raise
             try:
                 return sorted(levels.items(), key = lambda i: i[0])
@@ -769,7 +769,7 @@ async def set_tc_roll(bot_id, user_id, roll):
                     transaction.commit()
                 except Exception as e3:
                     logger.exception(e3)
-                    await croak_transaction()
+                    await croak_transaction(transaction)
                     raise
             try:
                 rolls[len(rolls)] = roll
@@ -816,11 +816,12 @@ async def set_tc_level(bot_id, user_id, level):
                     transaction.commit()
                 except Exception as e3:
                     logger.exception(e3)
-                    await croak_transaction()
+                    await croak_transaction(transaction)
                     raise
             try:
                 levels[len(levels)] = level
                 transaction.commit()
+                return True
             except Exception as e2:
                 await croak_transaction(transaction)
                 logger.exception(e2)
@@ -835,3 +836,72 @@ async def set_tc_level(bot_id, user_id, level):
     except Exception as exception:
         logger.exception(exception)
         raise
+    return False
+
+async def get_tc_prizes(bot_id):
+    if not await assertIsNotNone([bot_id]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/metadata.fs'.format(
+            zodb_path,
+            bot_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            prizes = None
+            try:
+                prizes = root.prizes
+            except AttributeError:
+                root.prizes = BTrees.IIBTree.IIBTree()
+                prizes = root.prizes
+            return set(prizes.values())
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+
+async def set_tc_prize(bot_id, prize):
+    if not await assertIsNotNone([bot_id, prize]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/metadata.fs'.format(
+            zodb_path,
+            bot_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            prizes = None
+            try:
+                prizes = root.prizes
+            except AttributeError:
+                root.prizes = BTrees.IIBTree.IIBTree()
+                prizes = root.prizes
+            try:
+                prizes[len(prizes)] = prize
+                transaction.commit()
+                return True
+            except Exception as e2:
+                await croak_transaction(transaction)
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+    return False
