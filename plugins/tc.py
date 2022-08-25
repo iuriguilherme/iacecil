@@ -57,6 +57,10 @@ from plugins.mate_matica import dice
 faces = 6
 premio =  30
 comando = 'torre'
+## Ajuda
+help_icon = u"\U00002753"
+## Estatísticas
+stats_user = u"\U0001f4c8"
 icones = [
     u"\U00002764", # vermelho
     u"\U0001f9e1", # laranja
@@ -80,11 +84,10 @@ Subir um andar (33.3~% de chance);\n\
 Um atalho com uma escada para subir um número aleatório de andares entre 1 e \
 {faces} (16.6~% de chance);\n\
 Um buraco para voltar ao térreo (0.6% de chance).\n\n\
-A cada {str(premio)} andares, uma supresa!\n\n\
+A cada {premio} andares, uma supresa!\n\n\
 Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
 (andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
-Para ver as estatísticas individuais, use o ícone do teclado \
-""" + u"\U0001f4c8" + f""".\n\
+Para ver as estatísticas individuais, use o ícone do teclado {stats_user}.\n\
 Para ver as estatísticas globais (ranking), espere este comando existir.\n\
 Para apagar todas as estatísticas e remover os dados, espere este comando \
 existir.\n\
@@ -105,7 +108,7 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
     ## Caso especial: 0 dividido por 60 tem resto 0.
     if 0 in [
         lvl % premio \
-        for lvl in range(int(levels[-1]), int(level)) \
+        for lvl in range(levels[-1], level) \
         if lvl > 0
     ]:
         prizes: set = await get_tc_prizes(dispatcher.bot.id)
@@ -168,10 +171,11 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
                 caption = u"\U0001f3c6" + u"\U0001f973" + f""" \
 Parabéns! A cada {str(premio)} níveis, uma frase motivacional. \
 Continue subindo!\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
-Para instruções, clique no """ + u"\U00002753" + ".",
+Andar atual: {level}.\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""",
             ),
             ['tc', 'prize', message.chat.type],
         )
@@ -184,11 +188,11 @@ async def level_zero(dispatcher: Dispatcher, message: Message,
     await set_tc_level(dispatcher.bot.id, message.from_id, level)
     await message.reply(u"\U0001f629" + u"\U000023ec" + f""" Puta que pariu! \
 Esta porta tinha um buraco, voltando pro começo!\n\
-Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
-Para instruções, clique no """ + u"\U00002753" + ".")
+Andar atual: {level}.\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""")
 
 async def level_down(dispatcher: Dispatcher, message: Message,
     levels: list[int]) -> None:
@@ -198,11 +202,11 @@ async def level_down(dispatcher: Dispatcher, message: Message,
     await set_tc_level(dispatcher.bot.id, message.from_id, level)
     await message.reply(u"\U0000274c" + u"\U00002b07" + f""" Esta porta tinha \
 uma escada para descer para o andar anterior.\n\
-Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
-Para instruções, clique no """ + u"\U00002753" + ".")
+Andar atual: {level}.\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""")
 
 async def level_up(dispatcher: Dispatcher, message: Message,
     levels: list[int]) -> None:
@@ -211,11 +215,11 @@ async def level_up(dispatcher: Dispatcher, message: Message,
     await set_tc_level(dispatcher.bot.id, message.from_id, level)
     await message.reply(u"\U00002705" + u"\U00002b06" + f""" Esta porta tinha \
 uma escada para subir para o próximo andar.\n\
-Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
-Para instruções, clique no """ + u"\U00002753" + ".")
+Andar atual: {level}.\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""")
     await prize(dispatcher, message, level, levels)
 
 async def levels_up(dispatcher: Dispatcher, message: Message,
@@ -228,12 +232,12 @@ async def levels_up(dispatcher: Dispatcher, message: Message,
     level: int = levels[-1] + roll
     await set_tc_level(dispatcher.bot.id, message.from_id, level)
     await message.reply(u"\U0001f51d" + u"\U000023eb" + f""" Parabéns! Esta \
-porta tem um atalho para subir {str(roll)} andares!\n\
-Andar atual: {str(level)}.\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
-Para instruções, clique no """ + u"\U00002753" + ".")
+porta tem um atalho para subir {roll} andares!\n\
+Andar atual: {level}.\n\
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""")
     await prize(dispatcher, message, level, levels)
 
 mapa = {
@@ -252,17 +256,6 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     habilitado.
     """
     try:
-        @dispatcher.message_handler(
-            command = ["start", "info", "help"],
-        )
-        async def start_callback(message: Message) -> None:
-            """
-            Instruções e ajuda para Jogo Torre
-            """
-            await message_callback(message, ['tc', 'start', message.chat.type])
-            await command_callback(await message.reply(await info()),
-                ['tc', 'start', message.chat.type])
-
         @dispatcher.message_handler(
             filters.Text(equals = [u"\U00002753"]),
         )
@@ -300,10 +293,10 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         figure_buffer.getbuffer(),
                         caption = f"""Jogadas: {len(levels)}, andar atual: \
 {str([v[1] for v in levels][-1])}\n\
-Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
-teclado.\n\
-Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f"""\n\
-Para instruções, clique no """ + u"\U00002753",
+Para abrir a próxima porta, clique em /{comando} ou num dos símbolos do \
+teclado: {' '.join(icones[:faces])}.\n\
+Para ver as estatísticas novamente, clique no {stats_user}.\n\
+Para instruções, clique no {help_icon}.""",
                     )
                 except Exception as exception:
                     await erro_callback(
@@ -389,14 +382,15 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                 )
                 menu.row(
                     *[KeyboardButton(icone) for icone in icones[:faces]],
-                    KeyboardButton(u"\U0001f4c8"),
-                    KeyboardButton(u"\U00002753"),
+                    KeyboardButton(stats_user),
+                    KeyboardButton(help_icon),
                 )
                 await message.reply(f"""No andar {str(level)} da torre há \
-{faces} portas, cada uma com um símbolo. Atrás de cada uma há uma escada que \
-pode subir ou descer. Escolha o símbolo de uma porta para entrar. Clique em \
-""" + u"\U0001f4c8" + " para ver as estatísticas, ou em " + \
-u"\U00002753" + " para ver as instruções.",
+{faces} portas, cada uma com um símbolo: {' '.join(icones[:faces])}.\n\
+Atrás de cada uma dessas portas há uma escada que pode subir ou descer.\n\
+Escolha no teclado o símbolo de uma porta para entrar.\n\
+Clique em {stats_user} para ver as estatísticas, ou em {help_icon} para ver \
+as instruções.""",
                     reply_markup = menu,
                 )
             except Exception as exception:
@@ -409,6 +403,18 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     exception,
                     ['tc', 'level', 'exception', message.chat.type],
                 )
+
+        @dispatcher.message_handler(
+            commands = ["start", "info", "help"],
+        )
+        async def start_callback(message: Message) -> None:
+            """
+            /start handler
+            """
+            await message_callback(message, ['tc', 'start', message.chat.type])
+            await command_callback(await message.reply(await info()),
+                ['tc', 'start', message.chat.type])
+            await andar_callback(message)
 
     except Exception as exception:
         logger.exception(exception)
