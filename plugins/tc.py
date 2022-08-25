@@ -55,7 +55,7 @@ from plugins.mate_matica import dice
 
 ## Valores padrão
 faces = 6
-premio =  60
+premio =  30
 comando = 'torre'
 icones = [
     u"\U00002764", # vermelho
@@ -68,6 +68,30 @@ icones = [
     u"\U0001f90d", # branco
     u"\U0001f90e", # marrom
 ]
+
+async def info() -> str:
+    """Texto padrão para todos comandos de instruções e ajuda"""
+    return f"""Instruções: Cada jogador(a)(e) começa no térreo de uma torre \
+de andares infinitos. Use o comando /{comando} para abrir o teclado e \
+escolher entre {faces} portas. Cada porta pode ter uma escada que faz uma das \
+seguintes ações:\n\n\
+Descer um andar (50% de chance);\n\
+Subir um andar (33.3~% de chance);\n\
+Um atalho com uma escada para subir um número aleatório de andares entre 1 e \
+{faces} (16.6~% de chance);\n\
+Um buraco para voltar ao térreo (0.6% de chance).\n\n\
+A cada {str(premio)} andares, uma supresa!\n\n\
+Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
+(andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
+Para ver as estatísticas individuais, use o ícone do teclado \
+""" + u"\U0001f4c8" + f""".\n\
+Para ver as estatísticas globais (ranking), espere este comando existir.\n\
+Para apagar todas as estatísticas e remover os dados, espere este comando \
+existir.\n\
+Para doar dinheiro e ajudar a manter o jogo no ar (e provavelmente adicionar \
+mais elementos de jogo), fale com o desenvolvedor através do comando \
+/feedback ou use o comando /donate\n\
+Versão do jogo: v{version} (commit {commit})"""
 
 async def prize(dispatcher: Dispatcher, message: Message, level: int,
     levels: list[int]) -> None:
@@ -142,7 +166,8 @@ async def prize(dispatcher: Dispatcher, message: Message, level: int,
             await message.reply_photo(
                 photo = image_url,
                 caption = u"\U0001f3c6" + u"\U0001f973" + f""" \
-Parabéns! A cada 60 níveis, uma frase motivacional. Continue subindo!\n\
+Parabéns! A cada {str(premio)} níveis, uma frase motivacional. \
+Continue subindo!\n\
 Para abrir a próxima porta, clique em /{comando} ou num dos corações do \
 teclado.\n\
 Para ver as estatísticas, clique no """ + u"\U0001f4c8" + f""".\n\
@@ -228,6 +253,17 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     """
     try:
         @dispatcher.message_handler(
+            command = ["start", "info", "help"],
+        )
+        async def start_callback(message: Message) -> None:
+            """
+            Instruções e ajuda para Jogo Torre
+            """
+            await message_callback(message, ['tc', 'start', message.chat.type])
+            await command_callback(await message.reply(await info()),
+                ['tc', 'start', message.chat.type])
+
+        @dispatcher.message_handler(
             filters.Text(equals = [u"\U00002753"]),
         )
         async def torre_callback(message: Message) -> None:
@@ -235,26 +271,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
             Instruções e ajuda para Jogo Torre
             """
             await message_callback(message, ['tc', 'torre', message.chat.type])
-            await message.reply(f"""Instruções: Cada jogador(a)(e) \
-começa no térreo de uma torre de andares infinitos. Use o comando /{comando} \
-para abrir o teclado e escolher entre {faces} portas. Cada porta pode ter uma \
-escada que faz:\n\n\
-50% de chance: descer um andar;\n\
-33.3~% de chance: subir um andar;\n\
-16.6~% de chance: um atalho com uma escada para subir um número aleatório de \
-andares entre 1 e {faces}.\n\
-0.6% de chance: um buraco para voltar ao térreo.\n\n\
-A cada {str(premio)} níveis, uma supresa!\n\n\
-Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
-(andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
-Para ver as estatísticas individuais, use o ícone do teclado \
-""" + u"\U0001f4c8" + f""".\n\
-Para ver as estatísticas globais (ranking), espere este comando existir.\n\
-Para apagar todas as estatísticas e remover os dados, espere este comando \
-existir.\n\
-Para doar dinheiro e ajudar a manter o jogo no ar (e provavelmente adicionar \
-mais elementos de jogo), fale com o desenvolvedor.\n\
-Versão do jogo: v{version} (commit {commit})""")
+            await message.reply(await info())
 
         @dispatcher.message_handler(
             filters.Text(equals = [u"\U0001f4c8"]),
