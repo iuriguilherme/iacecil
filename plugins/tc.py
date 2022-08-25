@@ -54,14 +54,17 @@ from iacecil.controllers.persistence.zodb_orm import (
 from plugins.mate_matica import dice
 
 ## Valores padrão
-faces = 6
-premio =  30
-comando = 'torre'
+comando: str = 'torre'
+faces: int = 9
+## Mensagem motivacional a cada tantos andares
+premio: int =  30
+## Chance de voltar pro início (1.0 é 100%)
+azar: float = 0.003
 ## Ajuda
-help_icon = u"\U00002753"
+help_icon: str = u"\U00002753"
 ## Estatísticas
-stats_user = u"\U0001f4c8"
-icones = [
+stats_user: str = u"\U0001f4c8"
+icones: list = [
     u"\U00002764", # vermelho
     u"\U0001f9e1", # laranja
     u"\U0001f49b", # amarelo
@@ -79,11 +82,11 @@ async def info() -> str:
 de andares infinitos. Use o comando /{comando} para abrir o teclado e \
 escolher entre {faces} portas. Cada porta pode ter uma escada que faz uma das \
 seguintes ações:\n\n\
-Descer um andar (50% de chance);\n\
-Subir um andar (33.3~% de chance);\n\
+Descer um andar (55.55~% de chance);\n\
+Subir um andar (33.33~% de chance);\n\
 Um atalho com uma escada para subir um número aleatório de andares entre 1 e \
-{faces} (16.6~% de chance);\n\
-Um buraco para voltar ao térreo (0.6% de chance).\n\n\
+{faces} (11.11~% de chance);\n\
+Um buraco para voltar ao térreo (0.3% de chance).\n\n\
 A cada {premio} andares, uma supresa!\n\n\
 Não tem como ganhar o jogo nem perder, não é possível descer além do térreo \
 (andar 0). O jogo dura enquanto eu pagar a hospedagem do servidor.\n\
@@ -245,9 +248,12 @@ mapa = {
     1: level_down,
     2: level_down,
     3: level_down,
-    4: level_up,
-    5: level_up,
-    6: levels_up,
+    4: level_down,
+    5: level_down,
+    6: level_up,
+    7: level_up,
+    8: level_up,
+    9: levels_up,
 }
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
@@ -335,8 +341,8 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
             await message_callback(message, ['tc', 'door', message.chat.type])
             try:
                 roll: int = dice(faces)
-                ## Chance de 0.6% de voltar pro início
-                if numpy.random.random() < 0.006:
+                ## Chance de voltar pro início
+                if numpy.random.random() < azar:
                     roll = 0
                 if not await set_tc_roll(
                     dispatcher.bot.id,
@@ -344,7 +350,7 @@ desenvolvedor (se é que já não avisaram) e tente novamente mais tarde.""")
                     roll,
                 ):
                     raise
-                await mapa.get(roll)(dispatcher, message,
+                await mapa.get(roll, level_zero)(dispatcher, message,
                     [v[1] for v in await get_tc_levels(dispatcher.bot.id,
                     message.from_id)]
                 )
