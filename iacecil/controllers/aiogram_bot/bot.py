@@ -64,7 +64,7 @@ class IACecilBot(Bot):
             self.command = await super_function(*args, **kwargs)
             return self.command
         except exceptions.RetryAfter as exception:
-            logger.info(u"Flood control: waiting {} seconds...\
+            logger.debug(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
             return await self.exception_handler(
@@ -183,17 +183,8 @@ eactivated')""",
             }
             reason = u"I don't know what just happened"
             if repr(exception) == descriptions['rights']:
-                reason = None
-                chat_id = 0
-                try:
-                    chat_id = self.command.chat.id
-                except AttributeError:
-                    pass
-                logger.info(
-                    u"Bot has no rights in {}, skipping...".format(
-                        str(chat_id),
-                ))
-                logger.debug(str(self.command))
+                reason = f"""Bot has no rights in \
+{str(kwargs['chat_id'])}, skipping..."""
             elif repr(exception) == descriptions['deactivated']:
                 reason = u"Probably user no longer exists"
             elif repr(exception) == descriptions['not_found']:
@@ -205,9 +196,7 @@ eactivated')""",
                 limit = 2048 # Telegram limit is 4096
                 text = kwargs.get('text', u"empty")
                 if len(text) >= limit:
-                    logger.info(
-                        u"Message is too long, stripping...",
-                    )
+                    logger.debug("Message is too long, stripping...")
                     chunks = [text[i:i+limit] for i in range(
                         0, len(text), limit)
                     ]
@@ -248,8 +237,10 @@ eactivated')""",
                     # ~ except Exception as e2:
                         # ~ logger.critical(repr(e2))
             else:
-                logger.debug(u"No reason for:\n{}\n".format(str(
-                    self.command)))
+                logger.info(f"""No apparent reason for error. self = \
+{str(self)}, function = {str(function)}, function_name = \
+{str(function_name)}, super_function = {str(super_function)}, args = \
+{str(args)}, kwargs = {str(kwargs)}""")
         except Exception as exception:
             try:
                 await exception_callback(
