@@ -206,9 +206,6 @@ ida do desenvolvimento já foi avisado, eu acho. Verifique se a moeda ex\
 iste, a quantidade é um número e o símbolo está correto (por exemplo BT\
 C, LTC, ETH)..."""
         else:
-            for conv in response['data']:
-                for quote in right:
-                    logger.info(f"{conv['amount']} {conv['name']} {conv['quote'][quote.upper()]['price']} {quote.upper()}")
             return '\n'.join([f"""(from coinmarketcap.com): \
 {conv['amount']} {conv['name']} = {result}\
 """ for result in [f"""
