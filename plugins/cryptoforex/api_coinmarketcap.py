@@ -19,24 +19,28 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import json
+from requests import Request, Session
+from requests.exceptions import (
+    ConnectionError,
+    Timeout,
+    TooManyRedirects,
+)
 from iacecil.controllers.aiogram_bot.callbacks import (
     exception_callback,
 )
 
-## https://coinmarketcap.com/api/documentation/v1/#operation/getV1CryptocurrencyQuotesLatest
 async def price_v1(token, coin, converts):
-    # This example uses Python 2.7 and the python-request library.
+    """https://coinmarketcap.com/api/documentation/v1/#operation/getV1C\
+ryptocurrencyQuotesLatest"""
 
-    from requests import Request, Session
-    from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-    import json
-
-    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
+    url = '''https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes\
+/latest'''
 
     parameters = {
         'symbol': coin,
-        'aux': ','.join(['is_fiat', 'volume_7d',
-                         'volume_30d', 'circulating_supply', 'total_supply']),
+        'aux': ','.join(['is_fiat', 'volume_7d', 'volume_30d',
+            'circulating_supply', 'total_supply']),
         # 'convert': ','.join(converts)
     }
     headers = {
@@ -51,7 +55,67 @@ async def price_v1(token, coin, converts):
         response = session.get(url, params=parameters)
         data = json.loads(response.text)
         return data
-    except (ConnectionError, Timeout, TooManyRedirects) as e:
-        await exception_callback(e, ['cryptoforex', 'coinmarketcap', 'price',
-                                     'price_v1'])
+    except (ConnectionError, Timeout, TooManyRedirects) as exception:
+        await exception_callback(exception, ['cryptoforex',
+            'coinmarketcap', 'price', 'price_v1'])
         raise
+
+async def conv_v2(token, amount, symbol, convert):
+    """https://coinmarketcap.com/api/documentation/v1/#operation/getV2T\
+oolsPriceconversion"""
+
+    url = 'https://pro-api.coinmarketcap.com/v2/tools/price-conversion'
+
+    parameters = {
+        'amount': amount,
+        'symbol': symbol,
+        'convert': convert,
+    }
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': token,
+    }
+
+    session = Session()
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        return data
+    except (ConnectionError, Timeout, TooManyRedirects) as exception:
+        await exception_callback(exception, ['cryptoforex',
+            'coinmarketcap', 'conv', 'conv_v2'])
+        raise
+
+async def get_fiat_id(token, symbol):
+    """https://coinmarketcap.com/api/documentation/v1/#operation/getV1F\
+iatMap"""
+
+    url = 'https://pro-api.coinmarketcap.com/v1/fiat/map'
+
+    parameters = {
+        ' include_metals': 'true',
+    }
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': token,
+    }
+
+    session = Session()
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        try:
+            return [slug for slug in data['data'] if \
+                slug['symbol'] == symbol.upper()][0]
+        except Exception as exception:
+            return {'id': 0, 'name': "Nenhuma", 'sign': '$',
+                'symbol': 'NAC'}
+    except (ConnectionError, Timeout, TooManyRedirects) as exception:
+        await exception_callback(exception, ['cryptoforex',
+            'coinmarketcap', 'fiat', 'get_fiat_id'])
+        raise
+
