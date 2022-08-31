@@ -18,7 +18,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import os, random, uuid, validators, youtube_dl
+import io, os, random, uuid, validators, youtube_dl, yt_dlp
+from contextlib import redirect_stdout
 from tempfile import gettempdir
 from aiogram.utils.markdown import escape_md, pre
 from iacecil.controllers.aiogram_bot.callbacks import (
@@ -27,24 +28,35 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 
-async def baixar(url):
-    video_file_name = os.path.join(gettempdir(), "ic.{}.mp4".format(
-        uuid.uuid4()))
-    options = {
-        'outtmpl' : video_file_name,
-        #'format': 'worstvideo+worstaudio/worst',
-        'format': 'mp4',
-        #'merge_output_format': 'mp4',
-        #'postprocessor_args': [
-            #'-an',
-            #'-c:v libx264',
-            #'-crf 26',
-            #'-vf scale=640:-1',
-        #],
-    }
-    ## FIXME Blocking!
-    youtube_dl.YoutubeDL(options).download([url])
-    return video_file_name
+async def baixar(url, extension = 'mp4', **kwargs):
+    try:
+        video_file_name = os.path.join(gettempdir(), "ic.{}.{}".format(
+            uuid.uuid4(), extension))
+        options = {
+            'outtmpl' : video_file_name,
+            #'format': 'worstvideo+worstaudio/worst',
+            # ~ 'format': 'mp4',
+            # ~ 'max_filesize': 1,
+            #'merge_output_format': 'mp4',
+            #'postprocessor_args': [
+                #'-an',
+                #'-c:v libx264',
+                #'-crf 26',
+                #'-vf scale=640:-1',
+            #],
+            **kwargs,
+        }
+        ## FIXME Blocking!
+        ## This is always blocking in upstream:
+        ## https://github.com/ytdl-org/youtube-dl/issues/30815
+        ## https://github.com/yt-dlp/yt-dlp/issues/3298
+        ## https://github.com/yt-dlp/yt-dlp/issues/1918
+        # ~ youtube_dl.YoutubeDL(options).download([url])
+        yt_dlp.YoutubeDL(options).download([url])
+        return video_file_name
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
 
 async def ytdl(dispatcher, message):
         url = None
@@ -67,7 +79,21 @@ async def ytdl(dispatcher, message):
         if url:
             video_file = None
             try:
-                video_file = await baixar(url)
+                with redirect_stdout(io.StringIO()) as f:
+                    await baixar(url, format = 'mp4', max_filesize = 1)
+                video_size = f.getvalue().split(
+                    '[download] File is larger than max-filesize ('
+                    )[1].split(' bytes > 1 bytes). Aborting.'
+                    )[0]
+                if int(video_size) >= 50000000:
+                    command = await message.reply(u"""O vídeo é maior d\
+o que o limite de 50mb do telegram e por consequência disto não posso t\
+e ajudar hoje. Se no futuro o meu desenvolvedor conseguir dividir o víd\
+eo em pedaços, uma das robôs vai avisar no canal: {}""".format(
+                        dispatcher.config['info']['channel']))
+                else:
+                    video_file = await baixar(url, extension='mp4',
+                        format='mp4')
             except Exception as exception:
                 await error_callback(
                     u"Erro tentando baixar vídeo",
@@ -85,10 +111,12 @@ que o servidor me disse: """) + pre("{}".format(str(exception))),
             try:
                 if video_file:
                     with open(video_file, 'rb') as video:
-                        await message.reply_video(
+                        command = await message.reply_video(
                             video = video,
                             caption = url,
                         )
+                    if not command:
+                        raise
             except Exception as exception:
                 await error_callback(
                     u"Erro tentando subir vídeo",
@@ -103,8 +131,13 @@ que o servidor me disse: """) + pre("{}".format(str(exception))),
             finally:
                 if video is not None:
                     video.close()
-                if os.path.exists(video_file):
-                    os.remove(video_file)
+                try:
+                    if video_file is not None and os.path.exists(
+                        video_file):
+                        os.remove(video_file)
+                except Exception as exception:
+                    logging.warning(u"probably path doesn't exist")
+                    logging.warning(repr(exception))
         else:
             command = await message.reply(escape_md(u"""\nO comando \
 {comando} serve pra extrair um vídeo ou áudio de algum site com suporte\
