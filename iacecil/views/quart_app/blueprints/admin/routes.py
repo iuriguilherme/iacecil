@@ -28,7 +28,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import BTrees, glob, json, os, transaction, ZODB
+import asyncio, BTrees, glob, json, os, transaction, ZODB
 from quart import (
     abort,
     current_app,
@@ -40,6 +40,7 @@ from quart import (
 from flask_wtf import FlaskForm
 from wtforms import (
     Form,
+    HiddenField,
     IntegerField,
     SelectField,
     StringField,
@@ -173,6 +174,16 @@ class BotChatTextForm(FlaskForm):
         ]
         field.choices = [(int(chat['id']),
             chat['desc']) for chat in chats]
+
+class BotForm(FlaskForm):
+    bot_id_field = HiddenField()
+    submit = SubmitField()
+    # ~ async def validate_bot_id_field(form, field):
+        # ~ field.choices = [
+            # ~ (user['id'], user['first_name']) for
+            # ~ user in [await dispatcher.bot.get_me() for
+            # ~ dispatcher in current_app.dispatchers]
+        # ~ ]
 
 async def send_message(active_tab = {}):
     message = None
@@ -629,3 +640,78 @@ async def messages_list(active_tab = {}):
         title = u"Messages",
         version = version,
     )
+
+async def polling(active_tab = {}):
+    try:
+        users = [{
+            'user': dispatcher,
+            'info': await dispatcher.bot.get_me(),
+            'status': dispatcher.is_polling(),
+        } for dispatcher in current_app.dispatchers]
+        names = [user['info']['first_name'] for user in users]
+        await flash(
+            f"""Total configured bots: {len(users)}\nTotal bots that are \
+polling: {len([user['status'] for user in users if user['status']])}""",
+            'info',
+        )
+        form = BotForm(formdata = await request.form)
+        # ~ await form.validate_bot_id_field(form.bot_id_field)
+        # ~ if form['bot_id_field'].data:
+            # ~ await form.validate_chat_id_field(
+                # ~ form.chat_id_field,
+                # ~ form['bot_id_field'].data,
+            # ~ )
+        if request.method == "POST":
+            try:
+                # ~ form = await request.form
+                dispatcher = [dispatcher for 
+                    dispatcher in current_app.dispatchers if 
+                    int(form['bot_id_field'].data) == int((
+                    await dispatcher.bot.get_me())['id'])
+                ][0]
+                loop = asyncio.get_event_loop()
+                if dispatcher.is_polling():
+                    dispatcher.stop_polling()
+                    await dispatcher.wait_closed()
+                else:
+                    loop.create_task(dispatcher.start_polling(
+                        reset_webhook = True,
+                        timeout = 20,
+                        relax = 0.1,
+                        fast = True,
+                        allowed_updates = None,
+                    ))
+                    while not dispatcher.is_polling():
+                        await asyncio.sleep(1)
+                users = [{
+                    'user': dispatcher,
+                    'info': await dispatcher.bot.get_me(),
+                    'status': dispatcher.is_polling(),
+                } for dispatcher in current_app.dispatchers]
+            except Exception as exception:
+                logger.exception(exception)
+                return jsonify(repr(exception))
+                raise
+        return await render_template(
+            "admin/polling.html",
+            active = {
+                'nav': dict(
+                    current_app.active_nav.copy(),
+                    admin = ' active',
+                ),
+                'tab': dict(
+                    active_tab.copy(),
+                    polling = ' active',
+                ),
+            },
+            commit = commit,
+            name = actual_name,
+            names = names,
+            title = "Polling status and control",
+            users = users,
+            version = version,
+        )
+    except Exception as exception:
+        logger.exception(exception)
+        return jsonify(repr(exception))
+        raise

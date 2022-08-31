@@ -33,6 +33,7 @@ from quart import (
     render_template,
 )
 from jinja2 import TemplateNotFound
+
 from iacecil import (
     actual_name,
     commit,
@@ -46,6 +47,7 @@ from iacecil.views.quart_app.blueprints.admin.routes import (
     files,
     messages_texts_list,
     messages_list,
+    polling,
     send_message,
     updates,
 )
@@ -56,6 +58,7 @@ active_tab = {
     'texts': '',
     'send_message': '',
     'updates': '',
+    'polling': '',
 }
 
 blueprint = Blueprint(
@@ -95,6 +98,13 @@ blueprint.add_url_rule(
     '/updates/',
     'updates',
     updates,
+    methods = ['GET', 'POST'],
+    defaults = {'active_tab': active_tab},
+)
+blueprint.add_url_rule(
+    '/polling/',
+    'polling',
+    polling,
     methods = ['GET', 'POST'],
     defaults = {'active_tab': active_tab},
 )

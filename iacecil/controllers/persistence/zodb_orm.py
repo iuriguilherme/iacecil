@@ -20,11 +20,12 @@
 #  MA 02110-1301, USA.
 #  
 
+## TODO: Separar funções em módulos (arquivos)
+
 import logging
 logger = logging.getLogger(__name__)
 
-import BTrees, os, transaction, uuid, zc.zlibstorage, ZODB, \
-    ZODB.FileStorage
+import BTrees, os, transaction, uuid, zc.zlibstorage, ZODB, ZODB.FileStorage
 from aiogram import (
     Dispatcher,
 )
@@ -624,5 +625,283 @@ async def set_furhat_text(
             await croak_db(db)
     except Exception as exception:
         logger.warning(repr(exception))
+        raise
+    return False
+
+## tc
+async def get_tc_data(bot_id, user_id):
+    if not await assertIsNotNone([bot_id, user_id]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            user_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            data = None
+            try:
+                data = root.data
+            except AttributeError:
+                root.data = BTrees.OOBTree.OOBTree()
+                data = root.data
+            return {k:v for (k,v) in data.items()}
+        except Exception as e1:
+            logger.exception(e1)
+            await croak_db(db)
+            raise
+    except Exception as exception:
+        logger.warning(repr(exception))
+        raise
+
+async def get_ts_rolls(bot_id, user_id):
+    if not await assertIsNotNone([bot_id, user_id]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            user_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            rolls = None
+            try:
+                rolls = root.rolls
+            except AttributeError:
+                try:
+                    root.rolls = BTrees.IIBTree.IIBTree()
+                    rolls = root.rolls
+                    rolls[0] = 0
+                    transaction.commit()
+                except Exception as e3:
+                    logger.exception(e3)
+                    await croak_transaction(transaction)
+                    raise
+            try:
+                return sorted(rolls.items(), key = lambda i: i[0])
+            except Exception as e2:
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+
+async def get_tc_levels(bot_id, user_id):
+    if not await assertIsNotNone([bot_id, user_id]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            user_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            levels = None
+            try:
+                levels = root.levels
+            except AttributeError:
+                try:
+                    root.levels = BTrees.IIBTree.IIBTree()
+                    levels = root.levels
+                    levels[0] = 0
+                    transaction.commit()
+                except Exception as e3:
+                    logger.exception(e3)
+                    await croak_transaction(transaction)
+                    raise
+            try:
+                return sorted(levels.items(), key = lambda i: i[0])
+            except Exception as e2:
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+
+async def set_tc_roll(bot_id, user_id, roll):
+    if not await assertIsNotNone([bot_id, user_id, roll]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            user_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            rolls = None
+            try:
+                rolls = root.rolls
+            except AttributeError:
+                try:
+                    root.rolls = BTrees.IIBTree.IIBTree()
+                    rolls = root.rolls
+                    rolls[0] = 0
+                    transaction.commit()
+                except Exception as e3:
+                    logger.exception(e3)
+                    await croak_transaction(transaction)
+                    raise
+            try:
+                rolls[len(rolls)] = roll
+                transaction.commit()
+                return True
+            except Exception as e2:
+                await croak_transaction(transaction)
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+    return False
+
+async def set_tc_level(bot_id, user_id, level):
+    if not await assertIsNotNone([bot_id, user_id, level]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/{}.fs'.format(
+            zodb_path,
+            bot_id,
+            user_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            levels = None
+            try:
+                levels = root.levels
+            except AttributeError:
+                try:
+                    root.levels = BTrees.IIBTree.IIBTree()
+                    levels = root.levels
+                    levels[0] = 0
+                    transaction.commit()
+                except Exception as e3:
+                    logger.exception(e3)
+                    await croak_transaction(transaction)
+                    raise
+            try:
+                levels[len(levels)] = level
+                transaction.commit()
+                return True
+            except Exception as e2:
+                await croak_transaction(transaction)
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+    return False
+
+async def get_tc_prizes(bot_id):
+    if not await assertIsNotNone([bot_id]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/metadata.fs'.format(
+            zodb_path,
+            bot_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            prizes = None
+            try:
+                prizes = root.prizes
+            except AttributeError:
+                root.prizes = BTrees.IIBTree.IIBTree()
+                prizes = root.prizes
+            return set(prizes.values())
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
+        raise
+
+async def set_tc_prize(bot_id, prize):
+    if not await assertIsNotNone([bot_id, prize]):
+        return False
+    try:
+        db = await get_db('{}/bots/{}/tc/metadata.fs'.format(
+            zodb_path,
+            bot_id,
+        ))
+        if not db:
+            return False
+        try:
+            connection = db.open()
+            root = connection.root
+            prizes = None
+            try:
+                prizes = root.prizes
+            except AttributeError:
+                root.prizes = BTrees.IIBTree.IIBTree()
+                prizes = root.prizes
+            try:
+                prizes[len(prizes)] = prize
+                transaction.commit()
+                return True
+            except Exception as e2:
+                await croak_transaction(transaction)
+                logger.exception(e2)
+                raise
+            finally:
+                await croak_db(db)
+        except Exception as e1:
+            logger.exception(e1)
+            raise
+        finally:
+            await croak_db(db)
+    except Exception as exception:
+        logger.exception(exception)
         raise
     return False

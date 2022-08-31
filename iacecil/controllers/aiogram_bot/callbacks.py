@@ -47,7 +47,8 @@ async def message_callback(
         except Exception as exception:
             logger.info(repr(exception))
         await zodb_logger(message)
-    await info_logger(message, ['message'] + descriptions)
+    ## TODO: 429
+    # ~ await info_logger(message, ['message'] + descriptions)
 
 async def command_callback(
     message: types.Message,
