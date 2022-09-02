@@ -138,7 +138,7 @@ async def add_handlers(dispatcher):
             precision: int = 53
             if ''.join(message.get_args()).isdigit():
                 precision = max(0, int(''.join(message.get_args()))) + 2
-            command = await message.reply(get_pi(precision))
+            command = await message.reply(await get_pi(precision))
             await command_callback(command, ['pi', message.chat.type])
 
         @dispatcher.message_handler(
@@ -149,7 +149,7 @@ async def add_handlers(dispatcher):
             precision: int = 53
             if ''.join(message.get_args()).isdigit():
                 precision = max(0, int(''.join(message.get_args()))) + 2
-            command = await message.reply(get_phi(precision))
+            command = await message.reply(await get_phi(precision))
             await command_callback(command, ['phi', message.chat.type])
 
         @dispatcher.message_handler(
@@ -171,7 +171,7 @@ async def add_handlers(dispatcher):
                 await message.reply(f"""{message.get_args()} não é um \
 número de faces de um dado válido, vou usar um dado de seis faces normal.\
 """)
-            command = await message.reply(dice(faces))
+            command = await message.reply(await dice(faces))
             await command_callback(command, ['dice', message.chat.type])
 
         ## Acha uma posição na escala Fibonacci
