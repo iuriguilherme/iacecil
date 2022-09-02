@@ -19,10 +19,12 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import binascii, math, numpy, os
+import binascii, math, mpmath, numpy, os, sympy
+from decimal import Decimal
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,
+    exception_callback,
     message_callback,
 )
 
@@ -36,63 +38,35 @@ def coord(seed = None, *args, **kwargs) -> float:
     numpy.random.seed(seed)
     return numpy.random.rand()
 
-## π
-def cmd_pi(args):
-    try:
-        tamanho = 51
-        ## Eu não faço args['command_list'][0] pra evitar IndexError
-        if ''.join(args['command_list']).isdigit():
-            tamanho = int(''.join(args['command_list'])) + 2 ## Ignorar o '3.'
-        constante = 4 * math.atan(1) ## Esta é uma boa aproximação de pi
-        response = str(constante)[:tamanho]
-        return {
-            'status': True,
-            'type': 'grupo',
-            'response': response,
-            'debug': u"pi calculado",
-            'multi': False,
-            'parse_mode': None,
-            'reply_to_message_id': args['message_id'],
-        }
-    except Exception as e:
-            return {
-                'status': False,
-                'type': 'erro',
-                'response': u"Erro tentando calcular pi.",
-                'debug': u"Pi falhou, exceção: %s" % (e),
-                'multi': False,
-                'parse_mode': None,
-                'reply_to_message_id': args['message_id'],
-            }
+async def get_pi(precision: int = 53) -> str:
+    """A melhor aproximação de π com python (por enquanto)"""
+    while precision > 0:
+        try:
+            with mpmath.workdps(precision + 1):
+                return str(mpmath.pi)[:-1]
+        except Exception as exception:
+            await exception_callback(exception, ['matematica', 'fib'])
+            return await get_pi(precision - 1)
+    return str(mpmath.pi)[:-1]
 
-## φ
-def cmd_phi(args):
+async def get_phi(precision: int = 53) -> str:
+    """A melhor aproximação de φ com python (por enquanto)"""
+    while precision > 0:
+        try:
+            with mpmath.workdps(precision + 1):
+                return str(mpmath.phi)[:-1]
+        except Exception as exception:
+            await exception_callback(exception, ['matematica', 'fib'])
+            return await get_phi(precision - 1)
+    return str(mpmath.phi)[:-1]
+
+async def get_fibonacci(position: int = 0) -> str:
+    """Um número de uma posição arbitrária da escala de fibonacci"""
     try:
-        tamanho = 51
-        ## Eu não faço args['command_list'][0] pra evitar IndexError
-        if ''.join(args['command_list']).isdigit():
-            tamanho = int(''.join(args['command_list'])) + 2 ## Ignorar o '1.'
-        constante = ( 1 + math.sqrt(5) ) / 2 ## Esta é uma boa aproximação de phi
-        response = str(constante)[:tamanho]
-        return {
-            'status': True,
-            'type': 'grupo',
-            'response': response,
-            'debug': u"phi calculado",
-            'multi': False,
-            'parse_mode': None,
-            'reply_to_message_id': args['message_id'],
-        }
-    except Exception as e:
-            return {
-                'status': False,
-                'type': 'erro',
-                'response': u"Erro tentando calcular phi.",
-                'debug': u"Phi falhou, exceção: %s" % (e),
-                'multi': False,
-                'parse_mode': None,
-                'reply_to_message_id': args['message_id'],
-            }
+        return str(sympy.fibonacci(position))
+    except Exception as exception:
+        await exception_callback(exception, ['matematica', 'fib'])
+        return "Não consegui! Tente outro número :("
 
 ## String hexadecimal suficientemente aleatória
 def cmd_random(args):
@@ -156,24 +130,26 @@ async def add_handlers(dispatcher):
             await command_callback(command, ['random',
                 message.chat.type])
 
-        ## Uma boa aproximação de pi
         @dispatcher.message_handler(
             commands = ['pi'],
         )
         async def pi_callback(message):
             await message_callback(message, ['pi', message.chat.type])
-            command = await message.reply(str(math.pi))
+            precision: int = 53
+            if ''.join(message.get_args()).isdigit():
+                precision = max(0, int(''.join(message.get_args()))) + 2
+            command = await message.reply(get_pi(precision))
             await command_callback(command, ['pi', message.chat.type])
 
-        ## Uma boa aproximação de φ
         @dispatcher.message_handler(
             commands = ['phi'],
         )
         async def phi_callback(message):
             await message_callback(message, ['phi', message.chat.type])
-            command = await message.reply(
-                str(( 1 + math.sqrt(5) ) / 2),
-            )
+            precision: int = 53
+            if ''.join(message.get_args()).isdigit():
+                precision = max(0, int(''.join(message.get_args()))) + 2
+            command = await message.reply(get_phi(precision))
             await command_callback(command, ['phi', message.chat.type])
 
         @dispatcher.message_handler(
@@ -197,6 +173,18 @@ número de faces de um dado válido, vou usar um dado de seis faces normal.\
 """)
             command = await message.reply(dice(faces))
             await command_callback(command, ['dice', message.chat.type])
-        
+
+        ## Acha uma posição na escala Fibonacci
+        @dispatcher.message_handler(
+            commands = ['fib', 'fibonacci'],
+        )
+        async def fibonacci_callback(message):
+            await message_callback(message, ['fibonacci', message.chat.type])
+            position: int = 0
+            if ''.join(message.get_args()).isdigit():
+                position = max(0, int(''.join(message.get_args())))
+            command = await message.reply(await get_fibonacci(position))
+            await command_callback(command, ['fibonacci', message.chat.type])
+
     except Exception as exception:
         raise

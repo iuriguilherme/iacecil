@@ -63,12 +63,14 @@ async def error_callback(
     exception: Exception = None,
     descriptions: list = ['error'],
 ):
+    logger.exception(exception)
     await debug_logger(error, message, exception, descriptions)
 
 async def exception_callback(
     exception: Exception = None,
     descriptions: list = ['error'],
 ):
+    logger.exception(exception)
     await exception_logger(exception, descriptions)
 
 async def any_message_callback(message: types.Message):
