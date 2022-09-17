@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Wrapper for ffmpeg package - https://pypi.org/project/ffmpeg-python/"""
 #
 #  ia.cecil
 #  
@@ -23,10 +24,16 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import ffmpeg, glob, os
+import ffmpeg
+import glob
+import os
+from typing import Union
 
-## Converts audio files to telegram sendVoice format
-async def telegram_voice(input_file):
+async def telegram_voice(input_file: str) -> Union[None, str]:
+    """
+    Converts audio files to telegram sendVoice format.
+    Returns string containing file path.
+    """
     output_file = '.'.join([
         *input_file.split('.')[:2],
         'opus',
@@ -54,17 +61,28 @@ async def telegram_voice(input_file):
         else:
             return None
     except FileNotFoundError as exception:
-        logger.warning(u"probably no ffmpeg in the system: {}".format(
-            repr(exception)))
+        logger.warning("probably no ffmpeg in the system:")
+        logger.exception(exception)
         return None
     except Exception as exception:
-        logger.warning(repr(exception))
+        logger.exception(exception)
         raise
     finally:
         if input_file is not None:
             os.remove(input_file)
 
-async def storify(input_file, h = '00', m = '00', s = '15', **kwargs):
+async def storify(
+    input_file: str,
+    *args,
+    h: str = '00',
+    m: str = '00',
+    s: str = '15',
+    **kwargs
+) -> Union[None, list]:
+    """
+    Splits video file in chunks of h hours, m minutes, s seconds.
+    Returns buffer with the video object.
+    """
     try:
         proccess = (
             ffmpeg
@@ -94,11 +112,11 @@ async def storify(input_file, h = '00', m = '00', s = '15', **kwargs):
         else:
             return None
     except FileNotFoundError as exception:
-        logger.warning(u"probably no ffmpeg in the system: {}".format(
-            repr(exception)))
+        logger.warning("probably no ffmpeg in the system:")
+        logger.exception(exception)
         return None
     except Exception as exception:
-        logger.warning(repr(exception))
+        logger.exception(exception)
         raise
     finally:
         if input_file is not None:

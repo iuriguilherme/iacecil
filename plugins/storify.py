@@ -30,6 +30,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
     error_callback,
+    exception_callback,
 )
 from iacecil.controllers.ffmpeg_wrapper import storify
 
@@ -42,30 +43,39 @@ async def storify_callback(
 ):
     dispatcher = Dispatcher.get_current()
     videos = []
+    input_file = None
     try:
         file_id = message.video.file_id
-        await message.reply(u"""Peraí que eu vou cortar o vídeo em peda\
-ços de {} e já te mando...""".format(':'.join([h, m, s])))
+        await message.reply(f"""Peraí que eu vou cortar o vídeo em pedaços \
+de {':'.join([h, m, s])} e já te mando...""")
         file_object = await dispatcher.bot.get_file(file_id)
         file_path = file_object.file_path
         input_file = os.path.join(gettempdir(), "ic.{}.mp4".format(
             uuid.uuid4()))
         await dispatcher.bot.download_file(file_path, input_file)
         videos = await storify(input_file, h, m, s)
-        for index, video in enumerate(sorted(videos)):
-            with open(video, 'rb') as open_video:
-                await message.reply_video(open_video,
-                    caption = u"({}/{})".format(str(index+1),
-                    str(len(videos))))
+        if videos is not None:
+            for index, video in enumerate(sorted(videos)):
+                with open(video, 'rb') as open_video:
+                    await message.reply_video(open_video,
+                        caption = u"({}/{})".format(str(index+1),
+                        str(len(videos))))
+        else:
+            await message.reply(f"""Não consegui cortar o vídeo por problemas \
+técnicos. Já avisei o pessoal do desenvolvimento. Se o erro persistir, favor \
+avisar os (ir)responsáveis.""")
+            await error_callback(
+                error = "Erro com ffmpeg, provavelmente problema de codec",
+                message = message,
+                exception = None,
+                descriptions = ['storify', 'ffmpeg', message.chat.type],
+            )
     except Exception as exception:
-        await message.reply(u"""Não consegui cortar o vídeo. Já avisei \
-o pessoal do desenvolvimento e o problema é: {}""".format(
-            repr(exception)))
-        await error_callback(
-            u"Problema tentando cortar vídeo",
-            message,
+        await message.reply(f"""Não consegui cortar o vídeo. Já avisei \
+o pessoal do desenvolvimento e o problema é: {repr(exception)}""")
+        await exception_callback(
             exception,
-            ['storify', 'admin', message.chat.type],
+            ['storify', message.chat.type],
         )
     finally:
         if input_file is not None:

@@ -211,6 +211,11 @@ Estamos usando [FastAPI](https://fastapi.tiangolo.com/),
 [discordPy](https://discordpy.readthedocs.io/), 
 então é necessário instalá-los para rodar o bot.  
 
+Alguns plugins que tratam arquivos de áudio e de vídeo usam o pacote 
+[python-ffmpeg](https://pypi.org/project/ffmpeg-python/) que por sua vez usa 
+o ffmpeg do sistema. Instruções para instalar ffmpeg em cada sistema fogem do 
+escopo deste arquivo.  
+
 Ritual de instalação:  
 
 #### pipenv
