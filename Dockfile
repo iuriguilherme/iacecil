@@ -1,13 +1,15 @@
-FROM python:3.9
+FROM python:3.10
 
 WORKDIR /app
 
 COPY . .
 
-RUN pip install -r requirements.txt
+RUN python3 -m pip install -e .
 
-RUN mkdir instance && cp doc/default_config.py instance/config.py
+RUN mkdir instance 
 
-EXPOSE 5000/tcp
+RUN cp -r doc/instance/* instance/
 
-CMD python3 start.py quart iacecil
+EXPOSE 8000/tcp
+
+CMD python3 -m iacecil production

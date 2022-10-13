@@ -147,7 +147,9 @@ Thumbs.db
 !requirements.txt
 !CHANGES.txt
 *.cfg
+!setup.cfg
 *.csv
 *.db
 *.rdb
 *.sock
+.env
