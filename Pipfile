@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+iacecil = {editable = true, path = "."}
 
 [packages]
 aiodns = "*"
@@ -14,6 +15,7 @@ apscheduler = "*"
 boto3 = "*"
 brotlipy = {version = "*", sys_platform = "!= 'win32'"}
 #cchardet = "*"
+colorama = "*"
 #dataset = "*"
 #fastapi = {extras = ["all"], version = "*"}
 ffmpeg-python = "*"
@@ -30,11 +32,12 @@ graphviz = "*"
 #jinja2 = "*"
 matplotlib = "*"
 mpmath = "*"
+natsort = "*"
 networkx = {extras = ["default"], version = "*"}
 nltk = "*"
 numpy = "*"
 pandas = "*"
-pydantic = "*"
+pydantic = {extras = ['dotenv'], version = "*"}
 #pyinstaller = "*"
 #PyMySQL = "*"
 pypng = "*"
@@ -62,9 +65,10 @@ youtube-dl = "*"
 yt-dlp = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
+iacecil = {editable = true, path = "."}
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
 
 [scripts]
 iacecil = 'python start.py info quart ic'
@@ -77,3 +81,6 @@ stagetest = 'python start.py debug socket cf,cf2,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn
 furhat = 'python start.py debug furhat test'
 papagaio = 'python start.py debug fpapagaio f239 True'
 personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
+new_prod = 'python -m iacecil production'
+new_test = 'python -m iacecil'
+new_dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'

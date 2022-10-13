@@ -1,0 +1,54 @@
+{% extends "admin/default_layout.html" %}
+{% block body %}
+<h3>List files from bot</h3>
+<p>Select bot from list</p>
+<hr>
+<form action="" method="post">
+    {{ form.bot_id_field.label }}<br>
+    {% for subfield in form.bot_id_field %}
+        <div class="form-check">
+        {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+        </div>
+    {% endfor %}
+    {% for error in form.bot_id_field.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+    <p>{{ form.limit_field.label }}<br>{{ form.limit_field }}</p>
+    <p>{{ form.offset_field.label }}<br>{{ form.offset_field }}</p>
+    <p>{{ form.submit(class="btn btn-warning") }}</p>
+</form>
+<hr>
+{% if files %}
+    <h4>bot {{ form.bot_id_field.data }}</h4>
+    <h4>limit {{ form.limit_field.data }}</h4>
+    <h4>offset {{ form.offset_field.data }}</h4>
+    <h3>Last {{ count['current'] }} files out of {{ count['total'] }}:</h3>
+    <hr>
+    <div class="container">
+    <div class="row">
+    {% for file in files %}
+        <div class="col">
+        <div class="card bg-info text-dark mb-3 shadow-sm">
+        <div class="card-header">{{ file['file_unique_id'] }}</div>
+        <div class="card-body">
+        <table class="table table-striped">
+        <tbody>
+        {% for item in file.items() %}
+            <tr>
+                <td>{{ item[0] }}</td>
+                <td><span class="badge rounded-pill bg-dark text-light">{{ item[1] }}</span></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </div> <!-- card-body -->
+        </div> <!-- card -->
+        </div> <!-- col -->
+    {% endfor %}
+    </div> <!-- row -->
+    </div> <!-- container -->
+{% else %}
+    <p>No files&excl;</p>
+{% endif %}
+<p>&nbsp;</p>
+{% endblock %}
