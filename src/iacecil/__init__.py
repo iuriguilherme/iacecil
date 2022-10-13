@@ -34,15 +34,15 @@ try:
     from . import _version
     version: str = _version.__version__
 except Exception as e:
-    logger.error("""Unable to get version from _version file, mantaining \
+    logger.debug("""Unable to get version from _version file, mantaining \
 {version}""")
-    logger.exception(e)
+    # ~ logger.exception(e)
 try:
     ## Using latest git tag as version
     version: str = natsort.natsorted(os.listdir('.git/refs/tags'))[-1]
 except Exception as e:
-    logger.warning(f"Latest git tag not found, version will be {version}")
-    logger.exception(e)
+    logger.debug(f"Latest git tag not found, version will be {version}")
+    # ~ logger.exception(e)
 
 try:
     ## Lookup latest commit hash
@@ -51,8 +51,8 @@ try:
         with open('.git/' + git_head.read().strip('\n')) as git_ref:
             commit = git_ref.read(7)
 except Exception as e:
-    logger.warning(f"git repository not found, commit will be {commit}")
-    logger.exception(e)
+    logger.debug(f"git repository not found, commit will be {commit}")
+    # ~ logger.exception(e)
 
 __name__: str = name
 __version__: str = version

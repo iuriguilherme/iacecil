@@ -156,14 +156,23 @@ grupos de acordo com critérios estabelecidos
 Onde
 ---
 
+### Importando pacote para usar em outro software
+
+Este software ainda não está no pypi.org, então:  
+
+    pip install -e git+https://github.com/iuriguilherme/iacecil.git@v0.2.2#egg=iacecil  
+    python -m iacecil production
+
+### Desenvolvimento
+
 Se vossa excelência quiserdes usar o código deste bot pra fazer o vosso 
 próprio, vós deveis:  
 
-### Entenderdes e usardes a licença GPL v3
+#### Entenderdes e usardes a licença GPL v3
 
 Para mais informações, veja o arquivo [LICENSE.md](./LICENSE.md).  
 
-### Aprenderdes a usar git
+#### Aprenderdes a usar git
 
 ...e incidentalmente, Github, Gitlab ou Notabug - que são coisas 
 completamente diferentes de git.  
@@ -181,7 +190,7 @@ user@home:~/iacecil$ pipenv run iacecil
 Se algum dos passos acima não der certo, usardes o vosso próprio método 
 pessoal (virtualenv, virtualenvwrapper, poetry, etc.)  
 
-### Grupo de usuária(o)s e desenvolvedora(e)s
+#### Grupo de usuária(o)s e desenvolvedora(e)s
 
 Eu criei um grupo novo para quem quiser conversar sobre, usar, testar, 
 desenvolver e acompanhar o processo de desenvolvimento, teste e uso da 
