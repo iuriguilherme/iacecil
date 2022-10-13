@@ -30,6 +30,14 @@ from ..aiogram_bot.callbacks import (
 )
 from ...models import Iteration
 
+## TODO Sentenças impróprias para publicar no Github por razões diversas
+try:
+    from instance.personalidades.default import random_texts
+except Exception as e:
+    logger.debug(f"random_texts em instance não encontrada para {__name__}")
+    # ~ logger.exception(e)
+    from . import random_texts
+
 async def start(message):
     return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
  id no telegram é {telegram_id}""".format(

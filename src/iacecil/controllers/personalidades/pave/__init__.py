@@ -44,8 +44,8 @@ from .furhat_handlers import (
 try:
     from instance.personalidades.pave import random_texts
 except Exception as e:
-    logger.info(f"random_texts em instance não encontrada para {__name__}")
-    logger.exception(e)
+    logger.debug(f"random_texts em instance não encontrada para {__name__}")
+    # ~ logger.exception(e)
     from . import random_texts
 
 async def start(message):

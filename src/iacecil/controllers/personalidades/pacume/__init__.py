@@ -60,12 +60,9 @@ try:
         add_instance_handlers,
     )
 except Exception as e:
-    logger.info(f"random_texts em instance não encontrada para {__name__}")
-    logger.exception(e)
-    from . import (
-        random_texts,
-        add_instance_handlers,
-    )
+    logger.debug(f"random_texts em instance não encontrada para {__name__}")
+    #logger.exception(e)
+    from . import random_texts
 
 async def start(message):
     return random_texts.start(message)
@@ -310,4 +307,5 @@ async def add_handlers(dispatcher):
     try:
         await add_instance_handlers(dispatcher)
     except Exception as e:
-        logger.warning("Não achei o arquivo: {}".format(e))
+        logger.debug("Didn't register instance handlers")
+        # ~ logger.exception(e)

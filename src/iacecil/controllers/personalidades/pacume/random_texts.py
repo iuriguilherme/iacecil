@@ -34,9 +34,9 @@ import random
 try:
     import instance.personalidades.pave.random_texts as pave
 except Exception as e:
-    logger.info(f"""random_texts em instance não encontrada para pave \
+    logger.debug(f"""random_texts em instance não encontrada para pave \
 (hardcoded)""")
-    logger.exception(e)
+    # ~ logger.exception(e)
     from ..pave import random_texts as pave
 
 def adjetivos():

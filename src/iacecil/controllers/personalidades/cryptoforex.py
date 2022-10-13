@@ -37,6 +37,14 @@ from .default import (
     add_handlers as add_default_handlers,
 )
 
+## TODO Sentenças impróprias para publicar no Github por razões diversas
+try:
+    from instance.personalidades.cryptoforex import random_texts
+except Exception as e:
+    logger.debug(f"random_texts em instance não encontrada para {__name__}")
+    # ~ logger.exception(e)
+    from . import random_texts
+
 async def help(message):
     return u"""
 Crypto Forex Bot help
