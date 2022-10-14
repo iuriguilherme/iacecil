@@ -34,19 +34,20 @@ from .api_coinmarketcap import (
     conv_v2 as coinmarketcap_conv,
 )
 
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except:
-    logger.warning("Failed to set locale as pt_BR.UTF-8")
-    try:
-        locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
-    except:
-        logger.warning("Failed to set locale as en_GB.UTF-8")
-        try:
-            locale.setlocale(locale.LC_ALL, 'C')
-        except Exception as e:
-            logger.warning("Failed to set locale as C")
-            logger.exception(e)
+## FIXME locale is set at package load, but how could we trust that
+# ~ try:
+    # ~ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+# ~ except:
+    # ~ logger.warning("Failed to set locale as pt_BR.UTF-8")
+    # ~ try:
+        # ~ locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
+    # ~ except:
+        # ~ logger.warning("Failed to set locale as en_GB.UTF-8")
+        # ~ try:
+            # ~ locale.setlocale(locale.LC_ALL, 'C')
+        # ~ except Exception as e:
+            # ~ logger.warning("Failed to set locale as C")
+            # ~ logger.exception(e)
 
 async def price(dispatcher, message, converts, comando):
     # Presumindo bitcoin quando não há argumentos
@@ -60,8 +61,8 @@ async def price(dispatcher, message, converts, comando):
             moeda,
             converts,
         )
-        logger.info(resposta)
-        logger.info(type(resposta))
+        logger.debug(resposta)
+        logger.debug(type(resposta))
         if resposta['status']['error_code'] > 0:
             await error_callback(
                 resposta['status']['error_message'],
@@ -171,7 +172,7 @@ async def conv(dispatcher, message):
         much, left, right = *message.get_args().split(' ')[:2], \
             message.get_args().split(' ')[2:]
     except Exception as exception:
-        logger.warning(repr(exception))
+        logger.exception(exception)
         return f"""
 Usage: {message.get_command()} 1 BTC USD
 
@@ -219,6 +220,7 @@ C, LTC, ETH)..."""
 {conv['quote'][quote.upper()]['price']} \
 {quote.upper()}""" for quote in right] for conv in response['data']])
     except Exception as exception:
+        logger.exception(exception)
         await error_callback(
             u"Erro contatando coinmarketcap.com",
             message,
@@ -296,7 +298,6 @@ async def add_handlers(dispatcher):
                 command,
                 ['conv', message.chat.type],
             )
-    except Exception as exception:
-        logger.warning(f"""Error importing plugin {__name__}: \
-{repr(exception)}""")
+    except Exception as e:
+        logger.exception(e)
         raise

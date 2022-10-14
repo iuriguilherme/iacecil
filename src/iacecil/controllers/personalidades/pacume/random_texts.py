@@ -34,10 +34,14 @@ import random
 try:
     import instance.personalidades.pave.random_texts as pave
 except Exception as e:
-    logger.debug(f"""random_texts em instance não encontrada para pave \
+    logger.debug("""random_texts em instance não encontrada para pave \
 (hardcoded)""")
     # ~ logger.exception(e)
-    from ..pave import random_texts as pave
+    try:
+        from ..pave import random_texts as pave
+    except Exception as e1:
+        logger.debug("no random_texts at all for pave (hardcoded)")
+        # ~ logger.exception(e1)
 
 def adjetivos():
     return set().union(pave.adjetivos(), set([

@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 from aiogram import types
 from quart import current_app
+from typing import Union
 from ..log import (
     debug_logger,
     exception_logger,
@@ -36,42 +37,67 @@ from plugins.garimpo import varre_link
 async def message_callback(
     message: types.Message,
     descriptions: list = ['message'],
-):
+) -> None:
+    """
+    Callback for messages that need to be handled with more than one
+    logger
+    """
     if message is not None:
         setattr(message, 'tags', descriptions)
         try:
             if current_app.furhat and message.text is not None:
                 await furhat_logger(message.text)
         except Exception as exception:
-            logger.info(repr(exception))
+            logger.exception(exception)
         await zodb_logger(message)
+    else:
+        await debug_logger(
+            "Message callback ran without a message!",
+            message,
+            None,
+            descriptions,
+        )
     ## TODO: 429
     # ~ await info_logger(message, ['message'] + descriptions)
 
 async def command_callback(
     message: types.Message,
     descriptions: list = ['command'],
-):
+) -> None:
+    """Successful aiogram.types.Message (s) sent"""
     if message is not None:
         await info_logger(message, ['command'] + descriptions)
+    else:
+        await debug_logger(
+            "Command callback ran without a message!",
+            message,
+            None,
+            descriptions,
+        )
 
 async def error_callback(
-    error: str = u"Erro",
-    message: types.Message = None,
-    exception: Exception = None,
+    error: str = "Erro",
+    message: Union[types.Message, None] = None,
+    exception: Union[Exception, None] = Exception("Erro"),
     descriptions: list = ['error'],
-):
-    logger.exception(exception)
+) -> None:
+    """
+    Send exception to configured logger,
+    error message and exception to telegram
+    """
+    # ~ logger.exception(exception)
     await debug_logger(error, message, exception, descriptions)
 
 async def exception_callback(
-    exception: Exception = None,
+    exception: Union[Exception, None] = Exception("Erro"),
     descriptions: list = ['error'],
-):
-    logger.exception(exception)
+) -> None:
+    """Send exception to configured logger and to telegram"""
+    # ~ logger.exception(exception)
     await exception_logger(exception, descriptions)
 
-async def any_message_callback(message: types.Message):
+async def any_message_callback(message: types.Message) -> None:
+    """Fallback callback for any message for handlers"""
     try:
         if current_app.furhat and message.text is not None:
             await furhat_logger(message.text)
@@ -80,32 +106,43 @@ async def any_message_callback(message: types.Message):
     await zodb_logger(message)
     # ~ await info_logger(message, ['message'])
 
-async def any_edited_message_callback(message: types.Message):
+async def any_edited_message_callback(message: types.Message) -> None:
+    """Fallback callback for edited messages for handlers"""
     await info_logger(message, ['edited_message', message.chat.type])
 
-async def any_channel_post_callback(message: types.Message):
+async def any_channel_post_callback(message: types.Message) -> None:
+    """Fallback callback for channel messages for handlers"""
     await info_logger(message, ['channel_post'])
 
-async def any_edited_channel_post_callback(message: types.Message):
+async def any_edited_channel_post_callback(message: types.Message) -> None:
+    """Fallback callback for edited channel messages for handlers"""
     await info_logger(message, ['edited_channel_post'],)
 
-async def any_update_callback(update):
+async def any_update_callback(update) -> None:
+    """Fallback callback for all updates not handled for handlers"""
     await info_logger(update, ['update'])
 
-async def any_error_callback(update, error):
-    if update:
-        if repr(error) in [
-            """BotKicked('Forbidden: bot was kicked from \
-the supergroup chat')""",
-            "Forbidden: bot was kicked from the supergroup chat",
-        ]:
-            await debug_logger(u"We were kicked from {} ({})".format(
-                update.message.chat.id,
-                update.message.chat.title,
-            ), update, error, ['BotKicked', 'exception'])
+async def any_error_callback(update, error) -> None:
+    """Fallback callback for errors for handlers"""
+    try:
+        if update:
+            if repr(error) in [
+                """BotKicked('Forbidden: bot was kicked from \
+    the supergroup chat')""",
+                "Forbidden: bot was kicked from the supergroup chat",
+            ]:
+                await debug_logger("We were kicked from {} ({})".format(
+                    update.message.chat.id,
+                    update.message.chat.title,
+                ), update, error, ['BotKicked', 'exception'])
+            else:
+                await debug_logger("Erro não tratado:", update, error,
+                    ['error', 'unhandled']
+                )
         else:
-            await debug_logger(u"Erro não tratado:", update, error,
-                ['error', 'unhandled']
-            )
-    else:
-        await exception_logger(error, ['error', 'unhandled'])
+            await exception_logger(error, ['error', 'unhandled'])
+    except Exception as exception:
+        await exception_logger(
+            exception,
+            ['error', 'internal', 'exception', 'unhandled'],
+        )

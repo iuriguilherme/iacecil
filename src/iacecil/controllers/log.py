@@ -133,6 +133,7 @@ async def debug_logger(
     exception: Exception = None,
     descriptions: list = 'error',
 ):
+    # ~ logger.exception(e)
     dispatcher = Dispatcher.get_current()
     bot: Bot = dispatcher.bot
     url: str = ''
@@ -191,6 +192,7 @@ async def exception_logger(
     exception: Exception = None,
     descriptions: list = 'error',
 ):
+    # ~ logger.exception(e)
     try:
         dispatcher = Dispatcher.get_current()
         bot = dispatcher.bot

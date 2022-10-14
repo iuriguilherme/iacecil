@@ -41,13 +41,16 @@ from ..default import (
     add_handlers as add_default_handlers,
 )
 
-## TODO Sentenças impróprias para publicar no Github por razões diversas
 try:
     from instance.personalidades.iacecil import random_texts
 except Exception as e:
     logger.debug(f"random_texts em instance não encontrada para {__name__}")
     # ~ logger.exception(e)
-    from . import random_texts
+    try:
+        from . import random_texts
+    except Exception as e1:
+        logger.debug(f"no random_texts at all for {__name__}")
+        # ~ logger.exception(e1)
 
 ## Aiogram
 async def add_handlers(dispatcher):
