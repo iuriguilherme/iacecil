@@ -85,3 +85,4 @@ v0.1.18.2, 2022-03-31 -- Tia do Zap personality
 v0.1.19, 2022-08-22 -- Fixed uncontiguous tags and new tag system.
 v0.1.21, 2022-08-23 -- Jogo Torre
 v0.2.0, 2022-10-13 -- Criação de pacote instalável e importável
+v0.2.3, 2022-10-13 -- Possibilita criação de personalidade programada localmente
