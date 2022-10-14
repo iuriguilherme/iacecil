@@ -87,7 +87,7 @@ async def gerar_comando(
                 exception1,
                 [
                     'personalidades',
-                    bot.config.get('personalidade', 'default'),
+                    bot.config.personalidade,
                     'gerarComando',
                 ],
             )
@@ -100,7 +100,7 @@ async def gerar_comando(
                 exception,
                 [
                     'personalidades',
-                    bot.config.get('personalidade', 'default'),
+                    bot.config.personalidade,
                     'gerarComando',
                 ],
             )
@@ -138,7 +138,7 @@ async def gerar_texto(
                 exception1,
                 [
                     'personalidades',
-                    bot.config.get('personalidade', 'default'),
+                    bot.config.personalidade,
                     'gerarTexto',
                 ],
             )
@@ -151,7 +151,7 @@ async def gerar_texto(
                 exception,
                 [
                     'personalidades',
-                    bot.config.get('personalidade', 'default'),
+                    bot.config.personalidade,
                     'gerarTexto',
                 ],
             )

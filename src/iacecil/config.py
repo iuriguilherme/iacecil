@@ -192,8 +192,7 @@ try:
         Não edite os valores padrão deste arquivo
         Não edite os valores padrão deste arquivo
         """
-        # ~ log_level: str = 'INFO'
-        log_level: str = 'DEBUG'
+        log_level: str = 'INFO'
         ## Uvicorn
         socket: Union[str, None] = 'uvicorn.sock'
         forwarded_allow_ips: str = '*'
@@ -238,6 +237,221 @@ try:
         """Development configuration"""
         class Config:
             env_prefix: str = "DEV_"
+
+    class DefaultBotConfig(BaseSettings):
+        """Default bot configuration"""
+        ## All plugins: 'default', 'admin', 'archive', 'cryptoforex',
+        ## 'donate', 'echo', 'feedback', 'garimpo', 'greatful',
+        ## 'hashes', 'mate_matica', 'natural', 'portaria',
+        ## 'qr', 'storify', 'totalvoice', 'tropixel', 'tts',
+        ## 'welcome', 'ytdl'
+        ## FIXME: Some plugins currently will not work if loaded after others,
+        ## have to find out which is the correct order
+        plugins: dict = {
+            'enable': [
+                'default',
+                'admin',
+            ], # enable
+            'disable': [
+                'archive',
+                'cryptoforex',
+                'donate',
+                'feedback',
+                'hashes',
+                'mate_matica',
+                'qr',
+                'storify',
+                'tropixel',
+                'tts',
+                'web3_wrapper',
+                'ytdl',
+                'natural',
+                'welcome',
+                'garimpo',
+                'echo',
+                'greatful',
+                'portaria',
+                'totalvoice',
+            ], # disable
+        }
+        info: dict = {
+            'website': "http://iuri.xyz/iacecil",
+            'repository': "https://github.com/iuriguilherme/iacecil",
+        }
+        
+        ## Plugin donate - doações
+        donate: dict = {
+            'BCH': '1HFG6ici2SGU61hPFFtUsPVGMkdiimBPDL',
+            'BTC': '1MQJSCb6VopUeYrrsQaFVwmyFzs1hffcD2',
+            'DOGE': 'DAeuBKyt6gSnD5rT5eBtjvXqdGvFWVkh9D',
+            'ETH': '0x083652085dc46ab2d6146fbb329db0cde48eea81',
+            'FLO': 'F87gjmfeF9nWh1suB5X2TZQNN6FaQyWzxp',
+            'LTC': 'LY8w2WBRogttTJbLfusrJogi2tp6rKrPc3',
+            'PIVX': 'D9bUN6xhDTRUZYCT54yLw6L2F1QaMJ3oTC',
+            'TRX': 'TTCooALnSqmFcK3q56WMnGmbYhaXR6Zh5e',
+        } # donate
+        
+        ## Plugin Tropixel
+        tropixel: dict = {
+            'site': "https://rede.tropixel.org/",
+            'boteco': "https://meet.jit.si/tropixelbr",
+        }
+        ## Plugin personalidade
+        ## List of working personalidades: 'iacecil', 'cryptoforex', 'default', 
+        ## 'matebot', 'metarec', 'pave', 'pacume', 'pasoca'
+        personalidade: str = 'default'
+        
+        ## Plugin cryptoforex
+        coinmarketcap: dict = {
+            'token': "12345678-90ab-cdef-1234-567890abcdef",
+        } # coinmarketcap
+        
+        ## Plugin TextoTecidoPalavra
+        tecido: dict = {
+            'host': '127.0.0.1',
+            'port': 3000,
+        } # tecido
+        
+        ## Plugin web3_wrapper
+        web3: dict = {
+            'binance': {
+                'bsc_mainnet': "https://bsc-dataseed1.binance.org:443",
+                'bsc_testnet': """https://data-seed-prebsc-1-s1.binance.org:85\
+45""",
+            }, # binance
+            'infura': {
+                'eth_mainnet': """https://mainnet.infura.io/v3/0123456789abcde\
+f0123456789abcdef""",
+                'eth2_mainnet': """https://0123456789abcdef0123456789abcdef:01\
+23456789abcdef0123456789abcdef@eth2-beacon-mainnet.infura.io""",
+                'filecoin': """https://0123456789abcdef0123456789abcdef:012345\
+6789abcdef0123456789abcdef@filecoin.infura.io""",
+            }, # infura
+        } # web3
+        
+        ## Plugin calendar
+        jobs: list = []
+        timezone: str = "Etc/UTC"
+        
+        ## Plugin tc
+        serpapi: dict = {
+            'api_key': "12345678-90ab-cdef-1234-567890abcdef",
+        }
+        
+        quart: dict = {}
+        telegram: dict = {
+            'token': "",
+            'info': {
+                'group': "https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q",
+                'channel': "@matebotnews",
+                'admin': "@desobedientecivil",
+                'dev': "@desobedientecivil",
+            },
+            'webhook': {
+                'host': "https://iacecil.iuri.xyz/webhook/",
+                'path': "/iacecil",
+                'webapp': "https://iacecil.iuri.xyz/webhook/iacecil/",
+                'port': 8443,
+            }, # webhook
+            ## Plugin portaria
+            'unwanted': [
+                "HV Cursos",
+                "MateBot (test)",
+            ], # unwanted
+            'users': {
+                'alpha': [
+                    -1001233916997, # pub4 test
+                ],
+                'beta': [
+                    -1001233916997, # pub4 test
+                    -1001123697262, # MateBot News
+                ],
+                'gamma': [
+                    -1001286967165, # pub1 G
+                    -296878012, # pub2 C
+                    -1001207858341, # pub3 M
+                    -1001233916997, # pub4 test
+                    -481703172, # pub5 test
+                ],
+                'delta': [
+                ],
+                'epsilon': [
+                    777000, # services
+                    -1001286967165, # pub1 G
+                    -296878012, # pub2 C
+                    -1001207858341, # pub3 M
+                    -1001233916997, # pub4 test
+                    -481703172, # pub5 test
+                    -1001123697262, # MateBot News
+                    # @mate_obot
+                ], # epsilon
+                'tropixel': [
+                    -1001233916997, # pub4 test
+                ], # tropixel
+                'pegadinha': [
+                    -1001233916997, # pub4 test
+                ], # pegadinha
+                'garimpo': [
+                    -1001233916997, # pub4 test
+                ],
+                'special': {
+                    'services': 777000,
+                    'nouser': 1,
+                    'nogroup': -1,
+                    'debug': -1001233916997, # pub4 test
+                    'feedback': -1001233916997, # pub4 test
+                    'info': -1001233916997, # pub4 test
+                    'test': -1001233916997, # pub4 test
+                    'log_test': -1001233916997, # pub4 test
+                }, # special
+            }, # users
+        } # telegram
+        discord: dict = {
+            'token': "",
+        } # discord
+        furhat: dict = {
+            'bot': "f1",
+            'address': "127.0.0.1",
+            'voice': "Camila",
+            'mask': "adult",
+            'character': "Titan",
+            'language': "pt-BR",
+            'led': {'green': 0, 'red': 150, 'blue': 30},
+            'attend': {'x': 0, 'y': 0, 'z': 0},
+            'voice_url': "https://www.intriguing.com/mp/_sounds/hg/",
+            'recognizer': {
+                ## https://cloud.google.com/speech/docs/getting-started
+                'google': {
+                    "type": "service_account",
+                    "project_id": "test_account",
+                    "private_key_id": "1234567890abcdef",
+                    "private_key": "privatekey",
+                    "client_email": "example@example.com",
+                    "client_id": "123456789",
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": """https://www.googleapis.c\
+om/oauth2/v1/certs""",
+                    "client_x509_cert_url": """https://www.googleapis.com/robo\
+t/v1/metadata/x509/example@example.com""",
+                }, # google
+                ## https://azure.microsoft.com/en-us/services/
+                ## cognitive-services/speech-to-text/
+                'microsoft': {}, # microsoft
+            }, # recognizer
+            'synthesizer': {
+                ## https://aws.amazon.com/pt/polly/
+                'amazon': {
+                    'secret': "1234567890abcdef",
+                    'key': "ABCDEF",
+                    'engine': "neural",
+                }, # amazon
+                ## https://www.acapela-group.com/solutions/acapela-cloud/
+                'acapela': {}, # acapela
+            }, # synthesizer
+            'extension': "wav",
+            'output_format': "pcm",
+        } # furhat
 except Exception as e:
     logger.exception(e)
     sys.exit("RTFM")

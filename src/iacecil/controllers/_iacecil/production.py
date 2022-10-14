@@ -40,7 +40,10 @@ try:
         name,
         version,
     )
-    from ...config import ProductionConfig
+    from ...config import (
+        DefaultBotConfig,
+        ProductionConfig,
+    )
     from ...views.quart_app import quart_startup
     from ..aiogram_bot import aiogram_startup
     
@@ -48,6 +51,7 @@ try:
     
     logging.debug("Loading configuration from .env files...")
     config: BaseSettings = ProductionConfig()
+    default_bot_config: BaseSettings = DefaultBotConfig()
     ## TODO: testes de desenvolvimento
     # ~ from ...config import DevelopmentConfig
     # ~ config: BaseSettings = DevelopmentConfig()
@@ -77,9 +81,12 @@ system locale is set and available""")
         logger.error("Bot list not set! Please RTFM")
         logger.exception(e)
         bots: list = ['default']
-    configs: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
-    configs: dict = {bot: getattr(config, 'BotConfig')() \
-        for bot in bots for config in configs
+    modules: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
+    configs: dict = {bot: getattr(module, 'BotConfig')() \
+        if 'instance.bots.' + bot == module.__name__ \
+        and hasattr(module, 'BotConfig') \
+        else DefaultBotConfig() \
+        for bot in bots for module in modules
     }
     
     ### ia.cecil
