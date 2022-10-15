@@ -67,9 +67,11 @@ yt-dlp = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
 #iacecil = {editable = true, path = "."}
+beautifulsoup4 = "*"
+lxml = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.9"
 
 [scripts]
 iacecil = 'python start.py info quart ic'
@@ -77,8 +79,8 @@ quart = 'python start.py info quart ic 8000 127.0.0.1'
 test = 'python start.py debug quart test'
 prod = 'python start.py debug quart prod'
 dev = 'python start.py debug quart dev 8000 127.0.0.1 True'
-stage = 'python start.py info socket cf,cf2,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps 38000 127.0.0.1 0'
-stagetest = 'python start.py debug socket cf,cf2,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps 38000 127.0.0.1 0'
+stage = 'python start.py info socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
+stagetest = 'python start.py debug socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
 furhat = 'python start.py debug furhat test'
 papagaio = 'python start.py debug fpapagaio f239 True'
 personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
