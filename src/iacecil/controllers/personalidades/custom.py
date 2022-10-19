@@ -27,13 +27,9 @@ from aiogram import Dispatcher
 try:
     from instance.personalidades.custom import add_instance_handlers
 except Exception as e:
-    logger.debug(f"random_texts em instance não encontrada para {__name__}")
-    #logger.exception(e)
-    try:
-        from . import random_texts
-    except Exception as e1:
-        logger.debug(f"no random_texts at all for {__name__}")
-        # ~ logger.exception(e1)
+    logger.error(f"""add_instance_handlers em instance não encontrada para \
+{__name__}""")
+    logger.exception(e)
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """
@@ -44,6 +40,6 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     try:
         await add_instance_handlers(dispatcher)
     except Exception as e:
-        logger.warning("""Could not register custom instance handlers, have \
+        logger.error("""Could not register custom instance handlers, have \
 you RTFM?""")
         logger.exception(e)

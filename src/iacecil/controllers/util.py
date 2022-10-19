@@ -25,15 +25,18 @@ logger = logging.getLogger(__name__)
 import random
 import uuid
 
-## Probability
-async def dice(number):
+async def dice(number: int) -> int:
+    """Retorna um número aleatório entre 1 e number"""
     return random.randint(1, number)
 
-async def dice_low(number):
+async def dice_low(number: int) -> bool:
+    """Retorna verdadeiro em uma chance de 1 para number"""
     return (await dice(number)) == 1
 
-async def dice_high(number):
+async def dice_high(number: int) -> bool:
+    """Retorna verdadeiro em uma chance de 1 para len(number) - 1"""
     return (await dice(number)) > 1
 
-async def get_job_id(*args):
+async def get_job_id(*args) -> str:
+    """Retorna um uuid5 a partir de args"""
     return str(uuid.uuid5(uuid.UUID(int = 0), '.'.join(args)))
