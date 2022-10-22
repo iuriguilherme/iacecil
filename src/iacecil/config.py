@@ -403,6 +403,7 @@ f0123456789abcdef""",
                     'info': -1001233916997, # pub4 test
                     'test': -1001233916997, # pub4 test
                     'log_test': -1001233916997, # pub4 test
+                    'garimpo': -1001233916997, # pub4 test
                 }, # special
             }, # users
         } # telegram

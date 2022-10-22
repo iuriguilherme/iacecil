@@ -54,7 +54,7 @@ async def add_job(job, scheduler, dispatcher, *args, **kwargs):
             str(dispatcher.bot.id),
             job['name'],
         ))
-        timezone = pytz.timezone(dispatcher.config['info']['timezone'])
+        timezone = pytz.timezone(dispatcher.config.timezone)
         scheduler.add_job(
             getattr(
                 import_module('.'.join([
@@ -145,7 +145,7 @@ async def add_handlers(dispatcher):
             # ~ if message.get_args() not in [None, '', ' '] and \
                 # ~ message.get_args().isdigit():
                 # ~ await add_job('reminder', dispatcher.scheduler,
-                    # ~ dispatcher.config['info']['timezone'],
+                    # ~ dispatcher.config.timezone,
                     # ~ seconds = int(message.get_args()),
                 # ~ )
                 # ~ command = await message.reply(u"""Adicionei o lembrete \

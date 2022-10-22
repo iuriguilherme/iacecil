@@ -60,8 +60,8 @@ async def varre_link(message: str) -> Union[types.Message, None]:
             'iacecil',
         ]:
             url = None
-            garimpo_id = dispatcher.config.telegram['users'][
-                'special']['garimpo']
+            garimpo_id = dispatcher.config.telegram.get('users').get('special'
+                ).get('garimpo')
             if message.entities is not None:
                 for entity in message.entities:
                     if entity['type'] == "url":
@@ -118,9 +118,11 @@ async def varre_link(message: str) -> Union[types.Message, None]:
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """Register Aiogram Handlers to Dispatcher"""
     try:
-        garimpo_id = dispatcher.config.telegram['users'][
-            'special']['garimpo']
-
+        ## Pra onde VAI
+        garimpo_id = dispatcher.config.telegram.get('users').get('special'
+            ).get('garimpo')
+        ## De onde VEM
+        garimpos_ids = dispatcher.config.telegram.get('users').get('garimpo')
         ## Salva link em outro grupo
 
         ## FIXME implementar garimpo total (garimpa_tudo_callback) com
@@ -156,11 +158,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                 # ~ )
 
         ## Encaminha respostas para links
-        @dispatcher.message_handler(
-            filters.IDFilter(
-                chat_id = garimpo_id,
-            ),
-        )
+        @dispatcher.message_handler(filters.IDFilter(chat_id = garimpo_id))
         async def forward_reply_callback(message):
             await zodb_logger(message)
             if 'reply_to_message' in message \
@@ -209,10 +207,7 @@ on {}: {}""".format(__name__, repr(e2),))
         ## personalidades
         ## WARNING this must be placed last in handlers
         @dispatcher.message_handler(
-            filters.IDFilter(
-                chat_id = dispatcher.config.telegram['users'][
-                    'garimpo'],
-            ),
+            filters.IDFilter(chat_id = garimpos_ids),
             filters.ContentTypeFilter(types.message.ContentType.TEXT),
         )
         async def garimpa_tudo_callback(message):

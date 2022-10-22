@@ -52,9 +52,13 @@ try:
     logging.debug("Loading configuration from .env files...")
     config: BaseSettings = ProductionConfig()
     default_bot_config: BaseSettings = DefaultBotConfig()
-    ## TODO: testes de desenvolvimento
-    # ~ from ...config import DevelopmentConfig
-    # ~ config: BaseSettings = DevelopmentConfig()
+    try:
+        default_bot: object = import_module('.default', 'instance.bots')
+        DefaultBotConfig: object = default_bot.DefaultBotConfig
+        default_bot_config: BaseSettings = DefaultBotConfig()
+    except Exception as e:
+        logging.error("Default bot configuration not found")
+        logging.exception(e)
     
     logging.debug("Setting log level...")
     log_level: str = 'info'
@@ -82,13 +86,19 @@ system locale is set and available""")
         logger.exception(e)
         bots: list = ['default']
     modules: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
-    configs: dict = {bot: getattr(module, 'BotConfig')() \
-        if 'instance.bots.' + bot == module.__name__ \
-        and hasattr(module, 'BotConfig') \
-        else DefaultBotConfig() \
-        for bot in bots for module in modules
+    configs: dict = {
+        module.__name__.split('.')[2]: \
+        (getattr(module, 'BotConfig')() \
+        if hasattr(module, 'BotConfig') \
+        else default_bot_config) \
+        for module in modules
     }
-    
+    logger.debug(f"""Loaded configuration for bots: {bots}\n\
+Bots listed: {len(bots)}, \
+imported: {len(modules)}, \
+configured: {len(configs)}\n\
+bots that were not configured: {[bot for bots if not bot in config]}\
+""")
     ### ia.cecil
     ## Current implementation of script is using aiogram as middleware into 
     ## a quart app
