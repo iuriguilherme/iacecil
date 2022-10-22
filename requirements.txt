@@ -13,8 +13,8 @@ base58==2.1.1 ; python_version >= '3.5'
 beautifulsoup4==4.11.1
 bitarray==2.6.0
 blinker==1.5 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-boto3==1.24.91
-botocore==1.27.91 ; python_version >= '3.7'
+boto3==1.24.96
+botocore==1.27.96 ; python_version >= '3.7'
 brotli==1.0.9
 brotlipy==0.7.0 ; sys_platform != 'win32'
 btrees==4.10.1
@@ -44,7 +44,7 @@ ffmpeg-python==0.2.0
 flask==2.2.2 ; python_version >= '3.7'
 flask-sqlalchemy==3.0.2
 flask-wtf==1.0.1
-fonttools==4.37.4 ; python_version >= '3.7'
+fonttools==4.38.0 ; python_version >= '3.7'
 frozenlist==1.3.1 ; python_version >= '3.7'
 furhat-remote-api==1.0.2
 future==0.18.2 ; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
@@ -67,6 +67,7 @@ joblib==1.2.0 ; python_version >= '3.7'
 jsonschema==4.16.0 ; python_version >= '3.7'
 kiwisolver==1.4.4 ; python_version >= '3.7'
 lru-dict==1.1.8
+lxml==4.9.1
 markupsafe==2.1.1 ; python_version >= '3.7'
 matplotlib==3.6.1
 mpmath==1.2.1
@@ -80,12 +81,12 @@ nltk==3.7
 numpy==1.23.4
 orderedmultidict==1.0.1
 packaging==20.9 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pandas==1.5.0
+pandas==1.5.1
 parsimonious==0.8.1
 pep517==0.13.0 ; python_version >= '3.6'
 persistent==4.9.1
 pillow==9.2.0 ; python_version >= '3.7'
-pip==22.2.2 ; python_version >= '3.7'
+pip==22.3 ; python_version >= '3.7'
 pip-shims==0.7.3 ; python_version >= '3.6'
 pipenv-setup==3.2.0
 pipfile==0.0.2
@@ -105,7 +106,7 @@ pyqrcode==1.2.1
 pyrsistent==0.18.1 ; python_version >= '3.7'
 python-dateutil==2.8.2 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 python-dotenv==0.21.0 ; python_version >= '3.7'
-pytz==2022.4
+pytz==2022.5
 pytz-deprecation-shim==0.1.0.post0 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
 quart==0.17.0
 quart-schema==0.11.1 ; python_version >= '3.7'
@@ -114,12 +115,12 @@ requests==2.28.1
 requirementslib==1.6.9 ; python_version >= '3.7'
 rlp==2.0.1
 s3transfer==0.6.0 ; python_version >= '3.7'
-scipy==1.9.2 ; python_version >= '3.8'
+scipy==1.9.3 ; python_version >= '3.8'
 setuptools==65.5.0 ; python_version >= '3.7'
 six==1.16.0 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 sniffio==1.3.0 ; python_version >= '3.7'
 soupsieve==2.3.2.post1 ; python_version >= '3.6'
-sqlalchemy==1.4.41 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+sqlalchemy==1.4.42 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
 starlette==0.20.4 ; python_version >= '3.7'
 sympy==1.11.1
 tabulate==0.9.0
@@ -134,7 +135,7 @@ tzdata==2022.5 ; python_version >= '3.6'
 tzlocal==4.2 ; python_version >= '3.6'
 ujson==5.5.0 ; sys_platform != 'win32'
 urllib3==1.26.12 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4'
-uvicorn==0.18.3
+uvicorn==0.19.0
 uvloop==0.17.0 ; sys_platform != 'win32'
 validators==0.20.0
 varint==1.0.2
