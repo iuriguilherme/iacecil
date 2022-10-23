@@ -228,7 +228,7 @@ async def add_handlers(dispatcher):
             command,
             [
                 'piada',
-                dispatcher.bot.personalidade,
+                dispatcher.config.personalidade,
                 message.chat.type,
             ],
         ) # command_callback
@@ -267,13 +267,13 @@ async def add_handlers(dispatcher):
     )
     async def rima_ao_callback(message):
         await message_callback(message, ['rima', 'ao',
-            dispatcher.bot.personalidade,
+            dispatcher.config.personalidade,
             message.chat.type],
         )
         if (await dice_low(3)):
             command = await message.reply(random_texts.rimas_ao())
             await command_callback(command, ['rima', 'ao',
-                dispatcher.bot.personalidade,
+                dispatcher.config.personalidade,
                 message.chat.type],
             )
 
