@@ -32,6 +32,7 @@ from aiogram import (
 )
 from ...aiogram_bot.callbacks import (
     command_callback,
+    error_callback,
     message_callback,
 )
 from .furhat_handlers import (
@@ -169,183 +170,262 @@ async def pegadinha(message):
 
 ## Aiogram
 async def add_handlers(dispatcher):
-    ## Responde mensagens que são respostas a mensagens deste bot
-    ## Reponde com patada
-    @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
-    async def resposta_ignorante_callback(message):
-        await message_callback(
-            message,
-            ['resposta', 'ignorante', message.chat.type],
-        )
-        admin = message.from_user.first_name
-        if message.chat.type in ['group', 'supergroup']:
+    try:
+        ## Responde mensagens que são respostas a mensagens deste bot
+        ## Reponde com patada
+        @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+        async def resposta_ignorante_callback(message):
+            descriptions = ['resposta', 'ignorante',
+                dispatcher.config.personalidade, message.chat.type]
             try:
-                admin = [member.user for member in \
-                    await dispatcher.bot.get_chat_administrators(
-                    message.chat.id
-                    ) if member.status == 'creator'][0].first_name
-            except IndexError:
-                pass
-        command = await message.reply(
-            random_texts.respostas_ignorante(admin),
+                await message_callback(
+                    message,
+                    descriptions,
+                )
+                admin = message.from_user.first_name
+                if message.chat.type in ['group', 'supergroup']:
+                    try:
+                        admin = [member.user for member in \
+                            await dispatcher.bot.get_chat_administrators(
+                            message.chat.id
+                            ) if member.status == 'creator'][0].first_name
+                    except IndexError:
+                        pass
+                command = await message.reply(
+                    random_texts.respostas_ignorante(admin),
+                )
+                if command:
+                    await command_callback(command, descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'ignorante',
+                    message,
+                    e1,
+                    ['exception'] + descriptions,
+                )
+        ## Saúda com trollada
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                ## Somente grupos configurados pra receber novas pessoas com
+                ## pegadinha
+                ## Atualmente só o @ZaffariPoa
+                chat_id = dispatcher.config.telegram['users'].get(
+                    'pegadinha', -1),
+            ),
+            content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
-        await command_callback(command, ['resposta' 'ignorante',
-            message.chat.type],
-        )
-    
-    ## Saúda com trollada
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            ## Somente grupos configurados pra receber novas pessoas com
-            ## pegadinha
-            ## Atualmente só o @ZaffariPoa
-            chat_id = dispatcher.config.telegram['users'].get(
-                'pegadinha', -1),
-        ),
-        content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
-    )
-    async def welcome_pegadinha_callback(message: types.Message):
-        command_type = 'welcome'
-        await message_callback(message, [command_type, 'pegadinha',
-            message.chat.type],
-        )
-        if str(message['new_chat_member']['first_name']).lower() in \
-            [unwant.lower() for unwant in \
-            dispatcher.config.telegram.get('unwanted',
-                ['SPAM'])]:
-            text = await portaria(message)
-            command_type = 'portaria'
-            command = await message.reply(text)
-        else:
-            command = await pegadinha(message)
-        await command_callback(command, [command_type, 'pegadinha',
-            message.chat.type],
-        )
+        async def welcome_pegadinha_callback(message: types.Message):
+            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            try:
+                command_type = 'welcome'
+                await message_callback(message, [command_type] + descriptions,
+                )
+                if str(message['new_chat_member']['first_name']).lower() in \
+                    [unwant.lower() for unwant in \
+                    dispatcher.config.telegram.get('unwanted',
+                        ['SPAM'])]:
+                    text = await portaria(message)
+                    command_type = 'portaria'
+                    command = await message.reply(text)
+                else:
+                    command = await pegadinha(message)
+                if command:
+                    await command_callback(command,
+                        [command_type] + descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'welcome',
+                    message,
+                    e1,
+                    ['exception', 'welcome'] + descriptions,
+                )
 
-    ## /brinde
-    @dispatcher.message_handler(
-        filters.IDFilter(
-            ## Somente grupos configurados pra receber novas pessoas com
-            ## pegadinha
-            ## Atualmente só o @ZaffariPoa
-            chat_id = dispatcher.config.telegram['users'].get(
-                'pegadinha', -1),
-        ),
-        commands = ['brinde', 'brindes'],
-    )
-    async def brinde_pegadinha_callback(message: types.Message):
-        command_type = 'brinde'
-        await message_callback(message, [command_type, 'pegadinha',
-            message.chat.type],
+        ## /brinde
+        @dispatcher.message_handler(
+            filters.IDFilter(
+                ## Somente grupos configurados pra receber novas pessoas com
+                ## pegadinha
+                ## Atualmente só o @ZaffariPoa
+                chat_id = dispatcher.config.telegram['users'].get(
+                    'pegadinha', -1),
+            ),
+            commands = ['brinde', 'brindes'],
         )
-        command = await pegadinha(message)
-        await command_callback(command, [command_type, 'pegadinha',
-            message.chat.type],
+        async def brinde_pegadinha_callback(message: types.Message):
+            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            try:
+                command_type = 'brinde'
+                await message_callback(message, [command_type] + descriptions,
+                )
+                command = await pegadinha(message)
+                if command:
+                    await command_callback(command,
+                        [command_type] + descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'brinde',
+                    message,
+                    e1,
+                    ['exception', 'brinde'] + descriptions,
+                )
+        ## Seja mau vindo
+        @dispatcher.message_handler(
+            content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
-    ## Seja mau vindo
-    @dispatcher.message_handler(
-        content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
-    )
-    async def welcome_callback(message: types.Message):
-        command_type = 'welcome'
-        await message_callback(message,
-            [command_type, dispatcher.config.personalidade, message.chat.type],
-        )
-        text = await welcome(message)
-        if str(message['new_chat_member']['first_name']).lower() in \
-            [unwant.lower() for unwant in \
-            dispatcher.config.telegram.get('unwanted',
-                ['SPAM'])]:
-            text = await portaria(message)
-            command_type = 'portaria'
-        command = await message.reply(text)
-        await command_callback(command,
-            [command_type, dispatcher.config.personalidade, message.chat.type],
-        )
+        async def welcome_callback(message: types.Message):
+            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            try:
+                command_type = 'welcome'
+                await message_callback(message,
+                    [command_type] + descriptions,
+                )
+                text = await welcome(message)
+                if str(message['new_chat_member']['first_name']).lower() in \
+                    [unwant.lower() for unwant in \
+                    dispatcher.config.telegram.get('unwanted',
+                        ['SPAM'])]:
+                    text = await portaria(message)
+                    command_type = 'portaria'
+                command = await message.reply(text)
+                if command:
+                    await command_callback(command,
+                        [command_type] + descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'welcome',
+                    message,
+                    e1,
+                    ['exception', 'welcome'] + descriptions,
+                )
 
-    ## Piadas sem graça
-    # ~ @dispatcher.message_handler(
-        # ~ commands = ['piada'],
-    # ~ )
-    # ~ async def piada_callback(message):
-        # ~ await message_callback(message, ['piada',
-            # ~ dispatcher.config.personalidade,
-            # ~ message.chat.type])
-        # ~ command = await message.reply(random_texts.piadas())
-        # ~ await command_callback(command, ['piada',
-            # ~ dispatcher.config.personalidade,
-            # ~ message.chat.type])
+        ## Piadas sem graça
+        # ~ @dispatcher.message_handler(
+            # ~ commands = ['piada'],
+        # ~ )
+        # ~ async def piada_callback(message):
+            # ~ await message_callback(message, ['piada',
+                # ~ dispatcher.config.personalidade,
+                # ~ message.chat.type])
+            # ~ command = await message.reply(random_texts.piadas())
+            # ~ await command_callback(command, ['piada',
+                # ~ dispatcher.config.personalidade,
+                # ~ message.chat.type])
 
-    ## Versículos bíblicos fora de contexto
-    @dispatcher.message_handler(
-        commands = ['versiculo'],
-    )
-    async def versiculo_callback(message):
-        await message_callback(message, ['versiculo',
-            message.chat.type],
+        ## Versículos bíblicos fora de contexto
+        @dispatcher.message_handler(
+            commands = ['versiculo'],
         )
-        command = await message.reply(
-            random_texts.versiculos_md(),
-            parse_mode = "MarkdownV2",
+        async def versiculo_callback(message):
+            descriptions = ['versiculo', dispatcher.config.personalidade,
+                    message.chat.type]
+            try:
+                await message_callback(message, descriptions)
+                command = await message.reply(
+                    random_texts.versiculos_md(),
+                    parse_mode = "MarkdownV2",
+                )
+                if command:
+                    await command_callback(command, descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'versiculo',
+                    message,
+                    e1,
+                    ['exception'] + descriptions,
+                )
+        ## /info
+        @dispatcher.message_handler(
+            commands = ['info'],
         )
-        await command_callback(command, ['versiculo',
-            message.chat.type],
+        async def info_callback(message):
+            descriptions = ['info', dispatcher.config.personalidade,
+                    message.chat.type]
+            try:
+                await message_callback(
+                    message,
+                    descriptions,
+                )
+                command = await message.reply(await info())
+                if command:
+                    await command_callback(command, descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'info',
+                    message,
+                    e1,
+                    ['exception'] + descriptions,
+                )
+        @dispatcher.message_handler(
+            filters.Text(contains = 'quanto', ignore_case = True),
+            filters.Regexp('(?i)\\b(vale|custa|cobra)\\b'),
         )
+        async def resposta_quanto_callback(message: types.Message) -> None:
+            """Responde 'quanto vale'"""
+            descriptions: list[
+                'resposta',
+                'quanto',
+                dispatcher.config.get.personalidade,
+                message.chat.type,
+            ] # descriptions
+            try:
+                await message_callback(message, descriptions)
+                command = await message.reply(random_texts.respostas_quanto())
+                if command:
+                    await command_callback(command, descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'quanto',
+                    message,
+                    e1,
+                    ['exception', 'pave', 'quanto'],
+                )
 
-    ## /info
-    @dispatcher.message_handler(
-        commands = ['info'],
-    )
-    async def info_callback(message):
-        await message_callback(
-            message,
-            ['info', dispatcher.config.personalidade,
-            message.chat.type],
+        @dispatcher.message_handler(
+            filters.Regexp(r'\b({})\b'.format('|'.join(random_texts.bebidas())))
         )
-        command = await message.reply(await info())
-        await command_callback(
-            command,
-            ['info', dispatcher.config.personalidade,
-            message.chat.type],
-        )
-
-    @dispatcher.message_handler(
-        filters.Text(contains = 'quanto', ignore_case = True),
-        filters.Regexp('(?i)\\b(vale|custa|cobra)\\b'),
-    )
-    async def resposta_quanto_callback(message: types.Message) -> None:
-        """Responde 'quanto vale'"""
-        descriptions: list[
-            'resposta',
-            'quanto',
-            dispatcher.config.get.personalidade,
-            message.chat.type,
-        ] # descriptions
-        try:
-            await message_callback(message, descriptions)
-            command = await message.reply(random_texts.respostas_quanto())
-            await command_callback(command, descriptions)
-        except Exception as e:
-            logger.exception(e)
-            await erro_callback("Erro tentando mandar resposta", message, e,
-                descriptions)
-
-    @dispatcher.message_handler(
-        filters.Regexp(r'\b({})\b'.format('|'.join(random_texts.bebidas())))
-    )
-    async def resposta_bebida_callback(message: types.Message) -> None:
-        """Responde toda referência a bebidas"""
-        descriptions: list[
-            'resposta',
-            'bebida',
-            dispatcher.config.get.personalidade,
-            message.chat.type,
-        ] # descriptions
-        try:
-            await message_callback(message, descriptions)
-            command = await message.reply(random_texts.respostas_bebida())
-            await command_callback(command, descriptions)
-        except Exception as e:
-            logger.exception(e)
-            await erro_callback("Erro tentando mandar resposta", message, e,
-                descriptions)
+        async def resposta_bebida_callback(message: types.Message) -> None:
+            """Responde toda referência a bebidas"""
+            descriptions: list[
+                'resposta',
+                'bebida',
+                dispatcher.config.get.personalidade,
+                message.chat.type,
+            ] # descriptions
+            try:
+                await message_callback(message, descriptions)
+                command = await message.reply(random_texts.respostas_bebida())
+                if command:
+                    await command_callback(command, descriptions)
+                else:
+                    raise Exception(f"command was {str(command)}")
+            except Exception as e1:
+                logger.exception(e1)
+                await error_callback(
+                    'bebida',
+                    message,
+                    e1,
+                    ['exception', 'pave', 'bebida'],
+                )
+    except Exception as e:
+        logger.exception(e)
