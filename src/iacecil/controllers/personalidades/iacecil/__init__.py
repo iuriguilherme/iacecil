@@ -61,13 +61,13 @@ async def add_handlers(dispatcher):
     async def fofice_callback(message):
         await message_callback(message, [
             'fofice',
-            dispatcher.bot.get('personalidade', 'iacecil'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
         command = await message.reply(random_texts.fofices())
         await command_callback(command, [
             'info',
-            dispatcher.bot.get('personalidade', 'iacecil'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
 

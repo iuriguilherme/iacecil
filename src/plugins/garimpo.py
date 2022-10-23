@@ -53,7 +53,7 @@ async def varre_link(message: str) -> Union[types.Message, None]:
     """
     try:
         dispatcher = Dispatcher.get_current()
-        if dispatcher.config.get('personalidade', None) in [
+        if dispatcher.config.personalidade in [
             'default',
             'metarec',
             'matebot',
@@ -88,30 +88,35 @@ async def varre_link(message: str) -> Union[types.Message, None]:
                         pfm['chat_id'] = message.chat.id
                         pfm['reply_to_message_id'] = message.message_id
                         transaction.commit()
-                    except Exception as e1:
+                    except Exception as e2:
                         transaction.abort()
                         await debug_logger(
                             u"Message NOT added to database",
                             message,
-                            e1,
+                            e2,
                             ['garimpo', 'varre_links', 'zodb',
                                 'exception'],
                         )
                     finally:
                         try:
                             db.close()
-                        except Exception as e2:
-                            logger.warning(u"""db was never created on\
-{}: {}""".format(__name__, repr(e2),))
-                except Exception as e3:
+                        except Exception as e3:
+                            logger.warning("db was never created")
+                            logger.exception(e3)
+                except Exception as e1:
+                    logger.exception(e1)
                     await exception_logger(
-                        e3,
+                        e1,
                         ['garimpo', 'varre_links', 'zodb'],
                     )
                 return fw_message
-    except Exception as exception:
-        await debug_logger(u"Erro tentando garimpar link", message,
-            exception, ['garimpo', 'exception'],
+    except Exception as e:
+        logger.exception(e)
+        await debug_logger(
+            u"Erro tentando garimpar link",
+            message,
+            e,
+            ['garimpo', 'exception'],
         )
         return None
 
@@ -183,23 +188,25 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                             )
                         except KeyError:
                             pass
-                        except Exception as e1:
+                        except Exception as e2:
+                            logger.exception(e2)
                             await debug_logger(
-                                u"Message NOT retreived from database",
+                                "Message NOT retreived from database",
                                 message,
-                                e1,
+                                e2,
                                 ['garimpo', 'forward_reply', 'zodb',
                                     'exception'],
                             )
                         finally:
                             try:
                                 db.close()
-                            except Exception as e2:
-                                logger.warning(u"""db was never created\
-on {}: {}""".format(__name__, repr(e2),))
-                    except Exception as exception:
+                            except Exception as e3:
+                                logger.warning("db was never created")
+                                logger.exception(e3)
+                    except Exception as e1:
+                        logger.exception(e1)
                         await exception_logger(
-                            exception,
+                            e1,
                             ['garimpo', 'forward_reply', 'zodb'],
                         )
 

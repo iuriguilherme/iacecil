@@ -188,8 +188,7 @@ async def add_handlers(dispatcher):
     async def welcome_callback(message: types.Message):
         command_type = 'welcome'
         await message_callback(message,
-            [command_type, dispatcher.config.get(
-            'personalidade', 'pacume'), message.chat.type],
+            [command_type, dispatcher.config.personalidade, message.chat.type],
         )
         text = await welcome(message)
         if str(message['new_chat_member']['first_name']).lower() in \
@@ -200,8 +199,7 @@ async def add_handlers(dispatcher):
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
-            [command_type, dispatcher.config.get(
-            'personalidade', 'pacume'), message.chat.type],
+            [command_type, dispatcher.config.personalidade, message.chat.type],
         )
 
     ## Volte nunca
@@ -210,13 +208,11 @@ async def add_handlers(dispatcher):
     )
     async def bye_callback(message: types.Message):
         await message_callback(message, ['bye',
-            dispatcher.config.get(
-            'personalidade', 'pacume'), message.chat.type])
+            dispatcher.config.personalidade, message.chat.type])
         text = await bye(message)
         command = await message.reply(text)
         await command_callback(command, ['bye',
-            dispatcher.config.get(
-            'personalidade', 'pacume'), message.chat.type])
+            dispatcher.config.personalidade, message.chat.type])
 
     ## Piadas sem graça
     @dispatcher.message_handler(
@@ -224,14 +220,18 @@ async def add_handlers(dispatcher):
     )
     async def piada_callback(message):
         await message_callback(message, ['piada',
-            dispatcher.bot.get('personalidade', 'pacume'),
+            dispatcher.config.personalidade,
             message.chat.type],
         )
         command = await message.reply(random_texts.respostas_piadas())
-        await command_callback(command, ['piada',
-            dispatcher.bot.get('personalidade', 'pacume'),
-            message.chat.type],
-        )
+        await command_callback(
+            command,
+            [
+                'piada',
+                dispatcher.bot.personalidade,
+                message.chat.type,
+            ],
+        ) # command_callback
 
     ## Versículos bíblicos fora de contexto
     @dispatcher.message_handler(
@@ -254,11 +254,11 @@ async def add_handlers(dispatcher):
         commands = ['info'],
     )
     async def info_callback(message):
-        await message_callback(message, ['info', dispatcher.config.get(
-            'personalidade', 'pacume'), message.chat.type])
+        await message_callback(message, ['info',
+            dispatcher.config.personalidade, message.chat.type])
         command = await message.reply(await info())
-        await command_callback(command, ['info', dispatcher.config.get(
-            'personalidade', 'pacume'),message.chat.type])
+        await command_callback(command, ['info',
+            dispatcher.config.personalidade, message.chat.type])
 
     ## Qualquer frase que termina em 'ão' com uma palavra de pelo menos
     ## quatro letras
@@ -267,13 +267,13 @@ async def add_handlers(dispatcher):
     )
     async def rima_ao_callback(message):
         await message_callback(message, ['rima', 'ao',
-            dispatcher.bot.get('personalidade', 'pacume'),
+            dispatcher.bot.personalidade,
             message.chat.type],
         )
         if (await dice_low(3)):
             command = await message.reply(random_texts.rimas_ao())
             await command_callback(command, ['rima', 'ao',
-                dispatcher.bot.get('personalidade', 'pacume'),
+                dispatcher.bot.personalidade,
                 message.chat.type],
             )
 

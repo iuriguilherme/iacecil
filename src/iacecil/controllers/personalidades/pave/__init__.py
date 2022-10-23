@@ -249,8 +249,7 @@ async def add_handlers(dispatcher):
     async def welcome_callback(message: types.Message):
         command_type = 'welcome'
         await message_callback(message,
-            [command_type, dispatcher.config.get(
-            'personalidade', 'pave'), message.chat.type],
+            [command_type, dispatcher.config.personalidade, message.chat.type],
         )
         text = await welcome(message)
         if str(message['new_chat_member']['first_name']).lower() in \
@@ -261,8 +260,7 @@ async def add_handlers(dispatcher):
             command_type = 'portaria'
         command = await message.reply(text)
         await command_callback(command,
-            [command_type, dispatcher.config.get(
-            'personalidade', 'pave'), message.chat.type],
+            [command_type, dispatcher.config.personalidade, message.chat.type],
         )
 
     ## Piadas sem graça
@@ -271,11 +269,11 @@ async def add_handlers(dispatcher):
     # ~ )
     # ~ async def piada_callback(message):
         # ~ await message_callback(message, ['piada',
-            # ~ dispatcher.bot.get('personalidade', 'pave'),
+            # ~ dispatcher.config.personalidade,
             # ~ message.chat.type])
         # ~ command = await message.reply(random_texts.piadas())
         # ~ await command_callback(command, ['piada',
-            # ~ dispatcher.bot.get('personalidade', 'pave'),
+            # ~ dispatcher.config.personalidade,
             # ~ message.chat.type])
 
     ## Versículos bíblicos fora de contexto
@@ -301,13 +299,13 @@ async def add_handlers(dispatcher):
     async def info_callback(message):
         await message_callback(
             message,
-            ['info', dispatcher.bot.get('personalidade', 'pave'),
+            ['info', dispatcher.config.personalidade,
             message.chat.type],
         )
         command = await message.reply(await info())
         await command_callback(
             command,
-            ['info', dispatcher.bot.get('personalidade', 'pave'),
+            ['info', dispatcher.config.personalidade,
             message.chat.type],
         )
 

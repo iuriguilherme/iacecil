@@ -75,13 +75,13 @@ async def add_handlers(dispatcher):
     async def mensagem_bomdia_callback(message):
         await message_callback(message, [
             'mensagemBomdia',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
         command = await mensagem_bom_dia()
         await command_callback(command, [
             'mensagemBomdia',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
     ## Reply every good morning
@@ -93,14 +93,14 @@ async def add_handlers(dispatcher):
         await message_callback(message, [
             'resposta',
             'bomdia',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
         command = await message.reply(u"Bom dia.")
         await command_callback(command, [
             'resposta',
             'bomdia',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
     ## The ultimate tia do zap reply
@@ -112,14 +112,14 @@ a)( c|c)(o|u)m(er|ê|e)'''),
         await message_callback(message, [
             'resposta',
             'pasoca',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
         command = await message.reply(u"É paçoca. Paçocá no teu cu.")
         await command_callback(command, [
             'resposta',
             'pasoca',
-            dispatcher.config.get('personalidade', 'pasoca'),
+            dispatcher.config.personalidade,
             message.chat.type,
         ])
 

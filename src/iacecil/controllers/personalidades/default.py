@@ -102,12 +102,11 @@ async def add_handlers(dispatcher):
         commands = ['info'],
     )
     async def info_callback(message):
-        await message_callback(message, ['info', dispatcher.config[
-            'info'].get('personalidade', 'default'), message.chat.type])
-        command = await message.reply(await info(dispatcher.config[
-            'info']))
-        await command_callback(command, ['info', dispatcher.config.get(
-            'personalidade', 'default'), message.chat.type])
+        await message_callback(message, ['info',
+            dispatcher.config.personalidade, message.chat.type])
+        command = await message.reply(await info(dispatcher.config.info))
+        await command_callback(command, ['info',
+            dispatcher.config.personalidade, message.chat.type])
 
 ## Furhat
 async def furhat_papagaio(config, message):
