@@ -309,29 +309,43 @@ async def add_handlers(dispatcher):
             message.chat.type],
         )
 
-    ## Responde "quanto vale"
     @dispatcher.message_handler(
         filters.Text(contains = 'quanto', ignore_case = True),
         filters.Regexp('(?i)\\b(vale|custa|cobra)\\b'),
     )
-    async def resposta_quanto_callback(message):
-        await message_callback(message, ['resposta', 'quanto',
-            message.chat.type])
-        command = await message.reply(random_texts.respostas_quanto())
-        await command_callback(command, ['resposta', 'quanto',
-            message.chat.type])
+    async def resposta_quanto_callback(message: types.Message) -> None:
+        """Responde 'quanto vale'"""
+        descriptions: list[
+            'resposta',
+            'quanto',
+            dispatcher.config.get.personalidade,
+            message.chat.type,
+        ] # descriptions
+        try:
+            await message_callback(message, descriptions)
+            command = await message.reply(random_texts.respostas_quanto())
+            await command_callback(command, descriptions)
+        except Exception as e:
+            logger.exception(e)
+            await erro_callback("Erro tentando mandar resposta", message, e,
+                descriptions)
 
-    ## Responde toda referência a bebidas
     @dispatcher.message_handler(
-        filters.Regexp(
-            r'\b({})\b'.format('|'.join(random_texts.bebidas())),
-        ),
+        filters.Regexp(r'\b({})\b'.format('|'.join(random_texts.bebidas())))
     )
-    async def resposta_bebida_callback(message):
-        await message_callback(message, ['resposta', 'bebida',
-            message.chat.type],
-        )
-        command = await message.reply(random_texts.respostas_bebida())
-        await command_callback(command, ['resposta', 'bebida',
-            message.chat.type],
-        )
+    async def resposta_bebida_callback(message: types.Message) -> None:
+        """Responde toda referência a bebidas"""
+        descriptions: list[
+            'resposta',
+            'bebida',
+            dispatcher.config.get.personalidade,
+            message.chat.type,
+        ] # descriptions
+        try:
+            await message_callback(message, descriptions)
+            command = await message.reply(random_texts.respostas_bebida())
+            await command_callback(command, descriptions)
+        except Exception as e:
+            logger.exception(e)
+            await erro_callback("Erro tentando mandar resposta", message, e,
+                descriptions)
