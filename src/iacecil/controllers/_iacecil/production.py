@@ -93,11 +93,12 @@ system locale is set and available""")
         else default_bot_config) \
         for module in modules
     }
-    logger.debug(f"""Loaded configuration for bots: {bots}\n\
+    logger.debug(f"""\
+Loaded configuration for bots: {bots}\n\
 Bots listed: {len(bots)}, \
 imported: {len(modules)}, \
 configured: {len(configs)}\n\
-bots that were not configured: {[bot for bots if not bot in config]}\
+bots that were not configured: {[bot for bot in bots if not bot in configs]}\
 """)
     ### ia.cecil
     ## Current implementation of script is using aiogram as middleware into 

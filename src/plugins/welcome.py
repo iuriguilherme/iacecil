@@ -57,8 +57,11 @@ async def add_handlers(dispatcher):
             )
             text = await gerar_texto('welcome', dispatcher.bot, message)
             if str(message['new_chat_member']['first_name']).lower() in \
-                [unwant.lower() for unwant in  dispatcher.config[
-                'telegram'].get('unwanted', ['SPAM'])]:
+                [
+                    unwant.lower() \
+                    for unwant in \
+                    dispatcher.config.telegram.get('unwanted', ['SPAM']) \
+                ]:
                 text = await gerar_texto('portaria', dispatcher.bot,
                     message,
                 )
