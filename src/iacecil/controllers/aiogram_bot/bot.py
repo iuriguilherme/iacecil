@@ -65,6 +65,7 @@ class IACecilBot(Bot):
             self.command = await super_function(*args, **kwargs)
             return self.command
         except exceptions.RetryAfter as exception:
+            logger.exception(exception)
             logger.debug(u"Flood control: waiting {} seconds...\
             ".format(exception.timeout))
             await asyncio.sleep(exception.timeout)
@@ -76,6 +77,7 @@ class IACecilBot(Bot):
                 **kwargs,
             )
         except exceptions.BotKicked as exception:
+            logger.exception(exception)
             if kwargs['chat_id'] in [
                 self.config.telegram['users']['special']['debug'],
                 self.config.telegram['users']['special']['info']
@@ -101,6 +103,7 @@ logger groups. Exiting...""")
                     except Exception as e2:
                         logger.warning(repr(e2))
         except exceptions.BotBlocked as exception:
+            logger.exception(exception)
             try:
                 await error_callback(
                     u"Probably blocked by this user",
@@ -117,6 +120,7 @@ logger groups. Exiting...""")
                 except Exception as e2:
                     logger.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
+            logger.exception(exception)
             try:
                 exception_list = [
                     self.config.telegram['users']['special'][
@@ -145,8 +149,9 @@ logger groups. Exiting...""")
                     logger.warning(u"""Bot is not in the logging groups\
 , add them already.""")
             except Exception as e3:
-                logger.critical(repr(e3))
+                logger.exception(e3)
         except exceptions.UserDeactivated as exception:
+            logger.exception(exception)
             try:
                 await error_callback(
                     u"Probably the user pressed the red button",
@@ -163,9 +168,11 @@ logger groups. Exiting...""")
                 except Exception as e2:
                     logger.warning(repr(e2))
         except exceptions.TerminatedByOtherGetUpdates as exception:
+            logger.exception(exception)
             logger.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))
         except exceptions.MessageToReplyNotFound as exception:
+            logger.exception(exception)
             logger.warning(
                 u"Attempting to resend message without reply",
             )
@@ -173,6 +180,7 @@ sewhere!\n{}""".format(repr(exception)))
             self.command = await function(*args, **kwargs)
             return self.command
         except exceptions.TelegramAPIError as exception:
+            logger.exception(exception)
             descriptions = {
                 'too_long': "MessageIsTooLong('Message is too long')",
                 'rights': """BadRequest('Have no rights to send a messa\
@@ -221,35 +229,36 @@ eactivated')""",
             if reason is not None:
                 logger.debug(u"{}:\n{}\n".format(reason, str(
                     self.command)))
-                # ~ try:
-                    # ~ await error_callback(
-                        # ~ reason,
-                        # ~ self.command,
-                        # ~ exception,
-                        # ~ [function_name, 'TelegramAPIError',
-                            # ~ 'exception'],
-                    # ~ )
-                # ~ except Exception as e1:
-                    # ~ try:
-                        # ~ await exception_callback(
-                            # ~ e1,
-                            # ~ [function_name, 'TelegramAPIError'],
-                        # ~ )
-                    # ~ except Exception as e2:
-                        # ~ logger.critical(repr(e2))
+                try:
+                    await error_callback(
+                        "\n\n".join([reason, repr(exception)]),
+                        self.command,
+                        exception,
+                        ['exception', function_name, 'TelegramAPIError'],
+                    )
+                except Exception as e1:
+                    logger.exception(e1)
+                    try:
+                        await exception_callback(
+                            e1,
+                            [function_name, 'TelegramAPIError'],
+                        )
+                    except Exception as e2:
+                        logger.exception(e2)
             else:
-                logger.info(f"""No apparent reason for error. self = \
+                logger.critical(f"""No apparent reason for error. self = \
 {str(self)}, function = {str(function)}, function_name = \
 {str(function_name)}, super_function = {str(super_function)}, args = \
 {str(args)}, kwargs = {str(kwargs)}""")
         except Exception as exception:
+            logger.exception(exception)
             try:
                 await exception_callback(
                     exception,
                     [function_name, 'NotTelegram'],
                 )
             except Exception as e:
-                logger.warning(repr(e))
+                logger.exception(e)
         return self.command
     
     async def send_photo(self, *args, **kwargs):
