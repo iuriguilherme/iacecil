@@ -123,7 +123,14 @@ async def furhat_sevira(config, message):
     ]))
 
 async def furhat_naosou(config, message):
-    return u"Acho que tu me confundiu"
+    return random.choice([
+        "Acho que tu me confundiu. Eu não sou a Alexa",
+        "Acho que tu me confundiu. Eu não sou a Alexa",
+        "Acho que tu me confundiu. Eu não sou a Alexa",
+        """Toda hora perguntam se eu sou a Alexa. Acho que vocês estão mal \
+acostumados com os robôs fazendo tudo o que vocês querem.""",
+        "Se eu fosse a Alexa eu só ia tocar música da Flora Matos",
+    ])
 
 async def furhat_startswith_iterations():
     return [
@@ -151,7 +158,17 @@ async def furhat_contains_iterations():
             ) for subtext in [
                 'alexa',
                 'a lexa',
-                'google',
-                'siri',
+                'lexa',
+                "Alexa",
+                "A lexa",
+                "A Lexa",
+                "Alexia",
+                "A lexia",
+                "A Lexia",
+                "Aléxia",
+                "A léxia",
+                "A Léxia",
+                # ~ 'google',
+                # ~ 'siri',
             ]
     ]

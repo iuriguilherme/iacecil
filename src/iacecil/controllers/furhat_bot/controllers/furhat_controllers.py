@@ -49,7 +49,7 @@ from ...persistence.zodb_orm import (
     get_furhat_texts_messages,
     set_furhat_text,
 )
-from ....plugins.natural import (
+from plugins.natural import (
     generate,
     concordance,
     collocations,
@@ -70,6 +70,9 @@ async def led_blue(furhat):
 
 async def led_green(furhat):
     await set_led(furhat, red = 0, green = 255, blue = 0)
+
+async def led_yellow(furhat):
+    await set_led(furhat, red = 255, green = 255, blue = 0)
 
 async def led_red(furhat):
     await set_led(furhat, red = 255, green = 0, blue = 0)

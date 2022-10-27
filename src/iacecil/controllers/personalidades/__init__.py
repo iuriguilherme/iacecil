@@ -33,10 +33,13 @@ from ..aiogram_bot.callbacks import (
     exception_callback,
 )
 from ...models import Iteration
+
+## FIXME use importlib.import_module instead
 from . import (
     cryptoforex,
     custom,
     default,
+    gamboa,
     iacecil,
     matebot,
     metarec,
@@ -44,7 +47,6 @@ from . import (
     pasoca,
     pave,
 )
-
 personalidades: dict[str, object] = {'default': default}
 try:
     personalidades: dict[str, object] = {
@@ -57,6 +59,7 @@ try:
         'pacume': pacume,
         'pasoca': pasoca,
         'pave': pave,
+        'gamboa': gamboa,
     }
 except Exception as e:
     logger.error("Problema tentando carregar as personalidades")
@@ -77,7 +80,7 @@ async def gerar_comando(
     except AttributeError as e:
         logger.exception(e)
         try:
-            return await getattr(personalidades['default'], command)(message)
+            return await getattr(personalidades.get(default), command)(message)
         except Exception as e1:
             logger.exception(e1)
             await error_callback(

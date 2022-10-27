@@ -89,6 +89,7 @@ async def furhat_handler_contains(persona, sentence):
 
 ## This argument is a furhat_bot.Status
 async def furhat_handler(config, personas, text):
+    logger.critical(f"furhat_handler personas={str(personas)}, text={str(text)}")
     callbacks = list()
     for persona in personas:
         ## We will only check full message if it doesn't starts with 

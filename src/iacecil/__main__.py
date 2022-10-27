@@ -35,6 +35,8 @@ try:
     if (len(sys.argv) > 1 and sys.argv[1] in ['production', 'staging']) or \
         os.environ.get('ENV', None) in ['production', 'staging']:
         from .controllers._iacecil import production
+    elif (len(sys.argv) > 1 and sys.argv[1] in ['fpersonas']):
+        from .controllers._iacecil import fpersonas
     else:
         from .controllers._iacecil.testing import run_app
         run_app(*sys.argv)

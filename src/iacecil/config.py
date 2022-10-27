@@ -192,7 +192,8 @@ try:
         Não edite os valores padrão deste arquivo
         Não edite os valores padrão deste arquivo
         """
-        log_level: str = 'INFO'
+        # ~ log_level: str = 'INFO'
+        log_level: str = 'DEBUG'
         ## Uvicorn
         socket: Union[str, None] = 'uvicorn.sock'
         forwarded_allow_ips: str = '*'
@@ -209,9 +210,6 @@ try:
         # ~ sqlalchemy_database_uri: Union[str, None] = None
         # ~ secret_key: Union[str, None] = None
         # ~ wtf_crsf_secret_key: Union[str, None] = None
-        ## Furhat
-        furhat: Union[dict, bool] = False
-        _reload: bool = False
         canonical: Union[str, None] = None
         log_messages: bool = True
         personas: list = ['default']
@@ -221,6 +219,10 @@ try:
         language_code: str = 'pt-BR'
         locale: str = 'pt_BR.UTF-8'
         quart: dict[str, str] = {}
+        ## Furhat
+        furhat: Union[dict, bool] = False
+        _reload: bool = False
+        skip_intro: bool = True
         class Config:
             """Configuration for Pydantic"""
             case_sensitive: bool = False

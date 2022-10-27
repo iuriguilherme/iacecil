@@ -49,7 +49,7 @@ from ...persistence.zodb_orm import (
     get_furhat_texts_messages,
     set_furhat_text,
 )
-from ....plugins.natural import (
+from plugins.natural import (
     generate,
     concordance,
     collocations,

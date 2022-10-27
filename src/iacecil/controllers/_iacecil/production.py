@@ -22,7 +22,6 @@ MA 02110-1301, USA.
 import logging, sys
 
 try:
-    # ~ from importlib import import_module
     # ~ from natsort import natsorted
     # ~ import iacecil
     # ~ import sys
@@ -100,6 +99,7 @@ imported: {len(modules)}, \
 configured: {len(configs)}\n\
 bots that were not configured: {[bot for bot in bots if not bot in configs]}\
 """)
+    
     ### ia.cecil
     ## Current implementation of script is using aiogram as middleware into 
     ## a quart app

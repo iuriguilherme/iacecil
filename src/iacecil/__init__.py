@@ -23,6 +23,8 @@ import logging
 import natsort
 import os
 
+## FIXME: Chupa
+logging.basicConfig(level = "INFO")
 logger = logging.getLogger(__name__)
 
 name: str = 'iacecil'

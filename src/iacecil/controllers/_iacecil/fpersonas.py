@@ -24,34 +24,48 @@ import logging, sys
 try:
     import asyncio
     import locale
-    from pydantic import BaseConfig
+    import typing
+    from importlib import import_module
+    from typing import Union
+    from pydantic import BaseSettings
     from ... import (
         commit,
         name,
         version,
     )
-    from ...config import ProductionConfig
+    from ...config import (
+        DefaultBotConfig,
+        ProductionConfig,
+        DevelopmentConfig,
+    )
+    # ~ from ...views.quart_app import quart_startup
     from ..furhat_bot.personas import personas
     
     logging.info(f"Starting {name} {version} ({commit})...")
     
     logging.debug("Loading configuration from .env files...")
-    config: BaseSettings = ProductionConfig()
+    # ~ config: BaseSettings = ProductionConfig()
+    config: BaseSettings = DevelopmentConfig()
     
     logging.debug("Setting log level...")
-    log_level: str = 'info'
+    log_level: str = 'debug'
     try:
-        log_level = config.log_level
-    else:
+        # ~ log_level = config.log_level
+        log_level = 'debug'
+    except Exception as e:
         logging.warning(f"""Logging level not informed, assuming \
 {log_level}""")
+        logging.exception(e)
     logging.basicConfig(level = getattr(logging, log_level.upper()))
     logger: object = logging.getLogger(name)
     
-    ## FIXME: move to config.py
-    locale_str: str = 'pt_BR.UTF-8'
-    logger.debug(f"Setting locale to {locale_str}...")
-    locale.setlocale(locale.LC_ALL, locale_str)
+    logger.debug(f"Setting locale to {config.locale}...")
+    try:
+        locale.setlocale(locale.LC_ALL, config.locale)
+    except Exception as e:
+        logger.error(f"""Can't set locale to {config.locale}, make sure your \
+system locale is set and available""")
+        logger.exception(e)
     
     try:
         from instance._bots import bots
@@ -59,19 +73,30 @@ try:
         logger.error("Bot list not set! Please RTFM")
         logger.exception(e)
         bots: list = ['default']
-    configs: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
-    configs: dict = {bot: getattr(config, 'BotConfig')() \
-        for bot in bots for config in configs
+    modules: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
+    configs: dict = {
+        module.__name__.split('.')[2]: \
+        (getattr(module, 'BotConfig')() \
+        if hasattr(module, 'BotConfig') \
+        else default_bot_config) \
+        for module in modules
     }
+    logger.critical(f"""\
+Loaded configuration for bots: {bots}\n\
+Bots listed: {len(bots)}, \
+imported: {len(modules)}, \
+configured: {len(configs)}\n\
+bots that were not configured: {[bot for bot in bots if not bot in configs]}\
+""")
     
     asyncio.run(personas(
         bots,
-        configs[0].furhat,
+        configs[bots[0]].furhat,
         configs,
-        skip_intro = config.skip_intro,
-        log_messages = config.log_messages,
-        add_startswith = config.add_startswith,
-        add_endswith = config.add_endswith,
+        skip_intro = configs[bots[0]].furhat.get('skip_intro'),
+        log_messages = configs[bots[0]].furhat.get('log_messages'),
+        add_startswith = configs[bots[0]].furhat.get('add_startswith'),
+        add_endswith = configs[bots[0]].furhat.get('add_endswith'),
     ))
     logger.info(f"Finishing {name}")
 except Exception as e:

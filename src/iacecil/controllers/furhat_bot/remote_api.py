@@ -56,22 +56,29 @@ async def do_attend_id(furhat, user_id):
     return furhat.attend(userid = user_id)
 
 async def do_gesture(furhat, name):
+    # ~ logger.critical(f"do_gesture = {name}")
     return furhat.gesture(name = name)
 
 async def do_listen(furhat, language):
+    # ~ logger.critical(f"do_listen = {language}")
     return furhat.listen(language = language)
 
 async def do_say_text(furhat, text):
+    # ~ logger.critical(f"do_say_text = {text}")
     return furhat.say(text = text)
 
 async def do_say_url(furhat, url):
+    # ~ logger.critical(f"do_say_url = {url}")
     return furhat.say(url = url, lipsync = True)
 
 def block_do_listen(furhat, language):
+    # ~ logger.critical(f"block_do_listen = {language}")
     return furhat.listen(language = language)
 
 def block_do_say_text(furhat, text):
+    # ~ logger.critical(f"block_do_say_text = {text}")
     return furhat.say(text = text)
 
 def block_do_say_url(furhat, url):
+    # ~ logger.critical(f"block_do_say_url = {url}")
     return furhat.say(url = url, lipsync = True)

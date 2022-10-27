@@ -49,7 +49,7 @@ from ...persistence.zodb_orm import (
     get_furhat_texts_messages,
     set_furhat_text,
 )
-from ....plugins.natural import (
+from plugins.natural import (
     generate,
     concordance,
     concordance_1,
@@ -66,68 +66,91 @@ from .zodb_controllers import (
     zodb_get_sessions,
 )
 
-async def nlp_generate(furhat_id):
+async def nlp_generate(furhat_id, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     generated = await generate(all_messages)
     return ' '.join([word for word in generated if word.lower() != \
         "none"])
 
-async def nlp_generate_session(furhat_id, session_id):
+async def nlp_generate_session(furhat_id, session_id,  *args, **kwargs) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     generated = await generate(messages)
     return ' '.join([word for word in generated if word.lower() != \
         "none"])
 
-async def nlp_generate_aiogram():
+async def nlp_generate_aiogram(*args, **kwargs) -> str:
     all_messages = await zodb_get_aiogram()
     generated = await generate(all_messages)
     return ' '.join([word for word in generated if word.lower() != \
         "none"])
 
-async def nlp_collocations(furhat_id):
+async def nlp_collocations(furhat_id, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     return await collocations(all_messages)
 
-async def nlp_collocations_session(furhat_id, session_id):
+async def nlp_collocations_session(
+    furhat_id,
+    session_id,
+    *args,
+    **kwargs,
+) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     return await collocations(messages)
 
-async def nlp_concordance(furhat_id, word):
+async def nlp_concordance(furhat_id, word, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     concordances = await concordance_1(all_messages, word)
     return u"concordâncias com {}: {}".format(word, concordances)
 
-async def nlp_concordance_session(furhat_id, session_id, word):
+async def nlp_concordance_session(
+    furhat_id,
+    session_id,
+    word,
+    *args,
+    **kwargs,
+) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     concordances = await concordance_1(messages, word)
     return u"concordâncias com {}: {}".format(word, concordances)
 
-async def nlp_similar(furhat_id, word):
+async def nlp_similar(furhat_id, word, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     similars = await similar_1(all_messages, word)
     return u"""palavras que eu ouvi e são similares a {}: {}""".format(
         word, similars)
 
-async def nlp_similar_session(furhat_id, session_id, word):
+async def nlp_similar_session(
+    furhat_id,
+    session_id,
+    word,
+    *args,
+    **kwargs,
+) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     similars = await similar_1(messages, word)
     return u"""palavras que eu ouvi e são similares a {} nesta sessão: \
 {}""".format(word, similars)
 
-async def nlp_count(furhat_id, word):
+async def nlp_count(furhat_id, word, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     counted = await count_1(all_messages, word)
     return u"""eu já ouvi {}. {} vezes, sendo {:.2f} por cento de tudo \
 que eu já ouvi""".format(word, counted['count'], counted['percentage'])
 
-async def nlp_count_session(furhat_id, session_id, word):
+async def nlp_count_session(
+    furhat_id,
+    session_id,
+    word,
+    *args,
+    **kwargs,
+) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     counted = await count_1(messages, word)
     return u"""eu já ouvi {}. {} vezes nessa sessão, sendo {:.2f} por c\
 ento de tudo que eu já ouvi""".format(word, counted['count'],
         counted['percentage'])
 
-async def nlp_common_context(furhat_id, words):
+async def nlp_common_context(furhat_id, words, *args, **kwargs) -> str:
     all_messages = await zodb_get_sessions(furhat_id)
     contexts = await common_contexts_1(all_messages, words)
     return u"contextos comuns para as palavras {}: {}".format(
@@ -135,7 +158,13 @@ async def nlp_common_context(furhat_id, words):
         contexts,
     )
 
-async def nlp_common_context_session(furhat_id, session_id, words):
+async def nlp_common_context_session(
+    furhat_id,
+    session_id,
+    words,
+    *args,
+    **kwargs,
+) -> str:
     messages = await zodb_get_session(furhat_id, session_id)
     contexts = await common_contexts_1(messages, words)
     return u"contextos comuns para as palavras {}: {}".format(
@@ -143,19 +172,26 @@ async def nlp_common_context_session(furhat_id, session_id, words):
         contexts,
     )
 
-async def ack(furhat):
+async def ack(furhat, *args, **kwargs) -> str:
     await do_say_text(furhat, text = 'ok, só um minuto')
 
-async def natural_handler(furhat, message, order, furhat_id,
-    session_id, *args, **kwargs):
-    reply = u"não entendi."
-    if message.lower() == 'geração sessão ' + order:
+async def natural_handler(
+    furhat,
+    message,
+    order,
+    furhat_id,
+    session_id,
+    *args,
+    **kwargs,
+) -> str:
+    reply = "não entendi."
+    if message.lower() == 'gerar sessão ' + order:
         await ack(furhat)
         reply = await nlp_generate_session(furhat_id, session_id)
-    elif message.lower() == 'geração ' + order:
+    elif message.lower() == 'gerar ' + order:
         await ack(furhat)
         reply = await nlp_generate(furhat_id)
-    elif message.lower() == 'geração total ' + order:
+    elif message.lower() == 'gerar tudo ' + order:
         await ack(furhat)
         reply = await nlp_generate_aiogram(furhat_id)
     # ~ elif message.lower() == 'colocação sessão ' + order:
