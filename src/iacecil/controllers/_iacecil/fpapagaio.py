@@ -33,7 +33,7 @@ try:
     from ...config import ProductionConfig
     from ..furhat_bot.papagaio import papagaio
     
-    logging.info(f"Starting {name} {version} ({commit})...")
+    logging.info(f"Starting {name} v{version} ({commit})...")
     
     logging.debug("Loading configuration from .env files...")
     config: BaseSettings = ProductionConfig()

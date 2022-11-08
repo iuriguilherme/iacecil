@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 try:
     from . import __name__, __version__
     try:
-        logger.critical(f"""Running {__name__} {__version__} with args: \
+        logger.critical(f"""Running {__name__} v{__version__} with args: \
 {sys.argv[1:]}""")
     except:
         logger.critical(f"Running {__name__} {__version__}")

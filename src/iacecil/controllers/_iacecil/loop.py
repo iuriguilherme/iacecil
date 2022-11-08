@@ -39,7 +39,7 @@ try:
     from ...views.quart_app import quart_startup
     from ..aiogram_bot import aiogram_startup
     
-    logging.info(f"Starting {name} {version} ({commit})...")
+    logging.info(f"Starting {name} v{version} ({commit})...")
     
     logging.debug("Loading configuration from .env files...")
     config: BaseSettings = ProductionConfig()

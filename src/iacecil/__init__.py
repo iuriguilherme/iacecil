@@ -29,14 +29,14 @@ logger = logging.getLogger(__name__)
 
 name: str = 'iacecil'
 description: str = "Chatbot framework and set of tools"
-version: str = 'v0'
-commit: str = '0'
+version: str = '0.0.0.0'
+commit: str = '0000000'
 
 try:
     from . import _version
     version: str = _version.__version__
 except Exception as e:
-    logger.debug("""Unable to get version from _version file, mantaining \
+    logger.debug(f"""Unable to get version from _version file, using \
 {version}""")
     # ~ logger.exception(e)
 try:

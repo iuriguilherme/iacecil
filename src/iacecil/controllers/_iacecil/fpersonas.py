@@ -41,7 +41,7 @@ try:
     # ~ from ...views.quart_app import quart_startup
     from ..furhat_bot.personas import personas
     
-    logging.info(f"Starting {name} {version} ({commit})...")
+    logging.info(f"Starting {name} v{version} ({commit})...")
     
     logging.debug("Loading configuration from .env files...")
     # ~ config: BaseSettings = ProductionConfig()
