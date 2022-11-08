@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ~ import asyncio, glob, os, random, uuid
 import asyncio
 import random
+import typing
 import uuid
 from urllib3.exceptions import MaxRetryError
 from ..remote_api import (
@@ -119,7 +120,12 @@ async def atender(furhat, text, delay = 6, *args, **kwargs) -> None:
     await olhar(furhat)
     await falar(furhat, text, delay)
 
-async def croak(furhat, *args, exception = None, **kwargs) -> None:
+async def croak(
+    furhat,
+    *args,
+    exception: typing.Union[Exception, None] = None,
+    **kwargs,
+) -> None:
     """Behaviour when exception or error occurs"""
     if exception is not None:
         logger.exception(exception)
@@ -140,7 +146,7 @@ async def ack(furhat, *args, **kwargs) -> None:
 
 async def borogodo_podcast_1(furhat, *args, **kwargs) -> None:
     try:
-        await olha_pra_mim(furhat)
+        await olhar(furhat)
         await led_blue(furhat)
         await do_say_text(
             furhat,
@@ -152,49 +158,52 @@ Não me atrapalha por favor""",
         for k, v in perguntas.items():
             try:
                 await led_green(furhat)
-                await olha_pra_mim(furhat)
+                await olhar(furhat)
                 await do_say_text(furhat, v)
                 await asyncio.sleep(round(len(v)/6))
                 await led_red(furhat)
                 for r in respostas[k]:
-                    await olha_pra_mim(furhat)
+                    await olhar(furhat)
                     await do_say_text(furhat, r)
                     await asyncio.sleep(round(len(r)/6))
             except Exception as e:
                 logger.exception(e)
-                await croak(furhat)
+                await croak(furhat, exception=e)
     except Exception as e:
         logger.exception(e)
-        await croak(furhat)
+        await croak(furhat, exception=e)
 
 async def borogodo_naoentendi(furhat, *args, **kwargs) -> None:
     try:
-        await olha_pra_mim(furhat)
+        await olhar(furhat)
         await led_blue(furhat)
         texto: str = random.choice([
+            "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
+            "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
             "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
             """Eu não entendi nada, mas achei interessante. Vou continuar \
 ouvindo vocês""",
             """Eu sou nova e estou formando meu vocabulário, não tenho \
 nenhuma resposta inteligente pra te dar agora""",
             """Se eu fosse gente eu ia entender o que vocês dizem. Mas como \
-eu sou um computador, só observo e aprendo""",
-            # ~ "Não grita comigo",
+eu sou um computador, só obsérvo e aprendo""",
+            "Não grita comigo",
             "Não sei nada sobre o que tu disse, pergunta pro meu programador",
             """Olha, quando o meu programador não tá aqui eu dificilmente sei \
 o que responder. Se eu fosse uma inteligência artificial avançada, vocês \
 seriam os que respondem as minhas perguntas, e não o contrário. Não é \
 verdade?""",
-            """Desculpa eu não poder falar contigo agora, o meu programador \
-tá tomando café e eu não conheço ninguém aqui e não sei o que te responder.""",
+            """Desculpa eu não conseguir falar contigo agora, o meu \
+programador tá tomando café e eu não conheço ninguém aqui e não sei o que te \
+responder.""",
             """Vocês já viram o visual da praia ali do lado? Larga o celular \
 um pouco e vai lá observar as montanhas no continente. Eu só não vou porque \
 eu não tenho um corpo""",
         ])
-        await falar(furhat, texto)
+        await atender(furhat, texto)
         await led_blank(furhat)
     except Exception as e:
-        await croak(furhat, e)
+        await croak(furhat, exception=e)
 
 async def borogodo_teste_1(
     furhat,
@@ -231,7 +240,7 @@ quantidade boa""")
         await led_blank(furhat)
     except Exception as e:
         logger.exception(e)
-        await croak(furhat)
+        await croak(furhat, exception=e)
 
 async def borogodo_foradoar(furhat, *args, **kwargs) -> None:
     try:
@@ -271,9 +280,10 @@ async def borogodo_entrevista(
             """Boa tarde! Eu sou a Gâmbôa. E vou te entrevistar. Por favor \
 tenha paciência comigo, porque uma parte de mim é só um computador. Quando o \
 meu led estiver vermelho, é porque eu estou te ouvindo e prestando atenção. \
-A minha pergunta é: Quem sois vós, e o que está acontecendo aqui?""",
+A minha pergunta hoje é: Quem és tu, e o que está acontecendo aqui? Fala \
+perto do microfone pra eu te ouvir""",
         )
-        await asyncio.sleep(21)
+        await asyncio.sleep(26)
         while True:
             text: Status = Status()
             tentativas: int = 0
@@ -289,13 +299,7 @@ A minha pergunta é: Quem sois vós, e o que está acontecendo aqui?""",
                 await led_yellow(furhat)
                 logger.critical(text)
                 tentativas += 1
-                if tentativas > 2:
-                    await do_say_text(furhat, random.choice([
-                        """não entendi, fale mais alto. quando não quiser \
-mais falar é só dizer: pronto""",
-                    ]))
-                    await asyncio.sleep(6)
-                elif tentativas > 6:
+                if tentativas > 6:
                     await do_say_text(
                         furhat,
                         """Não sei se o meu microfone tá ruim, mas acho que \
@@ -304,6 +308,12 @@ ninguém mais tá falando comigo, vou encerrar a entrevista."""
                     await asyncio.sleep(9)
                     sair: bool = True
                     break
+                elif tentativas > 2:
+                    await do_say_text(furhat, random.choice([
+                        """não entendi, fale mais alto. quando não quiser \
+mais falar é só dizer: pronto""",
+                    ]))
+                    await asyncio.sleep(6)
             await set_furhat_text(
                 furhat_id,
                 session_id,
@@ -319,11 +329,7 @@ ninguém mais tá falando comigo, vou encerrar a entrevista."""
             ]:
                 break
         await led_blank(furhat)
-        try:
-            await do_attend_id(furhat, '0')
-        except Exception as e:
-            logger.exception(e)
-            await do_attend_user(furhat, 'CLOSEST')
+        await olhar(furhat)
         await blue_speak(
             furhat,
             """Obrigada. Por enquanto era só isso, eu preciso de tempo pra \
@@ -375,12 +381,8 @@ rsonalidades""")
         while True:
             text = Status()
             while text.message == '':
-                try:
-                    await do_attend_id(furhat, '0')
-                except Exception as e:
-                    logger.exception(e)
-                    await do_attend_user(furhat, 'CLOSEST')
                 await led_green(furhat)
+                await olhar(furhat)
                 text =  await do_listen(furhat, language)
             await led_blank(furhat)
             # ~ text = Status(success = True, message = "chega")
@@ -564,7 +566,7 @@ e escuchar en español""")
                                     generated_text,
                                 )
                                 await asyncio.sleep(3)
-                    elif await dice_high(6):
+                    elif await dice_high(12):
                         await borogodo_naoentendi(furhat)
                 await led_blank(furhat)
                 continue
