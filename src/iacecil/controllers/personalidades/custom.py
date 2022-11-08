@@ -27,9 +27,9 @@ from aiogram import Dispatcher
 try:
     from instance.personalidades.custom import add_instance_handlers
 except Exception as e:
-    logger.error(f"""add_instance_handlers em instance não encontrada para \
+    logger.info(f"""add_instance_handlers em instance não encontrada para \
 {__name__}""")
-    logger.exception(e)
+    # ~ logger.exception(e)
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """
