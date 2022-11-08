@@ -175,7 +175,7 @@ async def add_handlers(dispatcher):
         ## Reponde com patada
         @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
         async def resposta_ignorante_callback(message):
-            descriptions = ['resposta', 'ignorante',
+            descriptions: list = ['resposta', 'ignorante',
                 dispatcher.config.personalidade, message.chat.type]
             try:
                 await message_callback(
@@ -218,7 +218,8 @@ async def add_handlers(dispatcher):
             content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
         async def welcome_pegadinha_callback(message: types.Message):
-            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            descriptions: list = [dispatcher.config.personalidade,
+                message.chat.type]
             try:
                 command_type = 'welcome'
                 await message_callback(message, [command_type] + descriptions,
@@ -258,7 +259,8 @@ async def add_handlers(dispatcher):
             commands = ['brinde', 'brindes'],
         )
         async def brinde_pegadinha_callback(message: types.Message):
-            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            descriptions: list = [dispatcher.config.personalidade,
+                message.chat.type]
             try:
                 command_type = 'brinde'
                 await message_callback(message, [command_type] + descriptions,
@@ -282,7 +284,8 @@ async def add_handlers(dispatcher):
             content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
         async def welcome_callback(message: types.Message):
-            descriptions = [dispatcher.config.personalidade, message.chat.type]
+            descriptions: list = [dispatcher.config.personalidade,
+                message.chat.type]
             try:
                 command_type = 'welcome'
                 await message_callback(message,
@@ -328,7 +331,7 @@ async def add_handlers(dispatcher):
             commands = ['versiculo'],
         )
         async def versiculo_callback(message):
-            descriptions = ['versiculo', dispatcher.config.personalidade,
+            descriptions: list = ['versiculo', dispatcher.config.personalidade,
                     message.chat.type]
             try:
                 await message_callback(message, descriptions)
@@ -379,7 +382,7 @@ async def add_handlers(dispatcher):
         )
         async def resposta_quanto_callback(message: types.Message) -> None:
             """Responde 'quanto vale'"""
-            descriptions: list[
+            descriptions: list = [
                 'resposta',
                 'quanto',
                 dispatcher.config.get.personalidade,
@@ -406,7 +409,7 @@ async def add_handlers(dispatcher):
         )
         async def resposta_bebida_callback(message: types.Message) -> None:
             """Responde toda referência a bebidas"""
-            descriptions: list[
+            descriptions: list = [
                 'resposta',
                 'bebida',
                 dispatcher.config.get.personalidade,
