@@ -38,7 +38,7 @@ from pydantic import BaseSettings
 from tempfile import gettempdir
 from typing import Union
 
-async def get_session(region: str = 'us-east-1') -> Session:
+async def get_session(region: str = 'us-east-1') -> Union[Session, None]:
     """Returns boto3 Session with configured credentials"""
     dispatcher = Dispatcher.get_current()
     try:
@@ -62,15 +62,17 @@ async def get_audio(
     **kwargs,
 ):
     """Returns polly TTS audio file from given Text"""
-    output, speech, stream = None, None, None
-    dispatcher = Dispatcher.get_current()
+    output: Union[str, None]; speech: Union[object, None]; \
+        stream: Union[object, None] = None, None, None
+    dispatcher: Union[Dispatcher, None] = Dispatcher.get_current()
     if dispatcher is not None:
-        Engine = dispatcher.config.furhat['synthesizer'][
-            'amazon']['engine']
-        VoiceId = dispatcher.config.furhat['voice']
-    Extension = kwargs.get('Extension', 'ogg')
+        Engine: str = dispatcher.config.furhat.get('synthesizer').get(
+            'amazon').get('engine')
+        VoiceId: str = dispatcher.config.furhat.get('voice')
+        LanguageCode: str = dispatcher.config.furhat.get('language')
+    Extension: str = kwargs.get('Extension', 'ogg')
     try:
-        speech = ((await get_session()).client('polly')
+        speech: dict = ((await get_session()).client('polly')
             ).synthesize_speech(
             Engine = Engine,
             LanguageCode = LanguageCode,
@@ -80,13 +82,14 @@ async def get_audio(
         )
         if 'AudioStream' in speech:
             with closing(speech['AudioStream']) as stream:
-                output = os.path.join(gettempdir(), "ic.{}.{}".format(
+                output: str = os.path.join(gettempdir(), "ic.{}.{}".format(
                     uuid.uuid4(), Extension))
-                with open(output, "wb") as file:
-                    file.write(stream.read())
+                with open(output, "wb") as _file:
+                    _file.write(stream.read())
                 return output
     except (BotoCoreError, ClientError, FileNotFoundError, IOError) as e:
-        logging.exception(exception)
+        logging.exception(e)
         output.close()
+    finally:
         del(stream)
         del(speech)

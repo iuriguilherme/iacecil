@@ -30,6 +30,7 @@ from aiogram import (
     types,
 )
 from aiogram.utils.markdown import escape_md
+from typing import Union
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     message_callback,
@@ -44,23 +45,24 @@ from iacecil.controllers.personalidades.pacume.furhat_handlers import (
 )
 from iacecil.controllers.amazon_boto import get_audio
 
-async def fala_callback(message, audio_text):
+async def fala_callback(message: types.Message, audio_text: str) -> None:
+    """Converte para audio o texto de auido_text"""
     await message_callback(message, ['fala', message.chat.type])
-    dispatcher = Dispatcher.get_current()
-    command = None
-    opus_file = None
+    dispatcher: Dispatcher = Dispatcher.get_current()
+    command: Union[types.Message, None] = None
+    opus_file: Union[str, None] = None
     try:
-        vorbis_file = await get_audio(audio_text)
-        opus_file = await telegram_voice(vorbis_file)
+        vorbis_file: Union[object, None] = await get_audio(audio_text)
+        opus_file: Union[object, None] = await telegram_voice(vorbis_file)
         if opus_file is not None:
             with open(opus_file, 'rb') as audio:
-                command = await message.reply_voice(audio)
+                command: Union[types.Message, None
+                    ] = await message.reply_voice(audio)
             if command is not None:
-                await command_callback(command, ['fala',
-                    message.chat.type])
+                await command_callback(command, ['fala', message.chat.type])
     except Exception as exception:
         await error_callback(
-            u"Problema tentando mandar audio",
+            "Problema tentando mandar audio",
             message,
             exception,
             ['error', 'fala', message.chat.type],

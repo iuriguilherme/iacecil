@@ -58,12 +58,12 @@ async def telegram_voice(input_file: str) -> Union[None, str]:
             return output_file
         else:
             return None
-    except FileNotFoundError as exception:
+    except FileNotFoundError as e:
         logger.warning("probably no ffmpeg in the system:")
-        logger.exception(exception)
+        logger.exception(e)
         return None
-    except Exception as exception:
-        logger.exception(exception)
+    except Exception as e:
+        logger.exception(e)
         raise
     finally:
         if input_file is not None:
@@ -109,12 +109,12 @@ async def storify(
             ]))
         else:
             return None
-    except FileNotFoundError as exception:
+    except FileNotFoundError as e:
         logger.warning("probably no ffmpeg in the system:")
-        logger.exception(exception)
+        logger.exception(e)
         return None
-    except Exception as exception:
-        logger.exception(exception)
+    except Exception as e:
+        logger.exception(e)
         raise
     finally:
         if input_file is not None:
