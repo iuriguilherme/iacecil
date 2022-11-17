@@ -55,19 +55,23 @@ async def get_session(region: str = 'us-east-1') -> Union[Session, None]:
 
 async def get_audio(
     Text: Union[str, None] = None,
+    Engine: Union[str, None] = None,
     LanguageCode: str = 'pt-BR',
     VoiceId: str = 'Camila',
     OutputFormat: str = 'ogg_vorbis',
-    Engine: Union[str, None] = None,
+    TextType: str = 'text',
+    # ~ SpeechMarkTypes: list = ['sentence'],
     **kwargs,
 ):
     """Returns polly TTS audio file from given Text"""
-    output: Union[str, None]; speech: Union[object, None]; \
-        stream: Union[object, None] = None, None, None
+    output: Union[str, None] = None
+    speech: Union[dict, None] = None
+    stream: Union[object, None] = None
     dispatcher: Union[Dispatcher, None] = Dispatcher.get_current()
     if dispatcher is not None:
-        Engine: str = dispatcher.config.furhat.get('synthesizer').get(
-            'amazon').get('engine')
+        if Engine is None:
+            Engine: str = dispatcher.config.furhat.get('synthesizer').get(
+                'amazon').get('engine')
         VoiceId: str = dispatcher.config.furhat.get('voice')
         LanguageCode: str = dispatcher.config.furhat.get('language')
     Extension: str = kwargs.get('Extension', 'ogg')
@@ -79,6 +83,8 @@ async def get_audio(
             Text = Text,
             OutputFormat = OutputFormat,
             VoiceId = VoiceId,
+            TextType = TextType,
+            # ~ SpeechMarkTypes = SpeechMarkTypes,
         )
         if 'AudioStream' in speech:
             with closing(speech['AudioStream']) as stream:

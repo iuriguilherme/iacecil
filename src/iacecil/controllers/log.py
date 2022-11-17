@@ -127,7 +127,7 @@ async def debug_logger(
     text.append('')
     if message is not None:
         try:
-            original_text: Union[str, None] = message.get('text', None)
+            original_text: Union[str, None] = getattr(message, 'text', None)
             if original_text is not None and hasattr(original_text,
                 'translate',
             ):
@@ -143,6 +143,8 @@ async def debug_logger(
                 str.maketrans('', '', '\\'))
             text.append(pre(json.dumps(message, indent = 2,
                 ensure_ascii = False)))
+            logger.exception(e)
+        except Exception as e:
             logger.exception(e)
         text.append('')
     if exception is not None:
