@@ -35,8 +35,8 @@ from .default import (
     portaria,
     welcome,
     furhat_contains_iterations as furhat_contains_iterations_default,
-    furhat_endswith_iterations,
-    furhat_startswith_iterations,
+    furhat_endswith_iterations as furhat_endswith_iterations_default,
+    furhat_startswith_iterations as furhat_startswith_iterations_default,
     add_handlers as add_default_handlers,
 )
 
@@ -122,7 +122,7 @@ async def furhat_startswith_iterations() -> list:
     ]
 
 async def furhat_endswith_iterations() -> list:
-    return (await furhat_endwith_iterations_default())
+    return (await furhat_endswith_iterations_default())
 
 async def furhat_contains_iterations() -> list:
     return (await furhat_contains_iterations_default()) + [
