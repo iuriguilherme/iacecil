@@ -149,9 +149,9 @@ async def croak(
     """Behaviour when exception or error occurs"""
     if exception is not None:
         logger.exception(exception)
-    await atender(furhat, "Me perdi.")
+    await atender(furhat, "Me perdi.", 9.6)
     await atender(furhat, """Na verdade, o programador é que errou. Mas quem \
-passa vergonha sou eu.""")
+passa vergonha sou eu.""", 9.6)
     await led_blank(furhat)
 
 async def ack(furhat, *args, **kwargs) -> None:
@@ -220,7 +220,7 @@ responder.""",
 um pouco e vai lá observar as montanhas no continente. Eu só não vou porque \
 eu não tenho um corpo""",
         ])
-        await atender(furhat, texto)
+        await atender(furhat, texto, 9.6)
         await led_blank(furhat)
     except Exception as e:
         await croak(furhat, exception=e)
@@ -570,29 +570,44 @@ async def aprint(*args, **kwargs) -> None:
     """asyncio.print()"""
     print(*args, **kwargs)
 
+async def get_prompt_default(text: str) -> str:
+    """Q/A chatgpt prompt"""
+    return f"Q: {text}\nA:"
+
+async def get_prompt_paola_1(text: str) -> str:
+    """Paola teste um"""
+    return f"""Paola é uma robô gentil.
+
+Você: Olá.
+Paola: Olá! Como foi o teu dia hoje?
+Você: {text}
+Paola:"""
+
 async def chatgpt(
     furhat: object, 
     language: str,
     furhat_id: str,
     session_id: uuid.UUID,
     openai_config: dict,
+    skip_intro: bool,
     *args,
     **kwargs,
 ) -> None:
     """Interage com GPT3"""
     try:
         await led_white(furhat)
-        await atender(furhat, """Olá. Eu sou uma burrice artificial. \
+        if not skip_intro:
+            await atender(furhat, """Olá. Eu sou uma burrice artificial. \
 Aguarde o LED ficar verde para falar.""", 9.6)
         openai.api_key: str = openai_config['api_keys'][0]
-        logging.getLogger('openai').setLevel('WARNING')
+        # ~ logging.getLogger('openai').setLevel('WARNING')
         while True:
             text: Status | None = Status()
             await asyncio.sleep(0.000001)
             await aprint('Ouvindo', end = '')
             while text.message in [None, '', ' '] \
-                and not 'ERROR : No internet detected.' in text.message \
-                and len(text.message) < 15 \
+                or 'ERROR : No internet detected' in text.message \
+                or len(text.message) < 15 \
             :
                 await led_green(furhat)
                 await asyncio.sleep(0.000001)
@@ -610,35 +625,40 @@ Aguarde o LED ficar verde para falar.""", 9.6)
                 'ERROR : No internet detected.',
             ]:
                 if stop in text.message:
+                    await atender(furhat, "OK. Bom dia!", 9.6)
                     return
+            prompt: str | None = None
+            try:
+                prompt: str = await get_prompt_paola_1(text.message)
+            except Exception as e:
+                logger.exception(e)
+            if not prompt:
+                continue
             try:
                 await led_yellow(furhat)
                 openai.aiosession.set(aiohttp.ClientSession())
-                # ~ engines: object = openai.Engine.list()
-                # ~ logger.info(f"Engines ({type(engines)} = {engines}")
                 user: uuid.UUID = uuid.uuid5(session_id, furhat_id)
                 completion: object = openai.Completion.create(
                     engine = openai_config.get('engine', 'ada'),
-                    # ~ engine = "text-davinci-003",
-                    # ~ model = "text-davinci-003",
                     # ~ max_tokens = openai_config.get(
                         # ~ 'max_tokens', 4000), # 1 to 4000
-                    # ~ temperature = openai_config.get(
-                        # ~ 'temperature', 0.3), # 0.0 to 1.0
+                    temperature = openai_config.get(
+                        'temperature', 1.0), # 0.0 to 1.0
                     # ~ top_p = openai_config.get(
                         # ~ 'top_p', 1.0), # 0.0 to 1.0
                     # ~ frequency_penalty = openai_config.get(
                         # ~ 'frequency_penalty', 0.0), # 0.0 to 2.0
                     # ~ presence_penalty = openai_config.get(
                         # ~ 'presence_penalty', 0.0), # 0.0 to 2.0
-                    # ~ echo = openai_config.get('echo', False),
+                    echo = openai_config.get('echo', False),
                     user = str(user),
-                    prompt = f"Q: {text.message}\nA:",
+                    prompt = prompt,
                 )
-                logger.debug(f"Completion ({type(completion)} = {completion}")
+                logger.info(f"Completion ({type(completion)} = {completion}")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
                 # ~ await do_say_text(furhat, choice.get('text'))
+                logger.info(f"Respondendo {choice.get('text')}...")
                 await atender(furhat, choice.get('text'), 9.6)
                 await led_red(furhat)
                 await set_furhat_text(
@@ -650,8 +670,12 @@ Aguarde o LED ficar verde para falar.""", 9.6)
                     await openai.aiosession.get().close()
                 await asyncio.sleep(1)
                 await led_blank(furhat)
-            except openai.error.Timeout as e:
+            except (
+                openai.error.InvalidRequestError,
+                openai.error.Timeout,
+            ) as e:
                 logger.exception(e)
+                await atender(furhat, "Não sei", 9.6)
                 continue
             except Exception:
                 raise
@@ -709,6 +733,7 @@ rsonalidades""")
             furhat_id,
             session_id,
             openai_config,
+            skip_intro,
             # ~ furhat_config,
         )
     except MaxRetryError as e:
