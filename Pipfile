@@ -69,6 +69,8 @@ ZODB = "*"
 #iacecil = {editable = true, path = "."}
 beautifulsoup4 = "*"
 lxml = "*"
+python-telegram-bot = "*"
+openai = "*"
 
 [requires]
 python_version = "3.9"
@@ -87,3 +89,5 @@ personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
 new_prod = 'python -m iacecil production'
 new_test = 'python -m iacecil'
 new_dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'
+paola = 'python -m iacecil fpersonas'
+

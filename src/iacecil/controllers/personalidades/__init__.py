@@ -44,9 +44,12 @@ from . import (
     matebot,
     metarec,
     pacume,
+    paola,
     pasoca,
     pave,
 )
+## TODO: remover isto, não é necessário. O módulo que tentar importar 
+## personalidade que não existe deve tratar a exceção.
 personalidades: dict[str, object] = {'default': default}
 try:
     personalidades: dict[str, object] = {
@@ -57,6 +60,7 @@ try:
         'matebot': matebot,
         'metarec': metarec,
         'pacume': pacume,
+        'paola': paola,
         'pasoca': pasoca,
         'pave': pave,
         'gamboa': gamboa,

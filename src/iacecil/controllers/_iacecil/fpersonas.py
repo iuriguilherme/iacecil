@@ -93,6 +93,7 @@ bots that were not configured: {[bot for bot in bots if not bot in configs]}\
         bots,
         configs[bots[0]].furhat,
         configs,
+        configs[bots[0]].openai,
         skip_intro = configs[bots[0]].furhat.get('skip_intro'),
         log_messages = configs[bots[0]].furhat.get('log_messages'),
         add_startswith = configs[bots[0]].furhat.get('add_startswith'),
