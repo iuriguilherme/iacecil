@@ -86,4 +86,6 @@ v0.1.19.0, 2022-08-22 -- Fixed uncontiguous tags and new tag system.
 v0.1.21.0, 2022-08-23 -- Jogo Torre
 v0.2.0.0, 2022-10-13 -- Criação de pacote instalável e importável
 v0.2.3.0, 2022-10-13 -- Possibilita criação de personalidade programada localmente
-v0.2.9.0, 2022-11-17 -- Lê arquivos ssml-xml para tts 
+v0.2.9.0, 2022-11-17 -- Lê arquivos ssml-xml para tts (Amazon Polly)
+v0.2.10.0, 2023-01-12 -- Integração Furhat + OpenAI GPT3
+
