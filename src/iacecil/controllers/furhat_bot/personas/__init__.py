@@ -120,18 +120,19 @@ async def olhar(furhat: object, *args, **kwargs) -> None:
 async def falar(
     furhat: object,
     text: str,
+    delay: int,
     *args,
-    delay: int = 6,
     **kwargs,
 ) -> None:
     """Waits for the Furhat to finish speaking to do next thing"""
     await do_say_text(furhat, text)
-    await asyncio.sleep(round(len(text) / delay))
+    logger.info(f"Aguardando {len(text)} / {delay} = {len(text) / delay}...")
+    await asyncio.sleep(len(text) / delay)
 
 async def atender(
     furhat: object,
     text: str,
-    delay: int = 6,
+    delay: int,
     *args,
     **kwargs,
 ) -> None:
@@ -581,10 +582,8 @@ async def chatgpt(
     """Interage com GPT3"""
     try:
         await led_white(furhat)
-        await olhar(furhat)
-        await do_say_text(furhat, """Olá. Eu sou uma burrice artificial. \
-Aguarde o LED ficar verde para falar.""")
-        await asyncio.sleep(7.5)
+        await atender(furhat, """Olá. Eu sou uma burrice artificial. \
+Aguarde o LED ficar verde para falar.""", 9.6)
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('WARNING')
         while True:
@@ -640,7 +639,7 @@ Aguarde o LED ficar verde para falar.""")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
                 # ~ await do_say_text(furhat, choice.get('text'))
-                await atender(furhat, choice.get('text'), 12)
+                await atender(furhat, choice.get('text'), 9.6)
                 await led_red(furhat)
                 await set_furhat_text(
                     furhat_id,
