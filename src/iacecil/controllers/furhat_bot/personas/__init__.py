@@ -702,7 +702,7 @@ Aguarde o LED ficar verde para falar.""")
                 completion: object = openai.Completion.create(
                     engine = openai_config.get('engine', 'ada'),
                     max_tokens = openai_config.get(
-                        'max_tokens', 4000), # 1 to 4000
+                        'max_tokens', 4000) - len(prompt), # 1 to 4000
                     temperature = openai_config.get(
                         'temperature', 0.0), # 0.0 to 1.0
                     top_p = openai_config.get(
