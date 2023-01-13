@@ -41,7 +41,9 @@ except Exception as e:
     # ~ logger.exception(e)
 try:
     ## Using latest git tag as version
-    version: str = natsort.natsorted(os.listdir('.git/refs/tags'))[-1]
+    version: str = [tag for tag in \
+        natsort.natsorted(os.listdir('.git/refs/tags')) \
+        if tag not in ['alpha', 'beta', 'latest', 'pre-alpha', 'stable']][-1]
 except Exception as e:
     logger.debug(f"Latest git tag not found, version will be {version}")
     # ~ logger.exception(e)
