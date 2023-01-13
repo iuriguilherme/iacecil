@@ -120,23 +120,17 @@ async def olhar(furhat: object, *args, **kwargs) -> None:
         logger.exception(e)
         await do_attend_user(furhat, 'CLOSEST')
 
-async def calcular_delay_1(
+async def calcular_delay_simples(
     tamanho: int,
     razão: float = 9.6,
     *args,
     **kwargs,
 ) -> float:
     """Quantidade de letras dividido por razão arbitrária (padrão 9.6)"""
-    logger.info(f"Método 1: {tamanho} / {razão} = {tamanho / razão}")
     return tamanho / razão
 
-async def calcular_delay_2(
-    tamanho: int,
-    razão: float = 9.6,
-    *args,
-    **kwargs,
-) -> float:
-    """Faixas de razões de acordo com tamanho da sentença"""
+async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
+    """Faixas de razões arbitrária de acordo com tamanho da sentença"""
     faixa_1: range = range(1, 48)
     faixa_2: range = range(49, 300)
     faixa_3: range = range(301, 600)
@@ -154,18 +148,33 @@ async def calcular_delay_2(
         razão: float = 21.6
     else:
         razão: float = 30
-    logger.info(f"Método 2: {tamanho} / {razão} = {tamanho / razão}")
-    return tamanho / razão
+    return razão
+
+async def calcular_delay_3(
+    texto: str,
+    razão: float = 9.6,
+    pausa: float = 0.5,
+    *args,
+    **kwargs,
+) -> float:
+    """Adiciona meio segundo a cada vírgula"""
+    razão: float = await calcular_delay_razão(len(texto))
+    logger.debug(f"""Método 3: {len(texto)} / {razão} + ({texto.count(',')} * \
+0.5) = {len(texto) / razão + (texto.count(',') * pausa)}""")
+    return await calcular_delay_simples(len(texto), razão) + \
+        (texto.count(',') * pausa)
 
 async def calcular_delay(
-    tamanho: int,
+    texto: str,
     razão: float = 9.6,
+    pausa: float = 0.5,
     *args,
     **kwargs,
 ) -> float:
     """Algoritmo para tentar calcular delay de fala da Furhat"""
-    logger.info(f"Calculando delay necessário para {tamanho}, {razão}...")
-    return await calcular_delay_2(tamanho, razão)
+    logger.debug(f"""Calculando delay com {len(texto)} caracteres, \
+razão {razão}, {texto.count(',')} vírgulas, pausa {pausa}...""")
+    return await calcular_delay_3(texto, razão, pausa)
 
 async def falar(
     furhat: object,
@@ -176,7 +185,7 @@ async def falar(
 ) -> None:
     """Waits for the Furhat to finish speaking to do next thing"""
     await do_say_text(furhat, text)
-    await asyncio.sleep(await calcular_delay(len(text), delay))
+    await asyncio.sleep(await calcular_delay(text, delay))
 
 async def atender(
     furhat: object,
@@ -625,7 +634,11 @@ async def get_prompt_default(text: str) -> str:
 
 async def get_prompt_paola_1(text: str) -> str:
     """Paola teste um"""
-    return f"Paola é uma robô gentil.\n\n\Você: {text}\nPaola:"
+    return f"Paola é uma robô gentil.\n\n\Eu: {text}\nPaola:"
+
+async def get_prompt_chico_1(text: str) -> str:
+    """Chico teste um"""
+    return f"Chico é um robô mal educado.\n\n\Eu: {text}\nChico:"
 
 async def chatgpt(
     furhat: object, 
@@ -652,7 +665,7 @@ Aguarde o LED ficar verde para falar.""")
             while not print('.', end = '') and (
                 text.message in [None, '', ' '] \
                 or 'ERROR : No internet detected' in text.message \
-                or len(text.message) < 15
+                or len(text.message) < 12
             ):
                 await led_green(furhat)
                 # ~ await asyncio.sleep(float(print('.', end = '') or 1e-6))
@@ -663,15 +676,21 @@ Aguarde o LED ficar verde para falar.""")
                     logger.exception(e)
                     text: Status | None = Status()
                 await asyncio.sleep(1e-6)
-            logger.info(f"Respondendo {text.message}...")
+            logger.info(f"Ouvido:\n{text.message}")
             for stop in ['chega', 'cala boca', 'cala a boca']:
                 if stop in text.message:
                     await atender(furhat, "OK. Bom dia!")
                     return
             prompt: str | None = None
             try:
+                # ~ prompt: str = await get_prompt_default(text.message)
                 # ~ prompt: str = await get_prompt_paola_1(text.message)
-                prompt: str = await get_prompt_default(text.message)
+                # ~ prompt: str = await get_prompt_chico_1(text.message)
+                prompt: str = await random.choice([
+                    get_prompt_default,
+                    get_prompt_paola_1,
+                    get_prompt_chico_1,
+                ])(text.message)
             except Exception as e:
                 logger.exception(e)
             if not prompt:
@@ -696,11 +715,11 @@ Aguarde o LED ficar verde para falar.""")
                     user = str(user),
                     prompt = prompt,
                 )
-                logger.info(f"Completion ({type(completion)} = {completion}")
+                logger.debug(f"Completion ({type(completion)} = {completion}")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
                 # ~ await do_say_text(furhat, choice.get('text'))
-                logger.info(f"Respondendo {choice.get('text')}...")
+                logger.info(f"Falando:\n{choice.get('text')}")
                 await atender(furhat, choice.get('text'))
                 await led_red(furhat)
                 await set_furhat_text(
@@ -710,7 +729,7 @@ Aguarde o LED ficar verde para falar.""")
                 )
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()
-                await asyncio.sleep(1)
+                await asyncio.sleep(1e-6)
                 await led_blank(furhat)
             except (
                 openai.error.InvalidRequestError,
