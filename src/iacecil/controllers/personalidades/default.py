@@ -3,7 +3,7 @@ Personalidades para ia.cecil: Robô também é gente?
 
 ia.cecil
 
-Copyleft 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2020-2023 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
