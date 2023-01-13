@@ -630,15 +630,20 @@ async def aprint(*args, **kwargs) -> None:
 
 async def get_prompt_default(text: str) -> str:
     """Q/A chatgpt prompt"""
-    return f"Q: {text}\nA:"
+    logging.info("Usando prompt:\\nPergunta: {text}\\nResposta:")
+    return f"Pergunta: {text}\nResposta:"
 
 async def get_prompt_paola_1(text: str) -> str:
     """Paola teste um"""
-    return f"Paola é uma robô gentil.\n\n\Eu: {text}\nPaola:"
+    logging.info("""Usando prompt:\nPaola é uma robô gentil.\\n\\nEu: {text}\
+\\nPaola:""")
+    return f"Paola é uma robô gentil.\n\nEu: {text}\nPaola:"
 
 async def get_prompt_chico_1(text: str) -> str:
     """Chico teste um"""
-    return f"Chico é um robô mal educado.\n\n\Eu: {text}\nChico:"
+    logging.info("""Usando prompt:\nChico é um robô sarcástico.\\n\\nEu: \
+{text}\\nChico:""")
+    return f"Chico é um robô sarcástico.\n\nEu: {text}\nChico:"
 
 async def chatgpt(
     furhat: object, 
@@ -662,10 +667,10 @@ Aguarde o LED ficar verde para falar.""")
             text: Status | None = Status()
             await asyncio.sleep(float(print('Ouvindo', end = '') or 1e-6))
             # ~ await aprint('Ouvindo', end = '')
-            while not print('.', end = '') and (
+            while (\
                 text.message in [None, '', ' '] \
                 or 'ERROR : No internet detected' in text.message \
-                or len(text.message) < 12
+                # ~ or len(text.message) < 12 \
             ):
                 await led_green(furhat)
                 # ~ await asyncio.sleep(float(print('.', end = '') or 1e-6))
@@ -675,7 +680,8 @@ Aguarde o LED ficar verde para falar.""")
                 except Exception as e:
                     logger.exception(e)
                     text: Status | None = Status()
-                await asyncio.sleep(1e-6)
+                await asyncio.sleep(float(print('.', end = '') or 1e-6))
+            await asyncio.sleep(float(print() or 1e-6))
             logger.info(f"Ouvido:\n{text.message}")
             for stop in ['chega', 'cala boca', 'cala a boca']:
                 if stop in text.message:
@@ -700,9 +706,9 @@ Aguarde o LED ficar verde para falar.""")
                 openai.aiosession.set(aiohttp.ClientSession())
                 user: uuid.UUID = uuid.uuid5(session_id, furhat_id)
                 completion: object = openai.Completion.create(
-                    engine = openai_config.get('engine', 'ada'),
+                    engine = openai_config.get('engine', 'text-ada-001'),
                     max_tokens = openai_config.get(
-                        'max_tokens', 4000) - len(prompt), # 1 to 4000
+                        'max_tokens', 2048) - len(prompt), # 1 to 4000
                     temperature = openai_config.get(
                         'temperature', 0.0), # 0.0 to 1.0
                     top_p = openai_config.get(
