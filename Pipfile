@@ -30,6 +30,7 @@ google-search-results = "*"
 graphviz = "*"
 #gunicorn = "*"
 #hypercorn = "*"
+install-requires = "*"
 #jinja2 = "*"
 lxml = "*"
 matplotlib = "*"
@@ -72,7 +73,7 @@ ZODB = "*"
 #iacecil = {editable = true, path = "."}
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
 
 [scripts]
 iacecil = 'python start.py info quart ic'
@@ -89,4 +90,3 @@ new_prod = 'python -m iacecil production'
 new_test = 'python -m iacecil'
 new_dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'
 paola = 'python -m iacecil fpersonas'
-
