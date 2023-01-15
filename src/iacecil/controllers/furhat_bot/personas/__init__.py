@@ -132,20 +132,38 @@ async def calcular_delay_simples(
 
 async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     """Faixas de razões arbitrária de acordo com tamanho da sentença"""
-    faixa_1: range = range(1, 74)
-    faixa_2: range = range(75, 300)
-    faixa_3: range = range(301, 600)
-    faixa_4: range = range(601, 900)
-    faixa_5: range = range(901, 1500)
-    if tamanho in faixa_1:
+    razão: float = 1.0
+    if tamanho in range(1, 9):
+        razão: float = 3
+    elif tamanho in range(9, 18):
+        razão: float = 6
+    elif tamanho in range(18, 43):
         razão: float = 9.6
-    elif tamanho in faixa_2:
+    elif tamanho in range(43, 55):
+        razão: float = 10.2
+    elif tamanho in range(55, 76):
         razão: float = 12.3
-    elif tamanho in faixa_3:
+    elif tamanho in range(76, 86):
+        razão: float = 12.6
+    elif tamanho in range(86, 90):
+        razão: float = 12.9
+    elif tamanho in range(90, 151):
+        razão: float = 13.2
+    elif tamanho in range(151, 251):
+        razão: float = 13.5
+    elif tamanho in range(251, 301):
+        razão: float = 13.8
+    elif tamanho in range(301, 320):
+        razão: float = 14.1
+    elif tamanho in range(320, 400):
+        razão: float = 14.7
+    elif tamanho in range(400, 500):
         razão: float = 15
-    elif tamanho in faixa_4:
+    elif tamanho in range(500, 600):
+        razão: float = 16.5
+    elif tamanho in range(600, 900):
         razão: float = 18.9
-    elif tamanho in faixa_5:
+    elif tamanho in range(901, 1500):
         razão: float = 21.6
     else:
         razão: float = 30
@@ -153,29 +171,51 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
 
 async def calcular_delay_3(
     texto: str,
+    vírgulas: int,
+    números: int,
+    pausa_vírgula: float,
+    pausa_número: float,
+    soma_vírgula: float,
+    soma_número: float,
     razão: float = 9.6,
-    pausa: float = 0.5,
     *args,
     **kwargs,
 ) -> float:
-    """Adiciona meio segundo a cada vírgula"""
+    """Adiciona delay a cada vírgula e a cada dígito, porque vai ser falado \
+por extenso"""
     razão: float = await calcular_delay_razão(len(texto))
-    logger.info(f"""Método 3: {len(texto)} / {razão} + ({texto.count(',')} * \
-0.5) = {len(texto) / razão + (texto.count(',') * pausa)}""")
+    logger.info(f"""Método 3: ({len(texto)} / {razão}) + ({vírgulas} * \
+{pausa_vírgula}) + ({números} * {pausa_número}) = \
+{(len(texto) / razão) + soma_vírgula + soma_número}""")
     return await calcular_delay_simples(len(texto), razão) + \
-        (texto.count(',') * pausa)
+        soma_número + soma_vírgula
 
 async def calcular_delay(
     texto: str,
     razão: float = 9.6,
-    pausa: float = 0.5,
+    pausa_vírgula: float = 0.3,
+    pausa_número: float = 0.3,
     *args,
     **kwargs,
 ) -> float:
     """Algoritmo para tentar calcular delay de fala da Furhat"""
+    vírgulas: int = texto.count(',')
+    números: int = sum([texto.count(str(número)) for número in range(0,9)])
+    soma_número: float = números * pausa_número
+    soma_vírgula: float = vírgulas * pausa_vírgula
     logger.info(f"""Calculando delay com {len(texto)} caracteres, \
-razão {razão}, {texto.count(',')} vírgulas, pausa {pausa}...""")
-    return await calcular_delay_3(texto, razão, pausa)
+razão {razão}, {vírgulas} vírgulas, {números} números, pausa para \
+vírgula {pausa_vírgula}, pausa para números {pausa_número}...""")
+    return await calcular_delay_3(
+        texto,
+        vírgulas,
+        números,
+        pausa_vírgula,
+        pausa_número,
+        soma_vírgula,
+        soma_número,
+        razão,
+    )
 
 async def falar(
     furhat: object,
@@ -654,6 +694,19 @@ async def get_prompt_paola_4(text: str) -> str:
 personalidade sarcástica e que fala em português brasileiro.\n\nEu: {text}\n\
 Paola:"""
 
+async def get_prompt_paola_5(text: str) -> str:
+    """Paola chatGPT teste cinco"""
+    return f"Paola é uma especialista em matemática.\n\nEu: {text}\nPaola:"
+
+async def get_prompt_paola_6(text: str) -> str:
+    """Paola chatGPT teste seis"""
+    return f"""Paola é uma humana especialista em matemática.\nPaola fica \
+irritada quando chamam ela de robô.\n\nEu: {text}\nPaola:"""
+
+async def get_prompt_paola_7(text: str) -> str:
+    """Paola chatGPT teste sete"""
+    return f"Paola é uma robô falando sozinha.\n\nPaola: {text}\nPaola:"
+
 async def chatgpt(
     furhat: object, 
     language: str,
@@ -672,10 +725,11 @@ async def chatgpt(
 Aguarde o LED ficar verde para falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('WARNING')
+        logger.info("Furhat + chatGPT pronto!")
         while True:
             await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
             text: Status | None = Status()
-            await asyncio.sleep(float(print('Ouvindo', end = '') or 1e-6))
+            await asyncio.sleep(float(print('Ouvindo', end = '') or 1e-12))
             # ~ await aprint('Ouvindo', end = '')
             while (\
                 text.message in [None, '', ' '] \
@@ -691,10 +745,10 @@ Aguarde o LED ficar verde para falar.""")
                 except Exception as e:
                     logger.exception(e)
                     text: Status | None = Status()
-                await asyncio.sleep(float(print('.', end = '') or 1e-6))
-            await asyncio.sleep(float(print() or 1e-6))
+                await asyncio.sleep(float(print('.', end = '') or 1e-12))
+            await asyncio.sleep(float(print() or 1e-12))
             logger.info(f"Ouvido:\n{text.message}")
-            for stop in ['chega', 'cala boca', 'cala a boca']:
+            for stop in ['por favor cala a boca']:
                 if stop in text.message:
                     await atender(furhat, "OK. Bom dia!")
                     return
@@ -702,11 +756,14 @@ Aguarde o LED ficar verde para falar.""")
             try:
                 # ~ prompt: str = await get_prompt_default(text.message)
                 prompt: str = await random.choice([
-                    # ~ get_prompt_default,
-                    # ~ get_prompt_paola_1,
-                    # ~ get_prompt_paola_2,
-                    # ~ get_prompt_paola_3,
+                    get_prompt_default,
+                    get_prompt_paola_1,
+                    get_prompt_paola_2,
+                    get_prompt_paola_3,
                     get_prompt_paola_4,
+                    get_prompt_paola_5,
+                    get_prompt_paola_6,
+                    get_prompt_paola_7,
                 ])(text.message)
                 logging.info(f"Usando prompt ({len(text.message)}):\n{prompt}")
             except Exception as e:
@@ -722,16 +779,17 @@ Aguarde o LED ficar verde para falar.""")
                     max_tokens = openai_config.get(
                         'max_tokens', 2048) - len(prompt), # 1 to 4000
                     temperature = openai_config.get(
-                        'temperature', 0.0), # 0.0 to 1.0
+                        'temperature', 0.6), # 0.0 to 1.0
                     top_p = openai_config.get(
                         'top_p', 0.0), # 0.0 to 1.0
                     frequency_penalty = openai_config.get(
-                        'frequency_penalty', 0.0), # 0.0 to 2.0
+                        'frequency_penalty', 1.0), # 0.0 to 2.0
                     presence_penalty = openai_config.get(
-                        'presence_penalty', 0.0), # 0.0 to 2.0
+                        'presence_penalty', 1.0), # 0.0 to 2.0
                     echo = openai_config.get('echo', False),
                     user = str(user),
                     prompt = prompt,
+                    stop = ['Paola:', 'Eu:', 'Você:'],
                 )
                 logger.debug(f"Completion ({type(completion)} = {completion}")
                 choice: dict = random.choice(completion.choices)
@@ -760,7 +818,7 @@ Aguarde o LED ficar verde para falar.""")
             finally:
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()
-            await asyncio.sleep(1e-6)
+            await asyncio.sleep(1e-12)
     except (MaxRetryError, NewConnectionError, KeyboardInterrupt):
         raise
     except Exception as e:
