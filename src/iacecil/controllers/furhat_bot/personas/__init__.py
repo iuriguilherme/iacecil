@@ -115,10 +115,11 @@ from plugins.borogodo import perguntas, respostas
 async def olhar(furhat: object, *args, **kwargs) -> None:
     """Makes Furhat look for the first person or the closest one"""
     try:
-        await do_attend_id(furhat, '0')
+        await do_attend_user(furhat, 'CLOSEST')
+        # ~ await do_attend_id(furhat, '0')
     except Exception as e:
         logger.exception(e)
-        await do_attend_user(furhat, 'CLOSEST')
+        # ~ await do_attend_user(furhat, 'CLOSEST')
 
 async def calcular_delay_simples(
     tamanho: int,
@@ -131,8 +132,8 @@ async def calcular_delay_simples(
 
 async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     """Faixas de razões arbitrária de acordo com tamanho da sentença"""
-    faixa_1: range = range(1, 48)
-    faixa_2: range = range(49, 300)
+    faixa_1: range = range(1, 74)
+    faixa_2: range = range(75, 300)
     faixa_3: range = range(301, 600)
     faixa_4: range = range(601, 900)
     faixa_5: range = range(901, 1500)
@@ -159,7 +160,7 @@ async def calcular_delay_3(
 ) -> float:
     """Adiciona meio segundo a cada vírgula"""
     razão: float = await calcular_delay_razão(len(texto))
-    logger.debug(f"""Método 3: {len(texto)} / {razão} + ({texto.count(',')} * \
+    logger.info(f"""Método 3: {len(texto)} / {razão} + ({texto.count(',')} * \
 0.5) = {len(texto) / razão + (texto.count(',') * pausa)}""")
     return await calcular_delay_simples(len(texto), razão) + \
         (texto.count(',') * pausa)
@@ -172,7 +173,7 @@ async def calcular_delay(
     **kwargs,
 ) -> float:
     """Algoritmo para tentar calcular delay de fala da Furhat"""
-    logger.debug(f"""Calculando delay com {len(texto)} caracteres, \
+    logger.info(f"""Calculando delay com {len(texto)} caracteres, \
 razão {razão}, {texto.count(',')} vírgulas, pausa {pausa}...""")
     return await calcular_delay_3(texto, razão, pausa)
 
@@ -195,8 +196,10 @@ async def atender(
     **kwargs,
 ) -> None:
     """Makes Furhat look at nearest person and speak"""
-    await olhar(furhat)
+    # ~ await olhar(furhat)
+    await do_attend_user(furhat, 'CLOSEST')
     await falar(furhat, text, delay = delay)
+    await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
 
 async def croak(
     furhat,
@@ -629,21 +632,27 @@ async def aprint(*args, **kwargs) -> None:
     return print(*args, **kwargs)
 
 async def get_prompt_default(text: str) -> str:
-    """Q/A chatgpt prompt"""
-    logging.info("Usando prompt:\\nPergunta: {text}\\nResposta:")
+    """Q/A chatGPT prompt"""
     return f"Pergunta: {text}\nResposta:"
 
 async def get_prompt_paola_1(text: str) -> str:
-    """Paola teste um"""
-    logging.info("""Usando prompt:\nPaola é uma robô gentil.\\n\\nEu: {text}\
-\\nPaola:""")
+    """Paola chatGPT teste um"""
     return f"Paola é uma robô gentil.\n\nEu: {text}\nPaola:"
 
-async def get_prompt_chico_1(text: str) -> str:
-    """Chico teste um"""
-    logging.info("""Usando prompt:\nChico é um robô sarcástico.\\n\\nEu: \
-{text}\\nChico:""")
-    return f"Chico é um robô sarcástico.\n\nEu: {text}\nChico:"
+async def get_prompt_paola_2(text: str) -> str:
+    """Paola chatGPT teste dois"""
+    return f"Paola é uma robô sarcástica.\n\n\Eu: {text}\nPaola:"
+
+async def get_prompt_paola_3(text: str) -> str:
+    """Paola chatGPT teste três"""
+    return f"""Paola é uma robô sarcástica que fala em português brasileiro.\n\
+\nEu: {text}\nPaola:"""
+
+async def get_prompt_paola_4(text: str) -> str:
+    """Paola chatGPT teste quatro"""
+    return f"""Paola é uma robô social fabricada pela empresa Furhat, com \
+personalidade sarcástica e que fala em português brasileiro.\n\nEu: {text}\n\
+Paola:"""
 
 async def chatgpt(
     furhat: object, 
@@ -664,6 +673,7 @@ Aguarde o LED ficar verde para falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('WARNING')
         while True:
+            await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
             text: Status | None = Status()
             await asyncio.sleep(float(print('Ouvindo', end = '') or 1e-6))
             # ~ await aprint('Ouvindo', end = '')
@@ -673,6 +683,7 @@ Aguarde o LED ficar verde para falar.""")
                 # ~ or len(text.message) < 12 \
             ):
                 await led_green(furhat)
+                await do_attend_user(furhat, 'CLOSEST')
                 # ~ await asyncio.sleep(float(print('.', end = '') or 1e-6))
                 # ~ await aprint('.', end = '')
                 try:
@@ -690,13 +701,14 @@ Aguarde o LED ficar verde para falar.""")
             prompt: str | None = None
             try:
                 # ~ prompt: str = await get_prompt_default(text.message)
-                # ~ prompt: str = await get_prompt_paola_1(text.message)
-                # ~ prompt: str = await get_prompt_chico_1(text.message)
                 prompt: str = await random.choice([
-                    get_prompt_default,
-                    get_prompt_paola_1,
-                    get_prompt_chico_1,
+                    # ~ get_prompt_default,
+                    # ~ get_prompt_paola_1,
+                    # ~ get_prompt_paola_2,
+                    # ~ get_prompt_paola_3,
+                    get_prompt_paola_4,
                 ])(text.message)
+                logging.info(f"Usando prompt ({len(text.message)}):\n{prompt}")
             except Exception as e:
                 logger.exception(e)
             if not prompt:
@@ -735,7 +747,6 @@ Aguarde o LED ficar verde para falar.""")
                 )
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()
-                await asyncio.sleep(1e-6)
                 await led_blank(furhat)
             except (
                 openai.error.InvalidRequestError,
@@ -749,6 +760,7 @@ Aguarde o LED ficar verde para falar.""")
             finally:
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()
+            await asyncio.sleep(1e-6)
     except (MaxRetryError, NewConnectionError, KeyboardInterrupt):
         raise
     except Exception as e:
