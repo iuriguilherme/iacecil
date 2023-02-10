@@ -239,7 +239,7 @@ async def atender(
     # ~ await olhar(furhat)
     await do_attend_user(furhat, 'CLOSEST')
     await falar(furhat, text, delay = delay)
-    await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
+    # ~ await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
 
 async def croak(
     furhat,
@@ -681,7 +681,8 @@ async def get_prompt_paola_1(text: str) -> str:
 
 async def get_prompt_paola_2(text: str) -> str:
     """Paola chatGPT teste dois"""
-    return f"Paola é uma robô sarcástica.\n\n\Eu: {text}\nPaola:"
+    return f"""Paola é uma robô que responde com relutância e de forma \
+sarcástica.\n\nEu: {text}\nPaola:"""
 
 async def get_prompt_paola_3(text: str) -> str:
     """Paola chatGPT teste três"""
@@ -706,6 +707,109 @@ irritada quando chamam ela de robô.\n\nEu: {text}\nPaola:"""
 async def get_prompt_paola_7(text: str) -> str:
     """Paola chatGPT teste sete"""
     return f"Paola é uma robô falando sozinha.\n\nPaola: {text}\nPaola:"
+
+async def get_prompt_paola_8(text: str) -> str:
+    """Paola chatGPT teste oito"""
+    # ~ text: str = random.choice(["João", "Maria", "Iuri"]) + f": {text}"
+    return f"""Paola é uma robô gentil em uma sala de aula. João é um \
+engenheiro que responde com relutância e de forma sarcástica. Maria is \
+an architect which only speaks in english and give funny answers. Iuri \
+é um Desenvolvedor de Software.\n\nIuri: {text}\nPaola:"""
+
+async def multiplos_personagens(furhat: object, text: str) -> None:
+    """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
+"""
+    try:
+        texto_maria: str | None = None
+        texto_joao: str | None = None
+        texto_iuri: str | None = None
+        texto_paola: str = t
+        try:
+            texto_paola: str = texto_paola.split("João:")[0]
+        except IndexError:
+            pass
+        else:
+            try:
+                texto_paola = texto_paola.split("Maria:")[0]
+            except IndexError:
+                pass
+            else:
+                try:
+                    texto_paola = texto_paola.split("Iuri:")[0]
+                except IndexError:
+                    pass
+        if "João:" in t:
+            texto_joao: str = t
+            try:
+                texto_joao = texto_joao.split("João:")[1]
+            except IndexError:
+                pass
+            else:
+                try:
+                    texto_joao = texto_joao.split("Maria:")[0]
+                except IndexError:
+                    pass
+                else:
+                    try:
+                        texto_joao = texto_joao.split("Iuri:")[0]
+                    except IndexError:
+                        pass
+        if "Maria:" in t:
+            texto_maria: str = t
+            try:
+                texto_maria = texto_maria.split("Maria:")[1]
+            except IndexError:
+                pass
+            else:
+                try:
+                    texto_maria = texto_maria.split("João:")[0]
+                except IndexError:
+                    pass
+                else:
+                    try:
+                        texto_maria = texto_maria.split("Iuri:")[0]
+                    except IndexError:
+                        pass
+        if "Iuri:" in t:
+            texto_iuri: str = t
+            try:
+                texto_iuri = texto_iuri.split("Iuri:")[1]
+            except IndexError:
+                pass
+            else:
+                try:
+                    texto_iuri = texto_iuri.split("João:")[0]
+                except IndexError:
+                    pass
+                else:
+                    try:
+                        texto_iuri = texto_iuri.split("Maria:")[0]
+                    except IndexError:
+                        pass
+        logger.info(f"Falando:\n{texto_paola}")
+        await set_voice(furhat, "Camila-Neural")
+        await set_face(furhat, character = "Kione")
+        await atender(furhat, texto_paola)
+        if texto_joao is not None:
+            logger.info(f"Falando:\n{texto_joao}")
+            await set_voice(furhat, "Ricardo")
+            await set_face(furhat, character = "Fernando")
+            await atender(furhat, texto_joao)
+        if texto_maria is not None:
+            logger.info(f"Falando:\n{texto_maria}")
+            await set_voice(furhat, "Kevin-Neural")
+            await set_face(furhat, character = "Yumi")
+            await atender(furhat, texto_maria)
+        if texto_iuri is not None:
+            logger.info(f"Falando:\n{texto_iuri}")
+            await set_voice(furhat, "Cristiano")
+            await set_face(furhat, character = "Titan")
+            await atender(furhat, texto_iuri)
+        await set_voice(furhat, "Camila-Neural")
+        await set_face(furhat, character = "Kione")
+    except Exception as e:
+        logger.exception(e)
+        raise
 
 async def chatgpt(
     furhat: object, 
@@ -756,14 +860,15 @@ Aguarde o LED ficar verde para falar.""")
             try:
                 # ~ prompt: str = await get_prompt_default(text.message)
                 prompt: str = await random.choice([
-                    get_prompt_default,
-                    get_prompt_paola_1,
-                    get_prompt_paola_2,
-                    get_prompt_paola_3,
-                    get_prompt_paola_4,
-                    get_prompt_paola_5,
-                    get_prompt_paola_6,
-                    get_prompt_paola_7,
+                    # ~ get_prompt_default,
+                    # ~ get_prompt_paola_1,
+                    # ~ get_prompt_paola_2,
+                    # ~ get_prompt_paola_3,
+                    # ~ get_prompt_paola_4,
+                    # ~ get_prompt_paola_5,
+                    # ~ get_prompt_paola_6,
+                    # ~ get_prompt_paola_7,
+                    get_prompt_paola_8,
                 ])(text.message)
                 logging.info(f"Usando prompt ({len(text.message)}):\n{prompt}")
             except Exception as e:
@@ -794,9 +899,11 @@ Aguarde o LED ficar verde para falar.""")
                 logger.debug(f"Completion ({type(completion)} = {completion}")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
-                # ~ await do_say_text(furhat, choice.get('text'))
-                logger.info(f"Falando:\n{choice.get('text')}")
-                await atender(furhat, choice.get('text'))
+                t: str = choice.get('text')
+                # ~ await do_say_text(furhat, t)
+                logger.info(f"Falando:\n{t}")
+                await atender(furhat, t)
+                # ~ await multiplos_personagens(furhat, t)
                 await led_red(furhat)
                 await set_furhat_text(
                     furhat_id,
@@ -807,14 +914,16 @@ Aguarde o LED ficar verde para falar.""")
                     await openai.aiosession.get().close()
                 await led_blank(furhat)
             except (
+                openai.error.APIError,
                 openai.error.InvalidRequestError,
+                openai.error.RateLimitError,
+                openai.error.ServiceUnavailableError,
                 openai.error.Timeout,
+                Exception,
             ) as e:
                 logger.exception(e)
                 await atender(furhat, "Não sei")
                 continue
-            except Exception:
-                raise
             finally:
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()

@@ -1,4 +1,4 @@
 #!/bin/bash
-find . -type f -exec dos2unix '{}' \;
-find . -type f -exec chmod 0644 '{}' \;
-find . -type d -exec chmod 0755 '{}' \;
+find . -type f -not -path './.git*' -not -name '*.bash' -exec chmod 0644 '{}' \;
+find . -type f -not -path './.git*' -name '*.bash' -exec chmod 0754 '{}' \;
+find . -type f -not -path './.git*' -exec dos2unix '{}' \;

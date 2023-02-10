@@ -40,7 +40,7 @@ async def get_voices(furhat):
 async def set_led(furhat, red = 0, green = 0, blue = 0):
     return furhat.set_led(red = red, green = green, blue = blue)
 
-async def set_face(furhat, mask, character):
+async def set_face(furhat, mask = "adult", character = "Titan"):
     return furhat.set_face(mask = mask, character = character)
 
 async def set_voice(furhat, name):
