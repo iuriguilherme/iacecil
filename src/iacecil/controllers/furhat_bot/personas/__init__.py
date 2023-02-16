@@ -102,16 +102,6 @@ from .handlers import (
 )
 from plugins.borogodo import perguntas, respostas
 
-# ~ try:
-    # ~ from ....config import Config
-    # ~ config = Config()
-    # ~ bots_config = config.bots
-    # ~ furhat_config = config.furhat_config
-# ~ except Exception as e:
-    # ~ logger.critical(f"{name} config file not found or somehow wrong. RTFM.")
-    # ~ logger.exception(e)
-    # ~ raise
-
 async def olhar(furhat: object, *args, **kwargs) -> None:
     """Makes Furhat look for the first person or the closest one"""
     try:
@@ -158,13 +148,13 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(320, 400):
         razão: float = 14.7
     elif tamanho in range(400, 500):
-        razão: float = 15
-    elif tamanho in range(500, 600):
         razão: float = 16.5
-    elif tamanho in range(600, 900):
+    elif tamanho in range(500, 600):
         razão: float = 18.9
+    elif tamanho in range(600, 900):
+        razão: float = 27
     elif tamanho in range(901, 1500):
-        razão: float = 21.6
+        razão: float = 36
     else:
         razão: float = 30
     return razão
@@ -255,422 +245,6 @@ async def croak(
 passa vergonha sou eu.""")
     await led_blank(furhat)
 
-async def ack(furhat, *args, **kwargs) -> None:
-    await led_blank(furhat)
-    await do_say_text(
-        furhat,
-        "ok, deixa eu me preparar para mais uma entrevista",
-    )
-    await led_blank(furhat)
-    await do_attend_location(furhat, x = 0, y = -30, z = 0)
-    await asyncio.sleep(3)
-
-async def borogodo_podcast_1(furhat, *args, **kwargs) -> None:
-    try:
-        await olhar(furhat)
-        await led_blue(furhat)
-        await do_say_text(
-            furhat,
-            """Vou treinar a entrevista pro podcast. Tentativa número dois. \
-Não me atrapalha por favor""",
-        )
-        await do_attend_location(furhat, x = 0, y = -30, z = 0)
-        await asyncio.sleep(9)
-        for k, v in perguntas.items():
-            try:
-                await led_green(furhat)
-                await olhar(furhat)
-                await do_say_text(furhat, v)
-                await asyncio.sleep(round(len(v)/6))
-                await led_red(furhat)
-                for r in respostas[k]:
-                    await olhar(furhat)
-                    await do_say_text(furhat, r)
-                    await asyncio.sleep(round(len(r)/6))
-            except Exception as e:
-                logger.exception(e)
-                await croak(furhat, exception=e)
-    except Exception as e:
-        logger.exception(e)
-        await croak(furhat, exception=e)
-
-async def borogodo_naoentendi(furhat, *args, **kwargs) -> None:
-    try:
-        await olhar(furhat)
-        await led_blue(furhat)
-        texto: str = random.choice([
-            "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
-            "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
-            "Oi, eu sou a Gâmbôa. A robô social mais avançada do mundo!",
-            """Eu não entendi nada, mas achei interessante. Vou continuar \
-ouvindo vocês""",
-            """Eu sou nova e estou formando meu vocabulário, não tenho \
-nenhuma resposta inteligente pra te dar agora""",
-            """Se eu fosse gente eu ia entender o que vocês dizem. Mas como \
-eu sou um computador, só obsérvo e aprendo""",
-            "Não grita comigo",
-            "Não sei nada sobre o que tu disse, pergunta pro meu programador",
-            """Olha, quando o meu programador não tá aqui eu dificilmente sei \
-o que responder. Se eu fosse uma inteligência artificial avançada, vocês \
-seriam os que respondem as minhas perguntas, e não o contrário. Não é \
-verdade?""",
-            """Desculpa eu não conseguir falar contigo agora, o meu \
-programador tá tomando café e eu não conheço ninguém aqui e não sei o que te \
-responder.""",
-            """Vocês já viram o visual da praia ali do lado? Larga o celular \
-um pouco e vai lá observar as montanhas no continente. Eu só não vou porque \
-eu não tenho um corpo""",
-        ])
-        await atender(furhat, texto)
-        await led_blank(furhat)
-    except Exception as e:
-        await croak(furhat, exception=e)
-
-async def borogodo_teste_1(
-    furhat,
-    message,
-    *args,
-    numero = 6,
-    **kwargs,
-) -> None:
-    try:
-        texto: str = ' '.join([
-            palavra \
-            for palavra in \
-            message.split(' ') \
-            if palavra not in \
-            ['teste', 'delay'] \
-        ])
-        try:
-            await do_attend_id(furhat, '0')
-        except Exception as e:
-            logger.exception(e)
-            await do_attend_user(furhat, 'CLOSEST')
-        await led_blue(furhat)
-        await do_say_text(
-            furhat,
-            f"""Testando delay entre frases pra ver se {numero} é a \
-quantidade boa""")
-        await asyncio.sleep(2)
-        await led_red(furhat)
-        await do_say_text(furhat, texto)
-        await asyncio.sleep(round(len(texto)/numero))
-        await led_yellow(furhat)
-        await do_say_text(furhat, texto)
-        await asyncio.sleep(round(len(texto)/numero))
-        await led_blank(furhat)
-    except Exception as e:
-        logger.exception(e)
-        await croak(furhat, exception=e)
-
-async def borogodo_foradoar(furhat, *args, **kwargs) -> None:
-    try:
-        await do_attend_id(furhat, '0')
-    except Exception as e:
-        logger.exception(e)
-        await do_attend_user(furhat, 'CLOSEST')
-    await led_blue(furhat)
-    # ~ razão: str = "mexendo no meu código"
-    # ~ razão: str = "almoçando"
-    razão: str = "tomando café"
-    await do_say_text(
-        furhat,
-        f"""Desculpa eu não poder falar contigo agora, o meu programador tá \
-{razão} e eu não conheço ninguém aqui e não sei o que te responder.""",
-    )
-    await asyncio.sleep(12)
-    await led_blank(furhat)
-
-async def borogodo_entrevista(
-    furhat,
-    language,
-    furhat_id,
-    session_id,
-    *args,
-    **kwargs,
-) -> None:
-    try:
-        await ack(furhat)
-        try:
-            await do_attend_id(furhat, '0')
-        except Exception as e:
-            logger.exception(e)
-            await do_attend_user(furhat, 'CLOSEST')
-        await blue_speak(
-            furhat,
-            """Boa tarde! Eu sou a Gâmbôa. E vou te entrevistar. Por favor \
-tenha paciência comigo, porque uma parte de mim é só um computador. Quando o \
-meu led estiver vermelho, é porque eu estou te ouvindo e prestando atenção. \
-A minha pergunta hoje é: Quem és tu, e o que está acontecendo aqui? Fala \
-perto do microfone pra eu te ouvir""",
-        )
-        await asyncio.sleep(26)
-        while True:
-            text: Status = Status()
-            tentativas: int = 0
-            sair: bool = False
-            while text.message == "":
-                await led_red(furhat)
-                try:
-                    await do_attend_id(furhat, '0')
-                except Exception as e:
-                    logger.exception(e)
-                    await do_attend_user(furhat, 'CLOSEST')
-                text: Status = await do_listen(furhat, language)
-                await led_yellow(furhat)
-                logger.critical(text)
-                tentativas += 1
-                if tentativas > 6:
-                    await do_say_text(
-                        furhat,
-                        """Não sei se o meu microfone tá ruim, mas acho que \
-ninguém mais tá falando comigo, vou encerrar a entrevista."""
-                    )
-                    await asyncio.sleep(9)
-                    sair: bool = True
-                    break
-                elif tentativas > 2:
-                    await do_say_text(furhat, random.choice([
-                        """não entendi, fale mais alto. quando não quiser \
-mais falar é só dizer: pronto""",
-                    ]))
-                    await asyncio.sleep(6)
-            await set_furhat_text(
-                furhat_id,
-                session_id,
-                text,
-            )
-            if sair or text.message.lower() in [
-                "pronto",
-                "pronto.",
-                "deu",
-                "deu.",
-                "chega",
-                "chega.",
-            ]:
-                break
-        await led_blank(furhat)
-        await olhar(furhat)
-        await blue_speak(
-            furhat,
-            """Obrigada. Por enquanto era só isso, eu preciso de tempo pra \
-pensar no que eu ouvi e me reprogramar pra fazer mais perguntas. Minha mente \
-só tem três jígarrértz cacacá cacacá"""
-        )
-        await asyncio.sleep(12)
-        await led_blank(furhat)
-        await do_attend_location(furhat, x = 0, y = -30, z = 0)
-        await asyncio.sleep(3)
-    except Exception as e:
-        logger.exception(e)
-        await blue_speak(
-            furhat,
-            "Desculpe, tive um problema técnico. Chama o Iûrí!",
-        )
-
-async def programa_antigo(bots, furhat_config, bots_config,
-    skip_intro, log_messages, add_startswith, add_endswith,
-    order, furhat_id, address, language, mask, character, voice,
-    voice_url, session_id, furhat, voices) -> None:
-    """E fala do código dos outros..."""
-    while True:
-        text = Status()
-        while text.message == '':
-            await led_green(furhat)
-            await olhar(furhat)
-            text =  await do_listen(furhat, language)
-        await led_blank(furhat)
-        # ~ text = Status(success = True, message = "chega")
-        if text.success and text.message not in ['', 'EMPTY'] and \
-            not text.message.startswith('ERROR'):
-            logger.critical(text)
-            if 'cala boca' in text.message.lower() or 'cala a boca'\
-                in text.message.lower():
-                await shutup(furhat)
-            elif text.message.lower() in [
-                'chega',
-                'listo',
-                'enough',
-            ]:
-                await shutup(furhat)
-                await led_blue(furhat)
-                language = 'pt-BR'
-                await change_voice(furhat, voices, language)
-                await do_attend_user(furhat, 'RANDOM')
-                await do_say_text(
-                    furhat,
-                    'agora eu vou calar a boca. tchau!',
-                )
-                await asyncio.sleep(1)
-                await led_blank(furhat)
-                break
-            elif text.message.lower().endswith(order):
-                reply = await natural_handler(
-                    furhat,
-                    text.message,
-                    order,
-                    furhat_id,
-                    session_id,
-                )
-                await blue_speak(furhat, reply)
-            elif text.message.lower() in [
-                'português',
-                'portugués',
-                'portuguese',
-            ]:
-                await asyncio.sleep(1)
-                await led_blue(furhat)
-                language = 'pt-BR'
-                await change_voice(furhat, voices, language)
-                await do_attend_user(furhat, 'RANDOM')
-                await do_say_text(furhat, """Agora eu vou falar e \
-escutar em português brasileiro.""")
-            elif text.message.lower() in [
-                'inglês',
-                'inglés',
-                'english',
-            ]:
-                await asyncio.sleep(1)
-                await led_blue(furhat)
-                language = 'en-US'
-                await change_voice(furhat, voices, language)
-                await do_attend_user(furhat, 'RANDOM')
-                await do_say_text(furhat, """Now I'm listening and \
-speaking in united states english.""")
-            elif text.message.lower() in [
-                'espanhol',
-                'español',
-                'spanish',
-            ]:
-                await asyncio.sleep(1)
-                await led_blue(furhat)
-                language = 'es-ES'
-                await change_voice(furhat, voices, language)
-                await do_attend_user(furhat, 'RANDOM')
-                await do_say_text(furhat, """Ahora yo voy a hablar \
-e escuchar en español""")
-            elif text.message.lower() in [
-                'francês',
-                'francesc',
-                'french',
-            ]:
-                await asyncio.sleep(1)
-                await led_blue(furhat)
-                await do_attend_user(furhat, 'RANDOM')
-                audio = random.choice([
-                    # ~ 'boil',
-                    'fart',
-                    'french',
-                    'hamster',
-                    # ~ 'kniggits',
-                    # ~ 'nomore',
-                    # ~ 'pigdog',
-                    # ~ 'taunt',
-                    # ~ 'wipe',
-                ])
-                # ~ audio = 'frenchtaunter'
-                await do_say_url(
-                    furhat,
-                    ''.join([voice_url + audio + '.wav']),
-                )
-            elif text.message.lower() in [
-                'oi',
-                'olá',
-                'ola',
-                'alô',
-                'alo',
-                'e aí',
-                'eai',
-                'eaí',
-                'boa tarde',
-                'boatarde',
-            ]:
-                await borogodo_foradoar(furhat)
-            elif text.message.lower() in [
-                'tchau',
-            ]:
-                await blue_speak(furhat, "tchau")
-                await asyncio.sleep(1)
-            elif text.message.lower() in ['entrevista']:
-                ## FIXME isso veio de personalidade.gamboa pra evitar
-                ## importação circular
-                await borogodo_entrevista(
-                    furhat,
-                    language,
-                    furhat_id,
-                    session_id,
-                )
-            elif text.message.lower() in ['podcast']:
-                ## FIXME isso veio de personalidade.gamboa pra evitar
-                ## importação circular
-                await borogodo_podcast_1(furhat)
-            else:
-                try:
-                    await do_attend_id(furhat, '0')
-                except Exception as e:
-                    logger.exception(e)
-                    await do_attend_user(furhat, 'RANDOM')
-                if add_startswith is not None:
-                    text.message = add_startswith + ' ' + \
-                        text.message
-                if add_endswith is not None:
-                    text.message = text.message + ' ' + \
-                        add_endswith
-                if log_messages:
-                    await set_furhat_text(
-                        furhat_id,
-                        session_id,
-                        text,
-                    )
-                if text.message.lower().startswith("teste delay"):
-                    logger.critical("teste delay")
-                    await borogodo_teste_1(furhat, text.message)
-                    continue
-                iterations =  None
-                iterations = await furhat_handler(
-                    bots_config,
-                    bots,
-                    text,
-                )
-                # ~ logger.critical(f"iterations = {str(iterations)}")
-                if len(iterations) > 0:
-                    for iteration in iterations:
-                        generated_text = await iteration.callback
-                        if generated_text is not None:
-                            await do_attend_user(furhat, 'RANDOM')
-                            await led_red(furhat)
-                            await set_led(
-                                furhat,
-                                **bots_config[iteration.bot].furhat['led'],
-                            )
-                            await set_voice(
-                                furhat,
-                                name = bots_config[iteration.bot].furhat[
-                                    'voice'],
-                            )
-                            await set_face(
-                                furhat,
-                                mask = bots_config[iteration.bot].furhat[
-                                    'mask'],
-                                character = bots_config[
-                                    iteration.bot].furhat[
-                                    'character'],
-                            )
-                            block_do_say_text(
-                                furhat,
-                                generated_text,
-                            )
-                            await asyncio.sleep(3)
-                elif await dice_high(12):
-                    await borogodo_naoentendi(furhat)
-            await led_blank(furhat)
-            continue
-
-## FIXME: Não funciona
-async def aprint(*args, **kwargs) -> None:
-    """asyncio.print()"""
-    return print(*args, **kwargs)
-
 async def get_prompt_default(text: str) -> str:
     """Q/A chatGPT prompt"""
     return f"Pergunta: {text}\nResposta:"
@@ -716,6 +290,16 @@ engenheiro que responde com relutância e de forma sarcástica. Maria is \
 an architect which only speaks in english and give funny answers. Iuri \
 é um Desenvolvedor de Software.\n\nIuri: {text}\nPaola:"""
 
+async def get_prompt_paola_9(*args, **kwargs) -> str:
+    """Paola chatGPT teste nove"""
+    return f"""Paola é uma robô gentil, solícita e atenciosa. \
+João é um engenheiro que responde com relutância e de forma \
+sarcástica. \
+Maria is an architect which only speaks in english and give funny \
+answers. \
+Iuri é um Desenvolvedor de Software tentando programar a robô Paola.\
+Paola:"""
+
 async def multiplos_personagens(furhat: object, text: str) -> None:
     """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
 """
@@ -723,7 +307,16 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
         texto_maria: str | None = None
         texto_joao: str | None = None
         texto_iuri: str | None = None
-        texto_paola: str = t
+        texto_paola: str = text
+        t = text.split(':')
+        logger.info(
+            [''.join(t[0].split(' ')[:-1])] + \
+            [(
+                ''.join(t[n].split(' ')[-1]),
+                ''.join(t[n + 1].split(' ')[:-1])
+            ) for n in range(len(t) - 2)] + \
+            [''.join(t[-1].split(' ')[-1])]
+        )
         try:
             texto_paola: str = texto_paola.split("João:")[0]
         except IndexError:
@@ -738,8 +331,8 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                     texto_paola = texto_paola.split("Iuri:")[0]
                 except IndexError:
                     pass
-        if "João:" in t:
-            texto_joao: str = t
+        if "João:" in text:
+            texto_joao: str = text
             try:
                 texto_joao = texto_joao.split("João:")[1]
             except IndexError:
@@ -754,8 +347,8 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                         texto_joao = texto_joao.split("Iuri:")[0]
                     except IndexError:
                         pass
-        if "Maria:" in t:
-            texto_maria: str = t
+        if "Maria:" in text:
+            texto_maria: str = text
             try:
                 texto_maria = texto_maria.split("Maria:")[1]
             except IndexError:
@@ -770,8 +363,8 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                         texto_maria = texto_maria.split("Iuri:")[0]
                     except IndexError:
                         pass
-        if "Iuri:" in t:
-            texto_iuri: str = t
+        if "Iuri:" in text:
+            texto_iuri: str = text
             try:
                 texto_iuri = texto_iuri.split("Iuri:")[1]
             except IndexError:
@@ -825,16 +418,48 @@ async def chatgpt(
     try:
         await led_white(furhat)
         if not skip_intro:
-            await atender(furhat, """Olá. Eu sou uma burrice artificial. \
-Aguarde o LED ficar verde para falar.""")
+            await atender(furhat, """Olá. Eu sou uma burrice \
+artificial. Aguarde o LED ficar verde para falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('WARNING')
-        logger.info("Furhat + chatGPT pronto!")
+        try:
+            await led_yellow(furhat)
+            openai.aiosession.set(aiohttp.ClientSession())
+            user: uuid.UUID = uuid.uuid5(session_id, furhat_id)
+            logger.info("Furhat + chatGPT pronto!")
+            completion: object = openai.Completion.create(
+                engine = openai_config.get('engine',
+                    'text-davinci-003'),
+                max_tokens = 4000,
+                user = str(user),
+            )
+            logger.info(f"""Completion ({type(completion)}), 
+{len(completion)} = {completion}""")
+            prompt: str = await get_prompt_paola_9()
+            logging.info(f"Usando prompt:\n{prompt}")
+            completion: object = openai.Completion.create(
+                engine = openai_config.get('engine',
+                    'text-davinci-003'),
+                max_tokens = openai_config.get(
+                    'max_tokens', 4000) - len(prompt), # 1 to 4000
+                top_p = openai_config.get(
+                    'top_p', 0.1), # 0.0 to 1.0
+                user = str(user),
+                prompt = prompt,
+            )
+            logger.info(f"""Completion ({type(completion)}), 
+{len(completion)} = {completion}""")
+        except Exception as e:
+            logger.exception(e)
+            if openai.aiosession.get() is not None:
+                await openai.aiosession.get().close()
         while True:
             await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
+            if openai.aiosession.get() is None:
+                openai.aiosession.set(aiohttp.ClientSession())
             text: Status | None = Status()
-            await asyncio.sleep(float(print('Ouvindo', end = '') or 1e-12))
-            # ~ await aprint('Ouvindo', end = '')
+            await asyncio.sleep(float(
+                print('Ouvindo', end = '') or 1e-12))
             while (\
                 text.message in [None, '', ' '] \
                 or 'ERROR : No internet detected' in text.message \
@@ -842,91 +467,84 @@ Aguarde o LED ficar verde para falar.""")
             ):
                 await led_green(furhat)
                 await do_attend_user(furhat, 'CLOSEST')
-                # ~ await asyncio.sleep(float(print('.', end = '') or 1e-6))
-                # ~ await aprint('.', end = '')
+                await asyncio.sleep(float(print('.', end = '') or 1e-6))
                 try:
-                    text: Status | None = await do_listen(furhat, language)
+                    text: Status | None = await do_listen(furhat,
+                        language)
                 except Exception as e:
                     logger.exception(e)
                     text: Status | None = Status()
-                await asyncio.sleep(float(print('.', end = '') or 1e-12))
+                await asyncio.sleep(float(
+                    print('.', end = '') or 1e-12))
             await asyncio.sleep(float(print() or 1e-12))
+            if not text.message:
+                continue
             logger.info(f"Ouvido:\n{text.message}")
-            for stop in ['por favor cala a boca']:
+            for stop in ['por favor cala a boca', 'cala a boca']:
                 if stop in text.message:
                     await atender(furhat, "OK. Bom dia!")
                     return
-            prompt: str | None = None
-            try:
-                # ~ prompt: str = await get_prompt_default(text.message)
-                prompt: str = await random.choice([
-                    # ~ get_prompt_default,
-                    # ~ get_prompt_paola_1,
-                    # ~ get_prompt_paola_2,
-                    # ~ get_prompt_paola_3,
-                    # ~ get_prompt_paola_4,
-                    # ~ get_prompt_paola_5,
-                    # ~ get_prompt_paola_6,
-                    # ~ get_prompt_paola_7,
-                    get_prompt_paola_8,
-                ])(text.message)
-                logging.info(f"Usando prompt ({len(text.message)}):\n{prompt}")
-            except Exception as e:
-                logger.exception(e)
-            if not prompt:
-                continue
+            prompt: str = f"Iuri: {text.message}. Paola:"
             try:
                 await led_yellow(furhat)
-                openai.aiosession.set(aiohttp.ClientSession())
-                user: uuid.UUID = uuid.uuid5(session_id, furhat_id)
                 completion: object = openai.Completion.create(
-                    engine = openai_config.get('engine', 'text-ada-001'),
-                    max_tokens = openai_config.get(
-                        'max_tokens', 2048) - len(prompt), # 1 to 4000
-                    temperature = openai_config.get(
-                        'temperature', 0.6), # 0.0 to 1.0
-                    top_p = openai_config.get(
-                        'top_p', 0.0), # 0.0 to 1.0
-                    frequency_penalty = openai_config.get(
-                        'frequency_penalty', 1.0), # 0.0 to 2.0
-                    presence_penalty = openai_config.get(
-                        'presence_penalty', 1.0), # 0.0 to 2.0
-                    echo = openai_config.get('echo', False),
+                    # ~ engine = openai_config.get('engine', 'text-ada-001'),
+                    engine = 'text-davinci-003',
+                    # ~ max_tokens = openai_config.get(
+                        # ~ 'max_tokens', 4000) - len(prompt), # 1 to 4000
+                    max_tokens = 4000 - len(prompt),
+                    # ~ temperature = openai_config.get(
+                        # ~ 'temperature', 0.6), # 0.0 to 1.0
+                    # ~ top_p = openai_config.get(
+                        # ~ 'top_p', 0.1), # 0.0 to 1.0
+                    top_p = 0.1,
+                    # ~ frequency_penalty = openai_config.get(
+                        # ~ 'frequency_penalty', 1.0), # 0.0 to 2.0
+                    # ~ presence_penalty = openai_config.get(
+                        # ~ 'presence_penalty', 1.0), # 0.0 to 2.0
+                    # ~ echo = openai_config.get('echo', False),
+                    # ~ n = 2,
                     user = str(user),
                     prompt = prompt,
-                    stop = ['Paola:', 'Eu:', 'Você:'],
+                    # ~ stop = ['Paola:', 'Eu:', 'Você:'],
                 )
-                logger.debug(f"Completion ({type(completion)} = {completion}")
+                # ~ logger.debug(f"Completion ({type(completion)} = {completion}")
+                logger.info(f"""Completion ({type(completion)}), 
+{len(completion)} = {completion}""")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
                 t: str = choice.get('text')
                 # ~ await do_say_text(furhat, t)
                 logger.info(f"Falando:\n{t}")
-                await atender(furhat, t)
-                # ~ await multiplos_personagens(furhat, t)
+                # ~ await atender(furhat, t)
+                await multiplos_personagens(furhat, t)
                 await led_red(furhat)
                 await set_furhat_text(
                     furhat_id,
                     session_id,
                     text,
                 )
-                if openai.aiosession.get() is not None:
-                    await openai.aiosession.get().close()
                 await led_blank(furhat)
             except (
-                openai.error.APIError,
-                openai.error.InvalidRequestError,
                 openai.error.RateLimitError,
                 openai.error.ServiceUnavailableError,
                 openai.error.Timeout,
+            ) as e:
+                logger.exception(e)
+                continue
+            except (
+                openai.error.APIError,
+                openai.error.InvalidRequestError,
                 Exception,
             ) as e:
                 logger.exception(e)
                 await atender(furhat, "Não sei")
-                continue
-            finally:
                 if openai.aiosession.get() is not None:
                     await openai.aiosession.get().close()
+                continue
+            # ~ finally:
+                # ~ if openai.aiosession.get() is not None:
+                    # ~ await openai.aiosession.get().close()
             await asyncio.sleep(1e-12)
     except (MaxRetryError, NewConnectionError, KeyboardInterrupt):
         raise
@@ -982,16 +600,12 @@ rsonalidades""")
             # ~ furhat_config,
         )
     except (MaxRetryError, NewConnectionError) as e:
-        # ~ logger.exception(e)
+        logger.exception(e)
         logger.error("""Furhat Remote API is not online. You need a Furhat \
 Robot connected to a reachable network running the Remote API Skill. \
 Reference: https://docs.furhat.io/remote-api/""")
     except KeyboardInterrupt:
         logger.critical("Closing loop")
-    # ~ except Exception as exception:
-        # ~ logger.critical("Blocking exception")
-        # ~ logger.exception(exception)
-        # ~ raise
     except Exception as e:
         logger.exception(e)
         await blue_speak(
