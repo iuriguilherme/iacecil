@@ -486,9 +486,11 @@ async def chatgpt(
     """Interage com GPT3"""
     try:
         await led_white(furhat)
+        skip_intro: bool = False
         if not skip_intro:
             await atender(furhat, """Olá. Eu sou uma burrice \
-artificial. Aguarde o LED ficar verde para falar.""")
+artificial. Aguarde a conexão com Chat GPT, até que o LED fique verde \
+para começar a falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('INFO')
         try:
@@ -524,6 +526,8 @@ documento com a API do OpenAI...""")
             logger.exception(e)
             if openai.aiosession.get() is not None:
                 await openai.aiosession.get().close()
+            await croak(furhat, exception = e)
+            return
         logger.info("""Tudo pronto, quando o LED ficar verde, é só \
 começar a falar!""")
         while True:
@@ -606,6 +610,9 @@ começar a falar!""")
                 openai.error.Timeout,
             ) as e:
                 logger.exception(e)
+                await atender(furhat, """O Chat GPT não tá \
+funcionando, eu não sei o que responder. Espere um pouco e tente de \
+novo.""")
                 continue
             except (
                 openai.error.APIError,
