@@ -1,7 +1,7 @@
 """
 ia.cecil
 
-Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2012-2023 Iúri Guilherme <https://Iúri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -146,15 +146,15 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(301, 320):
         razão: float = 14.1
     elif tamanho in range(320, 400):
-        razão: float = 14.7
+        razão: float = 14.4
     elif tamanho in range(400, 500):
-        razão: float = 16.5
+        razão: float = 14.7
     elif tamanho in range(500, 600):
-        razão: float = 18.9
+        razão: float = 15.0
     elif tamanho in range(600, 900):
-        razão: float = 27
+        razão: float = 15.3
     elif tamanho in range(901, 1500):
-        razão: float = 36
+        razão: float = 18
     else:
         razão: float = 30
     return razão
@@ -162,47 +162,70 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
 async def calcular_delay_3(
     texto: str,
     vírgulas: int,
+    pontos_finais: int,
+    linhas_novas: int,
     números: int,
     pausa_vírgula: float,
+    pausa_pontos_finais: float,
+    pausa_linhas_novas: float,
     pausa_número: float,
     soma_vírgula: float,
+    soma_pontos_finais: float,
+    soma_linhas_novas: float,
     soma_número: float,
     razão: float = 9.6,
     *args,
     **kwargs,
 ) -> float:
-    """Adiciona delay a cada vírgula e a cada dígito, porque vai ser falado \
-por extenso"""
+    """Adiciona delay a cada vírgula, ponto final, linha nova e a cada \
+dígito, porque vai ser falado por extenso."""
     razão: float = await calcular_delay_razão(len(texto))
+    cálculo: float = await calcular_delay_simples(len(texto), razão) + \
+        soma_número + soma_vírgula + soma_pontos_finais + \
+        soma_linhas_novas
     logger.info(f"""Método 3: ({len(texto)} / {razão}) + ({vírgulas} * \
-{pausa_vírgula}) + ({números} * {pausa_número}) = \
-{(len(texto) / razão) + soma_vírgula + soma_número}""")
-    return await calcular_delay_simples(len(texto), razão) + \
-        soma_número + soma_vírgula
+{pausa_vírgula}) + ({pontos_finais} * {pausa_pontos_finais}) + (\
+{linhas_novas} * {pausa_linhas_novas}) + ({números} * {pausa_número}) \
+= {cálculo}""")
+    return cálculo
 
 async def calcular_delay(
     texto: str,
     razão: float = 9.6,
     pausa_vírgula: float = 0.3,
+    pausa_pontos_finais: float = 0.3,
+    pausa_linhas_novas: float = 0.3,
     pausa_número: float = 0.3,
     *args,
     **kwargs,
 ) -> float:
     """Algoritmo para tentar calcular delay de fala da Furhat"""
     vírgulas: int = texto.count(',')
+    pontos_finais: int = texto.count('.')
+    linhas_novas: int = texto.count('\n')
     números: int = sum([texto.count(str(número)) for número in range(0,9)])
     soma_número: float = números * pausa_número
     soma_vírgula: float = vírgulas * pausa_vírgula
+    soma_pontos_finais: float = pontos_finais * pausa_pontos_finais
+    soma_linhas_novas: float = linhas_novas * pausa_linhas_novas
     logger.info(f"""Calculando delay com {len(texto)} caracteres, \
-razão {razão}, {vírgulas} vírgulas, {números} números, pausa para \
-vírgula {pausa_vírgula}, pausa para números {pausa_número}...""")
+razão {razão}, {vírgulas} vírgulas, {pontos_finais} pontos finais, \
+{números} números, pausa para vírgula {pausa_vírgula}, pausa para \
+pontos finais {pausa_pontos_finais}, pausa para linhas novas \
+{pausa_linhas_novas}, pausa para números {pausa_número}...""")
     return await calcular_delay_3(
         texto,
         vírgulas,
+        pontos_finais,
+        linhas_novas,
         números,
         pausa_vírgula,
+        pausa_pontos_finais,
+        pausa_linhas_novas,
         pausa_número,
         soma_vírgula,
+        soma_pontos_finais,
+        soma_linhas_novas,
         soma_número,
         razão,
     )
@@ -284,11 +307,11 @@ async def get_prompt_paola_7(text: str) -> str:
 
 async def get_prompt_paola_8(text: str) -> str:
     """Paola chatGPT teste oito"""
-    # ~ text: str = random.choice(["João", "Maria", "Iuri"]) + f": {text}"
+    # ~ text: str = random.choice(["João", "Maria", "Iúri"]) + f": {text}"
     return f"""Paola é uma robô gentil em uma sala de aula. João é um \
 engenheiro que responde com relutância e de forma sarcástica. Maria is \
-an architect which only speaks in english and give funny answers. Iuri \
-é um Desenvolvedor de Software.\n\nIuri: {text}\nPaola:"""
+an architect which only speaks in english and give funny answers. Iúri \
+é um Desenvolvedor de Software.\n\nIúri: {text}\nPaola:"""
 
 async def get_prompt_paola_9(*args, **kwargs) -> str:
     """Paola chatGPT teste nove"""
@@ -297,17 +320,18 @@ João é um engenheiro que responde com relutância e de forma \
 sarcástica. \
 Maria is an architect which only speaks in english and give funny \
 answers. \
-Iuri é um Desenvolvedor de Software tentando programar a robô Paola.\
+Iúri é um Desenvolvedor de Software tentando programar a robô Paola.\
 Paola:"""
 
 async def multiplos_personagens(furhat: object, text: str) -> None:
     """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
 """
     try:
+        texto_default: str = text
         texto_maria: str | None = None
         texto_joao: str | None = None
         texto_iuri: str | None = None
-        texto_paola: str = text
+        texto_paola: str | None = None
         t = text.split(':')
         logger.info(
             [''.join(t[0].split(' ')[:-1])] + \
@@ -318,19 +342,45 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
             [''.join(t[-1].split(' ')[-1])]
         )
         try:
-            texto_paola: str = texto_paola.split("João:")[0]
+            texto_default: str = texto_default.split("Paola:")[0]
         except IndexError:
             pass
         else:
             try:
-                texto_paola = texto_paola.split("Maria:")[0]
+                texto_default: str = texto_default.split("João:")[0]
             except IndexError:
                 pass
             else:
                 try:
-                    texto_paola = texto_paola.split("Iuri:")[0]
+                    texto_default = texto_default.split("Maria:")[0]
                 except IndexError:
                     pass
+                else:
+                    try:
+                        texto_default = texto_default.split("Iúri:")[0]
+                    except IndexError:
+                        pass
+        if "Paola:" in text:
+            texto_paola: str = text
+            try:
+                texto_paola: str = texto_paola.split("Paola:")[1]
+            except IndexError:
+                pass
+            else:
+                try:
+                    texto_paola: str = texto_paola.split("João:")[0]
+                except IndexError:
+                    pass
+                else:
+                    try:
+                        texto_paola = texto_paola.split("Maria:")[0]
+                    except IndexError:
+                        pass
+                    else:
+                        try:
+                            texto_paola = texto_paola.split("Iúri:")[0]
+                        except IndexError:
+                            pass
         if "João:" in text:
             texto_joao: str = text
             try:
@@ -344,9 +394,14 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                     pass
                 else:
                     try:
-                        texto_joao = texto_joao.split("Iuri:")[0]
+                        texto_joao = texto_joao.split("Iúri:")[0]
                     except IndexError:
                         pass
+                    else:
+                        try:
+                            texto_joao = texto_joao.split("Paola:")[0]
+                        except IndexError:
+                            pass
         if "Maria:" in text:
             texto_maria: str = text
             try:
@@ -360,13 +415,18 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                     pass
                 else:
                     try:
-                        texto_maria = texto_maria.split("Iuri:")[0]
+                        texto_maria = texto_maria.split("Iúri:")[0]
                     except IndexError:
                         pass
-        if "Iuri:" in text:
+                    else:
+                        try:
+                            texto_maria = texto_maria.split("Paola:")[0]
+                        except IndexError:
+                            pass
+        if "Iúri:" in text:
             texto_iuri: str = text
             try:
-                texto_iuri = texto_iuri.split("Iuri:")[1]
+                texto_iuri = texto_iuri.split("Iúri:")[1]
             except IndexError:
                 pass
             else:
@@ -379,10 +439,16 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
                         texto_iuri = texto_iuri.split("Maria:")[0]
                     except IndexError:
                         pass
-        logger.info(f"Falando:\n{texto_paola}")
-        await set_voice(furhat, "Camila-Neural")
-        await set_face(furhat, character = "Kione")
-        await atender(furhat, texto_paola)
+                    else:
+                        try:
+                            texto_iuri = texto_iuri.split("Paola:")[0]
+                        except IndexError:
+                            pass
+        if texto_paola is not None:
+            logger.info(f"Falando:\n{texto_paola}")
+            await set_voice(furhat, "Camila-Neural")
+            await set_face(furhat, character = "Kione")
+            await atender(furhat, texto_paola)
         if texto_joao is not None:
             logger.info(f"Falando:\n{texto_joao}")
             await set_voice(furhat, "Ricardo")
@@ -398,8 +464,11 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
             await set_voice(furhat, "Cristiano")
             await set_face(furhat, character = "Titan")
             await atender(furhat, texto_iuri)
-        await set_voice(furhat, "Camila-Neural")
-        await set_face(furhat, character = "Kione")
+        if texto_default not in [None, '', ' ']:
+            logger.info(f"Falando:\n{texto_default}")
+            await set_voice(furhat, "Camila-Neural")
+            await set_face(furhat, character = "Kione")
+            await atender(furhat, texto_default)
     except Exception as e:
         logger.exception(e)
         raise
@@ -421,12 +490,14 @@ async def chatgpt(
             await atender(furhat, """Olá. Eu sou uma burrice \
 artificial. Aguarde o LED ficar verde para falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
-        logging.getLogger('openai').setLevel('WARNING')
+        logging.getLogger('openai').setLevel('INFO')
         try:
-            await led_yellow(furhat)
+            await led_red(furhat)
             openai.aiosession.set(aiohttp.ClientSession())
             user: uuid.UUID = uuid.uuid5(session_id, furhat_id)
             logger.info("Furhat + chatGPT pronto!")
+            logger.info("""Fazendo requisição para iniciar novo \
+documento com a API do OpenAI...""")
             completion: object = openai.Completion.create(
                 engine = openai_config.get('engine',
                     'text-davinci-003'),
@@ -453,6 +524,8 @@ artificial. Aguarde o LED ficar verde para falar.""")
             logger.exception(e)
             if openai.aiosession.get() is not None:
                 await openai.aiosession.get().close()
+        logger.info("""Tudo pronto, quando o LED ficar verde, é só \
+começar a falar!""")
         while True:
             await do_attend_location(furhat, x = 0.0, y = 1.0, z = 0.0)
             if openai.aiosession.get() is None:
@@ -484,9 +557,11 @@ artificial. Aguarde o LED ficar verde para falar.""")
                 if stop in text.message:
                     await atender(furhat, "OK. Bom dia!")
                     return
-            prompt: str = f"Iuri: {text.message}. Paola:"
+            prompt: str = f"Iúri: {text.message}. Paola:"
             try:
                 await led_yellow(furhat)
+                logger.info("""Criando completação com a API do chatGPT\
+...""")
                 completion: object = openai.Completion.create(
                     # ~ engine = openai_config.get('engine', 'text-ada-001'),
                     engine = 'text-davinci-003',
@@ -515,7 +590,7 @@ artificial. Aguarde o LED ficar verde para falar.""")
                 # ~ await olhar(furhat)
                 t: str = choice.get('text')
                 # ~ await do_say_text(furhat, t)
-                logger.info(f"Falando:\n{t}")
+                # ~ logger.info(f"Falando:\n{t}")
                 # ~ await atender(furhat, t)
                 await multiplos_personagens(furhat, t)
                 await led_red(furhat)
