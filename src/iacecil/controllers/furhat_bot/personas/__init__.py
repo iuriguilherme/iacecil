@@ -141,23 +141,23 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(91, 121):
         razão: float = 12.0
     elif tamanho in range(121, 151):
-        razão: float = 13.2
+        razão: float = 12.3
     elif tamanho in range(151, 251):
-        razão: float = 13.5
+        razão: float = 12.6
     elif tamanho in range(251, 301):
-        razão: float = 13.8
+        razão: float = 12.9
     elif tamanho in range(301, 320):
-        razão: float = 14.1
+        razão: float = 13.2
     elif tamanho in range(320, 400):
-        razão: float = 14.4
+        razão: float = 13.5
     elif tamanho in range(400, 500):
-        razão: float = 14.7
+        razão: float = 13.8
     elif tamanho in range(500, 600):
-        razão: float = 15.0
+        razão: float = 14.1
     elif tamanho in range(600, 900):
-        razão: float = 15.3
+        razão: float = 14.4
     elif tamanho in range(901, 1500):
-        razão: float = 18
+        razão: float = 15
     else:
         razão: float = 30
     return razão
