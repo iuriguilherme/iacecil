@@ -405,13 +405,28 @@ máscara {character}:\n{text}\n\n""")
         await led_blank(furhat)
     except Exception as e:
         logger.exception(e)
+"""Olá, meu nome é Paola. Sou especialista em matemática e estou aqui para ajudar. Como posso ajudar?\n\nJoão: Olá, Paola. Estou precisando de ajuda com alguns cálculos matemáticos. Você pode me ajudar?\n\nPaola: Claro que sim! Estou aqui para isso. Qual é o problema?\n\nMaria: Hi Paola! I need help with a project I'm working on. Can you help me?\n\nPaola: Hi Maria! Of course I can help you. What kind of project are you working on?\n\nIúri: Olá, Paola. Estou tentando programar uma robô social. Você pode me ajudar?\n\nPaola: Olá, Iúri. Claro que posso te ajudar. O que você precisa saber?\n Eu posso te ajudar com isso! Você precisa de exatamente três metros cúbicos de madeira para construir uma canoa.\n\nJoão: E se você quiser fazer algo mais sofisticado, talvez um barco?\nVocê vai precisar entre 10 e 15 metros cúbicos dependendo do tamanho que deseja. Além disso, é importante levar em consideração o peso da embarcação e as condições climáticas onde ela será usada antes de começar qualquer projeto nesse sentido.\nMaria: If you want to build something more sophisticated like a boat then you will need between 10 and 15 cubic meters of wood depending on the size that you desire for it. It's also important to take into consideration the weight of your vessel and weather conditions where it'll be used before starting any project in this regard.  Eu não sei contar, mas eu posso ver que tem três pessoas aqui.
 
+João: E quantos computadores?
+Eu vejo dois!
+"""
 async def multiplos_personagens(furhat: object, text: str) -> None:
     """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
 """
     try:
         logger.info(f"Recebido texto do ChatGPT:\n{text}\n")
-        text: list = '\n'.join(text.split('\n\n')).split('\n')
+        # ~ text: list = '\n'.join(text.split('\n\n')).split('\n')
+        text: list = text.split('\n\n')
+        new_text: list = []
+        for sentence in text[1:]:
+            if len(sentence.split('\n')) > 1:
+                if sum([len(s.split(':')) > 1 for s in \
+                    sentence.split('\n')]) > 1:
+                    new_text.append(sentence.split('\n')[0])
+                    new_text.append('\n'.join(sentence.split('\n')[1:]))
+                    continue
+            new_text.append(sentence)
+        text: list = new_text
         await falar_personalidade(furhat, "Paola", text[0])
         for sentence in text[1:]:
             sentence: list = sentence.split(':')
