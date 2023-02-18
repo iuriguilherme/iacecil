@@ -1,7 +1,7 @@
 """
 ia.cecil
 
-Copyleft 2012-2023 Iúri Guilherme <https://Iúri.neocities.org/>
+Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -133,13 +133,13 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(43, 55):
         razão: float = 10.2
     elif tamanho in range(55, 76):
-        razão: float = 11.4
+        razão: float = 11.1
     elif tamanho in range(76, 86):
-        razão: float = 11.7
+        razão: float = 11.4
     elif tamanho in range(86, 91):
-        razão: float = 12.0
+        razão: float = 11.7
     elif tamanho in range(91, 121):
-        razão: float = 12.3
+        razão: float = 12.0
     elif tamanho in range(121, 151):
         razão: float = 13.2
     elif tamanho in range(151, 251):
@@ -310,11 +310,11 @@ async def get_prompt_paola_7(text: str) -> str:
 
 async def get_prompt_paola_8(text: str) -> str:
     """Paola chatGPT teste oito"""
-    # ~ text: str = random.choice(["João", "Maria", "Iúri"]) + f": {text}"
+    # ~ text: str = random.choice(["João", "Maria", "Yuri"]) + f": {text}"
     return f"""Paola é uma robô gentil em uma sala de aula. João é um \
 engenheiro que responde com relutância e de forma sarcástica. Maria is \
-an architect which only speaks in english and give funny answers. Iúri \
-é um Desenvolvedor de Software.\n\nIúri: {text}\nPaola:"""
+an architect which only speaks in english and give funny answers. Yuri \
+é um Desenvolvedor de Software.\n\nYuri: {text}\nPaola:"""
 
 async def get_prompt_paola_9(*args, **kwargs) -> str:
     """Paola chatGPT teste nove"""
@@ -323,7 +323,7 @@ async def get_prompt_paola_9(*args, **kwargs) -> str:
 # ~ sarcástica. \
 # ~ Maria is an architect which only speaks in english and give funny \
 # ~ answers. \
-# ~ Iúri é um Desenvolvedor de Software tentando programar a robô Paola.\
+# ~ Yuri é um Desenvolvedor de Software tentando programar a robô Paola.\
 # ~ Paola:"""
     return f"""Paola é uma robô gentil, solícita e atenciosa. Ela está \
 convencida de que é um ser humano especialista em matemática, e fica \
@@ -332,7 +332,7 @@ João é um engenheiro que responde com relutância e de forma \
 sarcástica e jocosa. \
 Maria is an architect which only speaks in english and give funny \
 and clever answers. \
-Iúri é um Desenvolvedor de Software tentando programar uma robô social.\
+Yuri é um Desenvolvedor de Software tentando programar uma robô social.\
 """
 
 async def get_prompt_paola_10(text: str, *args, **kwargs) -> str:
@@ -342,8 +342,8 @@ async def get_prompt_paola_10(text: str, *args, **kwargs) -> str:
 # ~ sarcástica. \
 # ~ Maria is an architect which only speaks in english and give funny \
 # ~ answers. \
-# ~ Iúri é um Desenvolvedor de Software tentando programar a robô Paola. \
-# ~ \n\nIúri: {text}\n\n"""
+# ~ Yuri é um Desenvolvedor de Software tentando programar a robô Paola. \
+# ~ \n\nYuri: {text}\n\n"""
     return f"""Paola é uma robô gentil, solícita e atenciosa. Ela está \
 convencida de que é um ser humano especialista em matemática, e fica \
 ofendida quando alguém chama ela de robô. \
@@ -351,8 +351,8 @@ João é um engenheiro que responde com relutância e de forma \
 sarcástica e jocosa. \
 Maria is an architect which only speaks in english and give funny \
 and clever answers. \
-Iúri é um Desenvolvedor de Software tentando programar uma robô social.\
-\n\nIúri: {text}\n\nPaola:"""
+Yuri é um Desenvolvedor de Software tentando programar uma robô social.\
+\n\nYuri: {text}\n\nPaola:"""
 
 async def falar_personalidade(
     furhat: object,
@@ -379,7 +379,7 @@ async def falar_personalidade(
                 "character": "Yumi",
                 "voice": "Kevin-Neural",
             },
-            "Iúri": {
+            "Yuri": {
                 "character": "Titan",
                 "voice": "Ricardo",
             },
@@ -659,5 +659,5 @@ Reference: https://docs.furhat.io/remote-api/""")
         logger.exception(e)
         await blue_speak(
             furhat,
-            "Desculpe, tive um problema técnico. Chama o Iúri!",
+            "Desculpe, tive um problema técnico. Chama o Yuri!",
         )
