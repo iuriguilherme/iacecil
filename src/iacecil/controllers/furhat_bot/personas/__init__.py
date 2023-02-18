@@ -418,7 +418,7 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
         # ~ text: list = '\n'.join(text.split('\n\n')).split('\n')
         text: list = text.split('\n\n')
         new_text: list = []
-        for sentence in text[1:]:
+        for sentence in text:
             if len(sentence.split('\n')) > 1:
                 if sum([len(s.split(':')) > 1 for s in \
                     sentence.split('\n')]) > 1:
@@ -526,7 +526,7 @@ começar a falar!""")
             await asyncio.sleep(float(print() or 1e-12))
             if not text.message:
                 continue
-            logger.info(f"Ouvido:\n{text.message}")
+            logger.info(f"Ouvido:\n{text.message}\n\n")
             for stop in ['por favor cala a boca', 'cala a boca']:
                 if stop in text.message:
                     await atender(furhat, """Não grita comigo! Dessa \
