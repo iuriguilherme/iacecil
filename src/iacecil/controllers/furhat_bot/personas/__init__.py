@@ -135,11 +135,11 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(55, 76):
         razão: float = 11.4
     elif tamanho in range(76, 86):
-        razão: float = 12.3
+        razão: float = 11.7
     elif tamanho in range(86, 91):
-        razão: float = 12.6
+        razão: float = 12.0
     elif tamanho in range(91, 121):
-        razão: float = 12.9
+        razão: float = 12.3
     elif tamanho in range(121, 151):
         razão: float = 13.2
     elif tamanho in range(151, 251):
@@ -186,10 +186,14 @@ dígito, porque vai ser falado por extenso."""
     cálculo: float = await calcular_delay_simples(len(texto), razão) + \
         soma_número + soma_vírgula + soma_pontos_finais + \
         soma_linhas_novas
-    logger.info(f"""Método 3: ({len(texto)} / {razão}) + ({vírgulas} * \
-{pausa_vírgula}) + ({pontos_finais} * {pausa_pontos_finais}) + (\
-{linhas_novas} * {pausa_linhas_novas}) + ({números} * {pausa_número}) \
-= {cálculo}""")
+    logger.info(f"""Método 3: Calculando delay com {len(texto)} \
+caracteres, razão {razão}, {vírgulas} vírgulas, {pontos_finais} pontos \
+finais, {números} números, pausa para vírgula {pausa_vírgula}, pausa \
+para pontos finais {pausa_pontos_finais}, pausa para linhas novas \
+{pausa_linhas_novas}, pausa para números {pausa_número}: ({len(texto)} \
+/ {razão}) + ({vírgulas} * {pausa_vírgula}) + ({pontos_finais} * \
+{pausa_pontos_finais}) + ({linhas_novas} * {pausa_linhas_novas}) + (\
+{números} * {pausa_número}) = {cálculo}""")
     return cálculo
 
 async def calcular_delay(
@@ -211,11 +215,6 @@ async def calcular_delay(
     soma_vírgula: float = vírgulas * pausa_vírgula
     soma_pontos_finais: float = pontos_finais * pausa_pontos_finais
     soma_linhas_novas: float = linhas_novas * pausa_linhas_novas
-    logger.info(f"""Calculando delay com {len(texto)} caracteres, \
-razão {razão}, {vírgulas} vírgulas, {pontos_finais} pontos finais, \
-{números} números, pausa para vírgula {pausa_vírgula}, pausa para \
-pontos finais {pausa_pontos_finais}, pausa para linhas novas \
-{pausa_linhas_novas}, pausa para números {pausa_número}...""")
     return await calcular_delay_3(
         texto,
         vírgulas,
@@ -267,8 +266,8 @@ async def croak(
     if exception is not None:
         logger.exception(exception)
     await atender(furhat, "Me perdi.")
-    await atender(furhat, """Na verdade, o programador é que errou. Mas quem \
-passa vergonha sou eu.""")
+    await atender(furhat, """Na verdade, o programador é que errou. \
+Mas quem passa vergonha sou eu.""")
     await led_blank(furhat)
 
 async def get_prompt_default(text: str) -> str:
@@ -286,23 +285,24 @@ sarcástica.\n\nEu: {text}\nPaola:"""
 
 async def get_prompt_paola_3(text: str) -> str:
     """Paola chatGPT teste três"""
-    return f"""Paola é uma robô sarcástica que fala em português brasileiro.\n\
-\nEu: {text}\nPaola:"""
+    return f"""Paola é uma robô sarcástica que fala em português \
+brasileiro.\n\nEu: {text}\nPaola:"""
 
 async def get_prompt_paola_4(text: str) -> str:
     """Paola chatGPT teste quatro"""
-    return f"""Paola é uma robô social fabricada pela empresa Furhat, com \
-personalidade sarcástica e que fala em português brasileiro.\n\nEu: {text}\n\
-Paola:"""
+    return f"""Paola é uma robô social fabricada pela empresa Furhat, \
+com personalidade sarcástica e que fala em português brasileiro.\n\n\
+Eu: {text}\nPaola:"""
 
 async def get_prompt_paola_5(text: str) -> str:
     """Paola chatGPT teste cinco"""
-    return f"Paola é uma especialista em matemática.\n\nEu: {text}\nPaola:"
+    return f"""Paola é uma especialista em matemática.\n\nEu: {text}\n\
+Paola:"""
 
 async def get_prompt_paola_6(text: str) -> str:
     """Paola chatGPT teste seis"""
-    return f"""Paola é uma humana especialista em matemática.\nPaola fica \
-irritada quando chamam ela de robô.\n\nEu: {text}\nPaola:"""
+    return f"""Paola é uma humana especialista em matemática.\nPaola \
+fica irritada quando chamam ela de robô.\n\nEu: {text}\nPaola:"""
 
 async def get_prompt_paola_7(text: str) -> str:
     """Paola chatGPT teste sete"""
@@ -333,7 +333,7 @@ sarcástica e jocosa. \
 Maria is an architect which only speaks in english and give funny \
 and clever answers. \
 Iúri é um Desenvolvedor de Software tentando programar uma robô social.\
-\n\nPaola:"""
+"""
 
 async def get_prompt_paola_10(text: str, *args, **kwargs) -> str:
     """Paola chatGPT teste dez"""
@@ -372,8 +372,8 @@ async def falar_personalidade(
                 "voice": "Camila-Neural",
             },
             "João": {
-                "character": "Fernando",
-                "voice": "Ricardo",
+                "character": "Gyeong",
+                "voice": "Cristiano",
             },
             "Maria": {
                 "character": "Yumi",
@@ -385,11 +385,15 @@ async def falar_personalidade(
             },
         }
         voice: str = mapa_personalidades.get(
-            personalidade, 'default').get('voice')
+            personalidade,
+            mapa_personalidades.get('default')
+        ).get('voice')
         character: str = mapa_personalidades.get(
-            personalidade, 'default').get('character')
+            personalidade,
+            mapa_personalidades.get('default')
+        ).get('character')
         logger.info(f"""{personalidade} falando com voz {voice} e \
-máscara {character}:\n{text}""")
+máscara {character}:\n{text}\n\n""")
         await led_blue(furhat)
         await asyncio.sleep(1e-15)
         await set_voice(furhat, voice)
@@ -406,14 +410,15 @@ async def multiplos_personagens(furhat: object, text: str) -> None:
     """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
 """
     try:
-        logger.info(f"Recebido texto do ChatGPT:\n{text}")
-        await falar_personalidade(furhat, "Paola",
-            text.split('\n\n')[0])
-        for sentence in text.split('\n\n')[1:]:
+        logger.info(f"Recebido texto do ChatGPT:\n{text}\n")
+        text: list = '\n'.join(text.split('\n\n')).split('\n')
+        await falar_personalidade(furhat, "Paola", text[0])
+        for sentence in text[1:]:
+            sentence: list = sentence.split(':')
             await falar_personalidade(
                 furhat,
-                sentence.split(':')[0],
-                ':'.join(sentence.split(':')[1:]),
+                sentence[0],
+                ':'.join(sentence[1:]),
             )
     except Exception as e:
         logger.exception(e)
@@ -469,9 +474,9 @@ documento com a API do OpenAI...""")
             )
             logger.debug(f"""Completion ({type(completion)}), 
 {len(completion)} = {completion}""")
-            choice: dict = random.choice(completion.choices)
-            t: str = choice.get('text')
-            await multiplos_personagens(furhat, t)
+            # ~ choice: dict = random.choice(completion.choices)
+            # ~ t: str = choice.get('text')
+            # ~ await multiplos_personagens(furhat, t)
         except Exception as e:
             logger.exception(e)
             if openai.aiosession.get() is not None:
@@ -509,7 +514,8 @@ começar a falar!""")
             logger.info(f"Ouvido:\n{text.message}")
             for stop in ['por favor cala a boca', 'cala a boca']:
                 if stop in text.message:
-                    await atender(furhat, "OK. Bom dia!")
+                    await atender(furhat, """Não grita comigo! Dessa \
+vez eu vou calar a boca, mas não acostuma. Bom dia!""")
                     return
             # ~ prompt: str = f"Iúri: {text.message}. Paola:"
             prompt: str = await get_prompt_paola_10(text.message)
