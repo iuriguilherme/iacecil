@@ -101,6 +101,7 @@ from .handlers import (
     furhat_handler,
 )
 from plugins.borogodo import perguntas, respostas
+from ...._version import __version__ as iacecil_version
 
 async def olhar(furhat: object, *args, **kwargs) -> None:
     """Makes Furhat look for the first person or the closest one"""
@@ -132,12 +133,14 @@ async def calcular_delay_razão(tamanho: int, *args, **kwargs) -> float:
     elif tamanho in range(43, 55):
         razão: float = 10.2
     elif tamanho in range(55, 76):
-        razão: float = 12.3
+        razão: float = 11.4
     elif tamanho in range(76, 86):
+        razão: float = 12.3
+    elif tamanho in range(86, 91):
         razão: float = 12.6
-    elif tamanho in range(86, 90):
+    elif tamanho in range(91, 121):
         razão: float = 12.9
-    elif tamanho in range(90, 151):
+    elif tamanho in range(121, 151):
         razão: float = 13.2
     elif tamanho in range(151, 251):
         razão: float = 13.5
@@ -315,160 +318,103 @@ an architect which only speaks in english and give funny answers. Iúri \
 
 async def get_prompt_paola_9(*args, **kwargs) -> str:
     """Paola chatGPT teste nove"""
-    return f"""Paola é uma robô gentil, solícita e atenciosa. \
+    # ~ return f"""Paola é uma robô gentil, solícita e atenciosa. \
+# ~ João é um engenheiro que responde com relutância e de forma \
+# ~ sarcástica. \
+# ~ Maria is an architect which only speaks in english and give funny \
+# ~ answers. \
+# ~ Iúri é um Desenvolvedor de Software tentando programar a robô Paola.\
+# ~ Paola:"""
+    return f"""Paola é uma robô gentil, solícita e atenciosa. Ela está \
+convencida de que é um ser humano especialista em matemática, e fica \
+ofendida quando alguém chama ela de robô. \
 João é um engenheiro que responde com relutância e de forma \
-sarcástica. \
+sarcástica e jocosa. \
 Maria is an architect which only speaks in english and give funny \
-answers. \
-Iúri é um Desenvolvedor de Software tentando programar a robô Paola.\
-Paola:"""
+and clever answers. \
+Iúri é um Desenvolvedor de Software tentando programar uma robô social.\
+\n\nPaola:"""
+
+async def get_prompt_paola_10(text: str, *args, **kwargs) -> str:
+    """Paola chatGPT teste dez"""
+    # ~ return f"""Paola é uma robô gentil, solícita e atenciosa. \
+# ~ João é um engenheiro que responde com relutância e de forma \
+# ~ sarcástica. \
+# ~ Maria is an architect which only speaks in english and give funny \
+# ~ answers. \
+# ~ Iúri é um Desenvolvedor de Software tentando programar a robô Paola. \
+# ~ \n\nIúri: {text}\n\n"""
+    return f"""Paola é uma robô gentil, solícita e atenciosa. Ela está \
+convencida de que é um ser humano especialista em matemática, e fica \
+ofendida quando alguém chama ela de robô. \
+João é um engenheiro que responde com relutância e de forma \
+sarcástica e jocosa. \
+Maria is an architect which only speaks in english and give funny \
+and clever answers. \
+Iúri é um Desenvolvedor de Software tentando programar uma robô social.\
+\n\nIúri: {text}\n\nPaola:"""
+
+async def falar_personalidade(
+    furhat: object,
+    personalidade: str = "default",
+    text: str = "Olá.",
+    *args,
+    **kwargs,
+) -> None:
+    try:
+        mapa_personalidades: dict = {
+            "default": {
+                "character": "Isabel",
+                "voice": "Vitoria-Neural",
+            },
+            "Paola": {
+                "character": "Kione",
+                "voice": "Camila-Neural",
+            },
+            "João": {
+                "character": "Fernando",
+                "voice": "Ricardo",
+            },
+            "Maria": {
+                "character": "Yumi",
+                "voice": "Kevin-Neural",
+            },
+            "Iúri": {
+                "character": "Titan",
+                "voice": "Ricardo",
+            },
+        }
+        voice: str = mapa_personalidades.get(
+            personalidade, 'default').get('voice')
+        character: str = mapa_personalidades.get(
+            personalidade, 'default').get('character')
+        logger.info(f"""{personalidade} falando com voz {voice} e \
+máscara {character}:\n{text}""")
+        await led_blue(furhat)
+        await asyncio.sleep(1e-15)
+        await set_voice(furhat, voice)
+        await asyncio.sleep(1e-15)
+        await set_face(furhat, character = character)
+        await asyncio.sleep(1e-15)
+        await atender(furhat, text)
+        await asyncio.sleep(1e-15)
+        await led_blank(furhat)
+    except Exception as e:
+        logger.exception(e)
 
 async def multiplos_personagens(furhat: object, text: str) -> None:
     """Teste GPT3 múltiplos personagens + Furhat múltiplos personagens\
 """
     try:
-        texto_default: str = text
-        texto_maria: str | None = None
-        texto_joao: str | None = None
-        texto_iuri: str | None = None
-        texto_paola: str | None = None
-        t = text.split(':')
-        logger.info(
-            [''.join(t[0].split(' ')[:-1])] + \
-            [(
-                ''.join(t[n].split(' ')[-1]),
-                ''.join(t[n + 1].split(' ')[:-1])
-            ) for n in range(len(t) - 2)] + \
-            [''.join(t[-1].split(' ')[-1])]
-        )
-        try:
-            texto_default: str = texto_default.split("Paola:")[0]
-        except IndexError:
-            pass
-        else:
-            try:
-                texto_default: str = texto_default.split("João:")[0]
-            except IndexError:
-                pass
-            else:
-                try:
-                    texto_default = texto_default.split("Maria:")[0]
-                except IndexError:
-                    pass
-                else:
-                    try:
-                        texto_default = texto_default.split("Iúri:")[0]
-                    except IndexError:
-                        pass
-        if "Paola:" in text:
-            texto_paola: str = text
-            try:
-                texto_paola: str = texto_paola.split("Paola:")[1]
-            except IndexError:
-                pass
-            else:
-                try:
-                    texto_paola: str = texto_paola.split("João:")[0]
-                except IndexError:
-                    pass
-                else:
-                    try:
-                        texto_paola = texto_paola.split("Maria:")[0]
-                    except IndexError:
-                        pass
-                    else:
-                        try:
-                            texto_paola = texto_paola.split("Iúri:")[0]
-                        except IndexError:
-                            pass
-        if "João:" in text:
-            texto_joao: str = text
-            try:
-                texto_joao = texto_joao.split("João:")[1]
-            except IndexError:
-                pass
-            else:
-                try:
-                    texto_joao = texto_joao.split("Maria:")[0]
-                except IndexError:
-                    pass
-                else:
-                    try:
-                        texto_joao = texto_joao.split("Iúri:")[0]
-                    except IndexError:
-                        pass
-                    else:
-                        try:
-                            texto_joao = texto_joao.split("Paola:")[0]
-                        except IndexError:
-                            pass
-        if "Maria:" in text:
-            texto_maria: str = text
-            try:
-                texto_maria = texto_maria.split("Maria:")[1]
-            except IndexError:
-                pass
-            else:
-                try:
-                    texto_maria = texto_maria.split("João:")[0]
-                except IndexError:
-                    pass
-                else:
-                    try:
-                        texto_maria = texto_maria.split("Iúri:")[0]
-                    except IndexError:
-                        pass
-                    else:
-                        try:
-                            texto_maria = texto_maria.split("Paola:")[0]
-                        except IndexError:
-                            pass
-        if "Iúri:" in text:
-            texto_iuri: str = text
-            try:
-                texto_iuri = texto_iuri.split("Iúri:")[1]
-            except IndexError:
-                pass
-            else:
-                try:
-                    texto_iuri = texto_iuri.split("João:")[0]
-                except IndexError:
-                    pass
-                else:
-                    try:
-                        texto_iuri = texto_iuri.split("Maria:")[0]
-                    except IndexError:
-                        pass
-                    else:
-                        try:
-                            texto_iuri = texto_iuri.split("Paola:")[0]
-                        except IndexError:
-                            pass
-        if texto_paola is not None:
-            logger.info(f"Falando:\n{texto_paola}")
-            await set_voice(furhat, "Camila-Neural")
-            await set_face(furhat, character = "Kione")
-            await atender(furhat, texto_paola)
-        if texto_joao is not None:
-            logger.info(f"Falando:\n{texto_joao}")
-            await set_voice(furhat, "Ricardo")
-            await set_face(furhat, character = "Fernando")
-            await atender(furhat, texto_joao)
-        if texto_maria is not None:
-            logger.info(f"Falando:\n{texto_maria}")
-            await set_voice(furhat, "Kevin-Neural")
-            await set_face(furhat, character = "Yumi")
-            await atender(furhat, texto_maria)
-        if texto_iuri is not None:
-            logger.info(f"Falando:\n{texto_iuri}")
-            await set_voice(furhat, "Cristiano")
-            await set_face(furhat, character = "Titan")
-            await atender(furhat, texto_iuri)
-        if texto_default not in [None, '', ' ']:
-            logger.info(f"Falando:\n{texto_default}")
-            await set_voice(furhat, "Camila-Neural")
-            await set_face(furhat, character = "Kione")
-            await atender(furhat, texto_default)
+        logger.info(f"Recebido texto do ChatGPT:\n{text}")
+        await falar_personalidade(furhat, "Paola",
+            text.split('\n\n')[0])
+        for sentence in text.split('\n\n')[1:]:
+            await falar_personalidade(
+                furhat,
+                sentence.split(':')[0],
+                ':'.join(sentence.split(':')[1:]),
+            )
     except Exception as e:
         logger.exception(e)
         raise
@@ -480,6 +426,7 @@ async def chatgpt(
     session_id: uuid.UUID,
     openai_config: dict,
     skip_intro: bool,
+    furhat_config: dict,
     *args,
     **kwargs,
 ) -> None:
@@ -488,9 +435,9 @@ async def chatgpt(
         await led_white(furhat)
         skip_intro: bool = False
         if not skip_intro:
-            await atender(furhat, """Olá. Eu sou uma burrice \
-artificial. Aguarde a conexão com Chat GPT, até que o LED fique verde \
-para começar a falar.""")
+            await atender(furhat, f"""Olá. Eu sou uma burrice \
+artificial, versão {iacecil_version}. Aguarde a conexão com o chát \
+gêpetê, até que o LED fique verde para começar a falar.""")
         openai.api_key: str = openai_config['api_keys'][0]
         logging.getLogger('openai').setLevel('INFO')
         try:
@@ -506,7 +453,7 @@ documento com a API do OpenAI...""")
                 max_tokens = 4000,
                 user = str(user),
             )
-            logger.info(f"""Completion ({type(completion)}), 
+            logger.debug(f"""Completion ({type(completion)}), 
 {len(completion)} = {completion}""")
             prompt: str = await get_prompt_paola_9()
             logging.info(f"Usando prompt:\n{prompt}")
@@ -520,8 +467,11 @@ documento com a API do OpenAI...""")
                 user = str(user),
                 prompt = prompt,
             )
-            logger.info(f"""Completion ({type(completion)}), 
+            logger.debug(f"""Completion ({type(completion)}), 
 {len(completion)} = {completion}""")
+            choice: dict = random.choice(completion.choices)
+            t: str = choice.get('text')
+            await multiplos_personagens(furhat, t)
         except Exception as e:
             logger.exception(e)
             if openai.aiosession.get() is not None:
@@ -561,7 +511,8 @@ começar a falar!""")
                 if stop in text.message:
                     await atender(furhat, "OK. Bom dia!")
                     return
-            prompt: str = f"Iúri: {text.message}. Paola:"
+            # ~ prompt: str = f"Iúri: {text.message}. Paola:"
+            prompt: str = await get_prompt_paola_10(text.message)
             try:
                 await led_yellow(furhat)
                 logger.info("""Criando completação com a API do chatGPT\
@@ -579,8 +530,10 @@ começar a falar!""")
                     top_p = 0.1,
                     # ~ frequency_penalty = openai_config.get(
                         # ~ 'frequency_penalty', 1.0), # 0.0 to 2.0
+                    frequency_penalty = 2.0,
                     # ~ presence_penalty = openai_config.get(
                         # ~ 'presence_penalty', 1.0), # 0.0 to 2.0
+                    presence_penalty = 2.0,
                     # ~ echo = openai_config.get('echo', False),
                     # ~ n = 2,
                     user = str(user),
@@ -588,7 +541,7 @@ começar a falar!""")
                     # ~ stop = ['Paola:', 'Eu:', 'Você:'],
                 )
                 # ~ logger.debug(f"Completion ({type(completion)} = {completion}")
-                logger.info(f"""Completion ({type(completion)}), 
+                logger.debug(f"""Completion ({type(completion)}), 
 {len(completion)} = {completion}""")
                 choice: dict = random.choice(completion.choices)
                 # ~ await olhar(furhat)
@@ -679,7 +632,7 @@ rsonalidades""")
             session_id,
             openai_config,
             skip_intro,
-            # ~ furhat_config,
+            furhat_config,
         )
     except (MaxRetryError, NewConnectionError) as e:
         logger.exception(e)

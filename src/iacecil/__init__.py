@@ -33,19 +33,20 @@ version: str = '0.0.0.0'
 commit: str = '0000000'
 
 try:
+    ## Using latest git tag as version
+    version: str = [tag for tag in \
+        natsort.natsorted(os.listdir('.git/refs/tags')) \
+        if tag not in ['alpha', 'beta', 'latest', 'pre-alpha',
+        'stable']][-1]
+except Exception as e:
+    logger.debug(f"Latest git tag not found, version will be {version}")
+    # ~ logger.exception(e)
+try:
     from . import _version
     version: str = _version.__version__
 except Exception as e:
     logger.debug(f"""Unable to get version from _version file, using \
 {version}""")
-    # ~ logger.exception(e)
-try:
-    ## Using latest git tag as version
-    version: str = [tag for tag in \
-        natsort.natsorted(os.listdir('.git/refs/tags')) \
-        if tag not in ['alpha', 'beta', 'latest', 'pre-alpha', 'stable']][-1]
-except Exception as e:
-    logger.debug(f"Latest git tag not found, version will be {version}")
     # ~ logger.exception(e)
 
 try:
