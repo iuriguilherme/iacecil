@@ -1,6 +1,11 @@
 ia.cecil
 ===
 
+Why is everything in Spanish?
+---
+
+First of all, it's Brazilian Portuguese, not Spanish.  
+
 There is no english README (apart from the tl;dr part below). Sorry 
 about that, either learn brazilian portuguese or wait for the 
 translation. Millions of people in the internet have been reading in 
@@ -12,18 +17,21 @@ TL;DR
 ---
 
 Main script uses a mix of MVC design and influence from the python 
-frameworks in use's "way to do it (tm)" and resides at _iacecil/_ 
-package / directory.  
+frameworks in use's "way to do it (tm)" and resides at _src/iacecil_ 
+directory (`iacecil` package).  
 
 Plugins are supposed to work as independent scripts and reside at 
-_plugins/_ directory.  
+_src/plugins_ directory (`plugins` package).  
 
 Configuration files and local modules / packages are supposed to reside 
 at _instance/_ directory.  
 
-The _doc/_ directory is supposed to be helpful but we all know that it 
-is impossible. If you don't agree that 100% of github repositories can 
-only be understood by it's creator, you're not coding for long enough.  
+The _doc/_ directory is supposed to be helpful and have the 
+documentation on everything. But we all know that it is impossible. If 
+you don't agree that 100% of github repositories can only be understood 
+by it's creator, you're not coding for long enough. That said, I'm an 
+easy to reach person and I can answer any questions with attention if 
+you manage to reach me.  
 
 ---
 
@@ -61,6 +69,31 @@ altamente improvável eventualidade de a culpa ser minha, eu espero ser
 avisado a tempo de botar a culpa em quem eu quiser (já que é minha, eu 
 faço o que eu quero).  
 
+Estatísticas
+---
+
+```
+    1199 text files.
+     532 unique files.
+    1033 files ignored.
+
+github.com/AlDanial/cloc v 1.90  T=167.99 s (1.3 files/s, 186.1 lines/s)
+--------------------------------------------------------------------------------
+Language                      files          blank        comment           code
+--------------------------------------------------------------------------------
+Python                          177           1810           7242          19152
+HTML                             22             19             78           1338
+Markdown                          3            343              0           1210
+XML                               2              0              0             22
+JavaScript                        4              4             19              5
+Bourne Again Shell                1              0              0              4
+CSS                               3              0             10              3
+TOML                              1              0              0              3
+--------------------------------------------------------------------------------
+SUM:                            213           2176           7349          21737
+--------------------------------------------------------------------------------
+```
+
 ---
 
 Como
@@ -70,7 +103,9 @@ Como
 
 Ver também o arquivo [CHANGES.TXT](./CHANGES.TXT)  
 
-#### [Versão 0.1](https://github.com/iuriguilherme/iacecil/projects/1)
+#### Versão 0.1
+
+[Lista de forks pre-alpha](https://github.com/matehackers/matebot/wiki/Forks)  
 
 Nível de automata: 
 [combinational logic](https://en.wikipedia.org/wiki/Combinational_logic)  
@@ -89,7 +124,7 @@ personalidade ou finalidade do bot
 
 ###### Funcionalidades abandonadas
 
-Funcionalidades presentes em forks ou versão **v0.0.14**  
+Funcionalidades presentes em forks ou versão **v0.0.14.0**  
 
 - [x] Conversão de valores [**coinmarketcap**] (**cryptoforex**)  
 - [x] Integração com bancos de dados externos [**velivery**] (**vegga**)  
@@ -99,7 +134,7 @@ Funcionalidades presentes em forks ou versão **v0.0.14**
 - [x] Integração com ESP32 e monitoramento climático (**climobike**)  
 - [x] Controle de atividades de trabalho [**workrave**] (**gê**)  
 
-Funcionalidades presentes em forks ou versão **v0.1.0**  
+Funcionalidades presentes em forks ou versão **v0.1.0.0**  
 
 - [x] Geração de QR Code (**matebot**)  
 - [x] Geração de números aleatórios (**matebot**)  
@@ -108,7 +143,9 @@ Funcionalidades presentes em forks ou versão **v0.1.0**
 - [x] Salvar URLs na Wayback Machine (**matebot**)  
 - [x] Download de vídeos do Youtube (**matebot**)  
 
-#### [Versão 0.2](https://github.com/iuriguilherme/iacecil/projects/2)
+#### Versão 0.2
+
+[Anúncio versão alpha](https://github.com/iuriguilherme/iacecil/discussions/3)  
 
 Nível de automata: 
 [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine)  
@@ -151,6 +188,13 @@ grupos de acordo com critérios estabelecidos
 - [ ] Documentar o roadmap com issues, milestones e projetos do github  
   - [x] Issues feitas durante uma Terça Sem Fim
 
+#### Versão 0.3
+
+Nível de automata: 
+[finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine)  
+
+Em fase de planejamento, código fechado.  
+
 ---
 
 Onde
@@ -160,7 +204,7 @@ Onde
 
 Este software ainda não está no pypi.org, então:  
 
-    pip install -e git+https://github.com/iuriguilherme/iacecil.git@v0.2.2#egg=iacecil  
+    pip install -e git+https://github.com/iuriguilherme/iacecil.git@stable#egg=iacecil  
     python -m iacecil production
 
 ### Desenvolvimento
@@ -183,14 +227,16 @@ Para mexer no código agora mesmo no Linux:
 user@home:~$ git clone https://github.com/iuriguilherme/iacecil.git  
 user@home:~$ cd iacecil  
 user@home:~/iacecil$ pyenv exec python -m pip install --user --upgrade pip pipenv
-user@home:~/iacecil$ pipenv install
-user@home:~/iacecil$ pipenv run iacecil
+user@home:~/iacecil$ pipenv install -e .
+user@home:~/iacecil$ pipenv run test
 ```
 
 Se algum dos passos acima não der certo, usardes o vosso próprio método 
 pessoal (virtualenv, virtualenvwrapper, poetry, etc.)  
 
 #### Grupo de usuária(o)s e desenvolvedora(e)s
+
+##### Telegram
 
 Eu criei um grupo novo para quem quiser conversar sobre, usar, testar, 
 desenvolver e acompanhar o processo de desenvolvimento, teste e uso da 
@@ -205,11 +251,15 @@ Grupo para testar o plugin de logs:
 Pra testar o plugin de logs, coloque o bot neste grupo e use o chat_id 
 `-481703172` no arquivo de configuração (_bot.users['special']['log']_)  
 
+##### Discord
+
+<https://discord.gg/ZZYukr66>  
+
 ---
 
 ### Dependências
 
-Este bot foi testado com Python 3.9; Se vós não tiverdes Python, 
+Este bot foi testado com Python 3.10; Se vós não tiverdes Python, 
 [instale!](https://www.python.org/downloads/)  
 
 Estamos usando [FastAPI](https://fastapi.tiangolo.com/), 
@@ -218,24 +268,38 @@ Estamos usando [FastAPI](https://fastapi.tiangolo.com/),
 [Flask](https://flask.palletsprojects.com/), 
 [Python Telegram Bot](https://github.com/python-telegram-bot/python-telegram-bot), 
 [discordPy](https://discordpy.readthedocs.io/), 
+NLTK, 
+web3, 
+youtube-dl, 
+ZODB, 
+sympy, 
+numpy, 
+matplotlib, 
+mpmath, 
+apscheduler, 
+aiohttp, 
+pandas, 
+openai, 
+furhat, 
+colorama, 
+amazon boto3, 
 então é necessário instalá-los para rodar o bot.  
 
 Alguns plugins que tratam arquivos de áudio e de vídeo usam o pacote 
-[python-ffmpeg](https://pypi.org/project/ffmpeg-python/) que por sua vez usa 
-o ffmpeg do sistema. Instruções para instalar ffmpeg em cada sistema fogem do 
-escopo deste arquivo.  
+[python-ffmpeg](https://pypi.org/project/ffmpeg-python/) que por sua 
+vez usa o ffmpeg do sistema. Instruções para instalar ffmpeg em cada 
+sistema fogem do escopo deste arquivo.  
 
 Ritual de instalação:  
 
 #### pipenv
 
-O jeito que eu faço é com [pipenv](https://pipenv.pypa.io/), 
-inclusive 
+O jeito que eu faço é com [pipenv](https://pipenv.pypa.io/), inclusive 
 está incluso o Pipfile no repositório:  
 
 ```bash
-user@home:~/iacecil$ python -m ensurepip  
-user@home:~/iacecil$ python -m pip install --user --upgrade pip pipenv  
+user@home:~/iacecil$ python3.10 -m ensurepip  
+user@home:~/iacecil$ python3.10 -m pip install --user --upgrade pip pipenv  
 user@home:~/iacecil$ pipenv install  
 ```
 
@@ -246,64 +310,176 @@ poetry, ou outro método de preferência se souber o que está fazendo. Um
 arquivo `requirements.txt` é mantido atualizado no repositório.  
 
 ```bash
-user@home:~/iacecil$ pyenv exec python -m pip install --user -r requirements.txt
+user@home:~/iacecil$ pyenv exec python -m venv iacecilenv  
+user@home:~/iacecil$ ./iacecilenv/bin/activate  
+(iacecilenv) pip install -r requirements.txt  
 ```
 
 ...ou coisa parecida.  
 
-**TODO**_: Fazer instruções para usar sem pipenv_  
+**TODO**_: Fazer instruções para usar sem pipenv, para poetry, etc._  
 
 ---
 
 ### Configurando
 
-Criar o diretório *instance*:  
+**AVISO:** As instruções estão desatualizadas. O fluxo atual é usar um 
+arquivo ___bots.py__ com uma lista assim:  
 
-```bash
-user@home:~/iacecil$ mkdir instance
+**./instance/_bots.py**
+```
+bots = [
+    "testebot",
+    "outrobot",
+]
 ```
 
-Renomear o arquivo `doc/default_config.py` para `instance/config.py`.  
+E o diretório **instance/** fica parecido com isto:  
 
-```bash
-user@home:~/iacecil$ mkdir instance
-user@home:~/iacecil$ cp doc/default_config.py instance/config.py
+```
+instance/
+    _bots.py
+    bots/
+        __init__.py
+        testebot.py
+        outrobot.py
+    zodb/
+    personalidades/
+        __init__.py
+        teste/
+            __init__.py
+        outro.py
 ```
 
-Editar o arquivo de configuração, pelo menos adicionando tokens para o valor 
-obtido através do [@BotFather](https://t.me/botfather).  
+O arquivo `testbot.py` deve ser parecido com isto:
 
-A parte da configuração que é necessário alterar se parece com isto:
+**instance/bots/testbot.py**
+```
+from pydantic import BaseSettings
+
+try:
+    from .default import DefaultBotConfig
+except Exception as e:
+    logger.exception(e)
+    from iacecil.config import DefaultBotConfig
+
+default_config = DefaultBotConfig()
+
+class BotConfig(BaseSettings):
+    coinmarketcap: dict = default_config.coinmarketcap
+    discord: dict = default_config.discord
+    donate: dict = default_config.donate
+    furhat: dict = default_config.furhat
+    info: dict = default_config.info
+    jobs: list = default_config.jobs
+    quart: dict = default_config.quart
+    serpapi: dict = default_config.serpapi
+    tecido: dict = default_config.tecido
+    timezone: str = default_config.timezone
+    tropixel: dict = default_config.tropixel
+    web3: dict = default_config.web3
+
+    personalidade: str = "cryptoforex"
+    plugins: dict = dict(
+        enable = [
+            "admin",
+            "cryptoforex",
+            "donate",
+            "feedback",
+            "qr",
+            "web3_wrapper",
+            "natural",
+            "default",
+        ], # enable
+        disable = [
+            "echo",
+            "bomdia",
+            "greatful",
+            "totalvoice",
+            "portaria",
+            "archive",
+            "calendar",
+            "hashes",
+            "mate_matica",
+            "storify",
+            "tts",
+            "ytdl",
+            "tropixel",
+            "welcome",
+            "garimpo",
+            "tracker",
+        ], # disable
+    telegram: dict = dict(
+        default_config.telegram.copy(),
+        token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+    ) # telegram
+```
+
+Este exemplo vai fazer um bot de telegram parecido com o 
+[cryptoforexbot](https://github.com/iuriguilherme/tg-cryptoforexbot).  
+
+Tokens de bot de telegram são obtidas com o 
+[@BotFather](https://t.me/botfather)  
+
+---
+
+#### Furhat / ChatGPT
+
+Existe um programa para usar um 
+[robô furhat](https://furhatrobotics.com) (ou [SDK](https://furhat.io)) 
+integrado com [chatGPT](https://openai.com). Depois de configurar o 
+software segundo o passo anterior, lembrando de incluir o dicionário de 
+configuração furhat e openai: 
 
 ```python
-'iacecil': {
-  ## Obtenha um token com @BotFather no Telegram
-  'token': "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+from pydantic import BaseSettings
+
+try:
+    from .default import DefaultBotConfig
+except Exception as e:
+    logger.exception(e)
+    from iacecil.config import DefaultBotConfig
+
+default_config = DefaultBotConfig()
+
+class BotConfig(BaseSettings):
+    furhat: dict = {
+        'bot': "f1",
+        'address': "127.0.0.1", # Furhat RemoteAPI ou SDK
+        'voice': "Camila-Neural",
+        'mask': "adult",
+        'character': "Kione",
+        'language': "pt-BR",
+    }
+    openai: dict = {
+        'api_keys': [
+            'sk-1234567890abcdefABCDEF',
+        ], # api_keys
+    } # openai
 ```
 
-Onde **123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11** deve ser substituída 
-com a token providenciada pelo BotFather.  
+O programa roda com esse controlador:  
 
-Uma forma alternativa de alterar este campo é diretamente na linha de 
-comando usando sed:  
-
-```bash
-user@home:~/iacecil$ TOKEN="654321:ZXC-VBN4321ghIkl-zyx57W2v1u123ew11"; sed -i 's/123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11/'${TOKEN}'/g' instance/config.py
+```
+python -m iacecil fpersonas  
 ```
 
-Alterar os demais campos de configuração de acordo com a necessidade, 
-cada opção está comentada no arquivo de configuração de exemplo 
-`doc/default_config.py`.  
-
-**TODO**_: Documentar exemplos de uso do arquivo de configuração para 
-um bot ou vários bots_  
+---
 
 #### Flask / Quart
 
 Para usar a versão com Flask (ou Quart), é necessário também renomear o 
 arquivo `doc/default_env` para `.env`. Ou criar um arquivo `.env` com 
 as variáveis **FLASK_APP** e **FLASK_ENV** (ou **QUART_APP** / 
-**QUART_ENV**).  
+**QUART_ENV**). Caso estes arquivos não existam, as configurações 
+padrão serão usadas.  
+
+Na configuração padrão do Quart, a aplicação é servida com um arquivo 
+Unix Socket `uvicorn.sock`. Para usar uma porta e um endereço TCP/IP, 
+basta manter a configuração das portas e mudar `config.socket` para 
+`None`.  
+
+**TODO**: Testar o método acima pra ter certeza de que é verdade  
 
 ---
 
@@ -316,43 +492,16 @@ No diretório principal da *iacecil*:
 Para rodar com pipenv, assumindo que a configuração já está correta:  
 
 ```bash
-user@home:~/iacecil$ pipenv run iacecil
+user@home:~/iacecil$ pipenv run test  
 ```
 
-Se tiver mais bots configuradas, informar o nome da chave do token do 
-arquivo de configuração:  
+#### Sem pipenv
 
-```bash
-user@home:~/iacecil$ pipenv run iacecil production
+Depois de instalado como pacote editável:
+
 ```
-
-O método anterior para usar Flask e python-telegram-bot:  
-
-```bash
-user@home:~/iacecil$ pipenv run ptb
+python -m iacecil  
 ```
-
-O método antigo pra usar telepot (não recomendado):  
-
-```bash
-user@home:~/iacecil$ pipenv run telepot
-```
-
-#### Outros métodos
-
-Quem estiver usando outra coisa que não seja pipenv, pode usar o script 
-`app.py` que vai tentar encontrar os módulos e arquivos de configuração 
-pertinentes. Alguns exemplos:  
-
-```bash
-user@home:~/iacecil$ python3 iacecil aiogram development
-```
-
-```bat
-C:\Users\user\iacecil> Python app.py flask iacecil
-```
-
-Para parar, enviar um sinal *KeyboardInterrupt* (**CTRL+C**).  
 
 ---
 
@@ -369,13 +518,18 @@ After=network.target nss-lookup.target
 
 [Service]
 Type=simple
-ExecStart=/home/user/.local/bin/pipenv run iacecil
+ExecStart=/home/user/.local/bin/pipenv run prod
+## Sem pipenv:
+#ExecStart=/home/user/.local/bin/python -m iacecil production
 WorkingDirectory=/home/user/iacecil/
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+O python em **ExecStart** deve ser o mesmo python usado para instalar 
+as dependências.  
 
 Em um sistema Debian, este arquivo deveria estar em 
 `${HOME}/.config/systemd/user/iacecil.service`.  
@@ -442,6 +596,11 @@ serviço caso esteja fora do ar.
 
 #### Docker
 
+**AVISO**: O dockerfile foi criado para uma versão antiga do software, 
+ainda não foi adaptado para a versão atual.  
+
+**FIXME**: Adaptar o dockerfile e remover este aviso  
+
 Adicione seu token em `BOTFATHER_TOKEN` no arquivo 
 `doc/default_config.py` e depois rode os comandos abaixo na raiz do 
 projeto  
@@ -454,12 +613,6 @@ projeto
 
 Após esses comandos você terá o IP do seu container pegue esse IP e 
 acesse via `CURL IP:5000`  
-
-#### Heroku / Python Anywhere
-
-Existem usuária(o)s do bot que usam Heroku e Python Anywhere 
-solicitando ajuda para configurar o robô nestes serviços. Eu nunca usei 
-nada disto então preciso de ajuda para tal feito.  
 
 ---
 
