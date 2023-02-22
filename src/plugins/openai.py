@@ -77,7 +77,7 @@ from iacecil.controllers.personalidades import (
 
 async def get_aiogram_chatgpt_completion(*args, **kwargs) -> str:
     """Generate ChatGPT text completion for Telegram Bot"""
-    text: str = "Não sei."
+    text: str | None = None
     try:
         kwargs['prompt'] = await gerar_texto(
             'chatgpt_prompt',
@@ -92,6 +92,7 @@ async def get_aiogram_chatgpt_completion(*args, **kwargs) -> str:
         text: str = choice.get('text')
     except Exception as e:
         logger.exception(e)
+        raise
     return text
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
@@ -118,12 +119,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                 await command_callback(command, descriptions)
             except Exception as e:
                 logger.exception(e)
-                await error_callback(
-                    "Erro genérico",
-                    message,
-                    e,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro genérico",
+                    # ~ message,
+                    # ~ e,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             content_types = types.ContentTypes.TEXT,
             state = "*",

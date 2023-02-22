@@ -86,10 +86,10 @@ dar timeout xD...""")
         openai.error.Timeout,
     ) as e:
         logger.exception(e)
+        raise
     except (
         openai.error.APIError,
         openai.error.InvalidRequestError,
-        Exception,
     ) as e:
         logger.exception(e)
     except Exception as e:
