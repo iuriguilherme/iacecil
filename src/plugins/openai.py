@@ -132,7 +132,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         async def chance_gpt_callback(message: types.Message) -> None:
             """Responde toda e qualquer mensagem em uma chance \
 aleatória"""
-            if await dice_low(2):
+            if await dice_low(30):
                 await chatgpt_callback(message)
     except Exception as e:
         logger.exception(e)
