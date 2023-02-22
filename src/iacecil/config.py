@@ -161,6 +161,7 @@ try:
         donate: dict[str, str]
         furhat: dict[str, str]
         info: dict[str, str]
+        openai: dict[str, str]
         jobs: list[str]
         personalidade: str
         plugins: dict[str, list]
@@ -221,6 +222,8 @@ try:
         quart: dict[str, str] = {}
         ## Furhat
         furhat: Union[dict, bool] = False
+        ## ChatGPT
+        openai: dict | None = None
         _reload: bool = False
         skip_intro: bool = True
         class Config:
@@ -455,6 +458,11 @@ t/v1/metadata/x509/example@example.com""",
             'extension': "wav",
             'output_format': "pcm",
         } # furhat
+        openai: dict = {
+            'api_key': 'sk-1234567890abdef',
+            'engine': 'text-davinci-003',
+            'max_tokens': 4000,
+        } # openai
 except Exception as e:
     logger.exception(e)
     sys.exit("RTFM")

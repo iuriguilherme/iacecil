@@ -85,7 +85,7 @@ async def get_aiogram_chatgpt_completion(*args, **kwargs) -> str:
             kwargs.get('message'),
         )
         kwargs['api_key'] = kwargs.get('dispatcher').config.openai.get(
-            'api_keys')[0]
+            'api_key')
         completion: openai.Completion = await get_completion(*args,
             **kwargs)
         choice: dict = random.choice(completion.choices)
