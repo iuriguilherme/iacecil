@@ -22,8 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 logger = logging.getLogger(__name__)
 
-### Personalidade padrão do @mate_obot
+### Personalidade padrão
 import random
+
+from aiogram import types
+
 from ..aiogram_bot.callbacks import (
     command_callback,
     message_callback,
@@ -94,6 +97,10 @@ te interessada no meu desenvolvimento se encontra, o link de acesso é: \
         channel = infos.get('channel', u"que eu não sei."),
         group = infos.get('group', u"eu não sei."),
     )
+
+async def chatgpt_prompt(message: types.Message) -> str:
+    """Answer /gpt"""
+    return f"Q: {message.text} A:"
 
 ## Aiogram
 async def add_handlers(dispatcher):

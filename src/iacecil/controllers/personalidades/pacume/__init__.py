@@ -127,6 +127,10 @@ comportamento indevido, abra processo no Ministério Público Federal, chama a \
 tua mãe, se fode.\
 """
 
+async def chatgpt_prompt(message: types.Message) -> str:
+    """Answer /gpt"""
+    return random_texts.chatgpt_prompt(message)
+
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """Register Aiogram message handlers to aiogram.Dispatcher"""
     try:

@@ -30,6 +30,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 import random
+
+from aiogram import types
 from aiogram.utils.markdown import escape_md
 
 def adjetivos():
@@ -304,3 +306,17 @@ def welcome(message, count, admin):
         u"chegou mais um filho perdido do {admin}".format(admin = admin),
         u"é {}, pa pa pa".format(count),
     ])
+
+def chatgpt_prompt(
+    message: types.Message,
+    trained_prompt: str = '',
+    name: str = "Tiozão do Pavê",
+) -> str:
+    """Get this personalidade's default ChatGPT prompt"""
+    user: str = message['from']['first_name']
+    text: str = message.get_args()
+    return f"""{name} \
+é uma pessoa recalcada com senso de humor politicamente incorreto que \
+dá respostas sarcásticas, de forma relutante, irreverente, debochada.\
+\n\n{trained_prompt}\n\n{user}: {text}\n\n\
+{name}:"""

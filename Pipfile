@@ -61,7 +61,7 @@ tabulate = "*"
 #torchvision = "*"
 #totalvoice = "*"
 ujson = {version = "*", sys_platform = "!= 'win32'"}
-#urllib3 = "*"
+urllib3 = "*"
 uvloop = {version = "*", sys_platform = "!= 'win32'"}
 uvicorn = "*"
 validators = "*"
@@ -70,24 +70,23 @@ youtube-dl = "*"
 yt-dlp = "*"
 ZODB = "*"
 "zc.zlibstorage" = "*"
-#iacecil = {editable = true, path = "."}
 iacecil = {editable = true, path = "."}
 
 [requires]
 python_version = "3.10"
 
 [scripts]
-iacecil = 'python start.py info quart ic'
-quart = 'python start.py info quart ic 8000 127.0.0.1'
-test = 'python start.py debug quart test'
-prod = 'python start.py debug quart prod'
-dev = 'python start.py debug quart dev 8000 127.0.0.1 True'
-stage = 'python start.py info socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
-stagetest = 'python start.py debug socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
-furhat = 'python start.py debug furhat test'
-papagaio = 'python start.py debug fpapagaio f239 True'
-personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
-new_prod = 'python -m iacecil production'
-new_test = 'python -m iacecil'
-new_dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'
+#iacecil = 'python start.py info quart ic'
+#quart = 'python start.py info quart ic 8000 127.0.0.1'
+#test = 'python start.py debug quart test'
+#prod = 'python start.py debug quart prod'
+#dev = 'python start.py debug quart dev 8000 127.0.0.1 True'
+#stage = 'python start.py info socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
+#stagetest = 'python start.py debug socket cf,ic,mbt,mr,pc,pc2,pv,bdm,bdt,bdn,ps,tc 38000 127.0.0.1 0'
+#furhat = 'python start.py debug furhat test'
+#papagaio = 'python start.py debug fpapagaio f239 True'
+#personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
+prod = 'python -m iacecil production'
+test = 'python -m iacecil'
+dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'
 paola = 'python -m iacecil fpersonas'

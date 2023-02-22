@@ -89,4 +89,4 @@ v0.2.3.0, 2022-10-13 -- Possibilita criação de personalidade programada localm
 v0.2.9.0, 2022-11-17 -- Lê arquivos ssml-xml para tts (Amazon Polly)
 v0.2.10.0, 2023-01-12 -- Integração Furhat + OpenAI GPT3
 v0.2.11.0, 2023-02-10 -- Furhat, GPT3 e múltiplas pessoas
-
+v0.2.13.0, 2023-02-21 -- ChatGPT com Telegram

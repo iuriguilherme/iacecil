@@ -24,7 +24,10 @@ logger = logging.getLogger(__name__)
 
 ### Personalidade Tia do Zap
 import random
-from aiogram import filters
+from aiogram import (
+    filters,
+    types,
+)
 from ...aiogram_bot.callbacks import (
     command_callback,
     message_callback,
@@ -67,6 +70,10 @@ async def portaria(message):
 
 async def mensagem_bomdia():
     return await message.reply(await random_texts.bomdia())
+
+async def chatgpt_prompt(message: types.Message) -> str:
+    """Answer /gpt"""
+    return random_texts.chatgpt_prompt(message)
 
 ## Aiogram
 async def add_handlers(dispatcher):

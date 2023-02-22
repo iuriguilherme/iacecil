@@ -27,19 +27,15 @@ from aiogram import Dispatcher
 try:
     from instance.personalidades.custom import add_instance_handlers
 except Exception as e:
-    logger.info(f"""add_instance_handlers em instance não encontrada para \
-{__name__}""")
-    # ~ logger.exception(e)
+    logger.debug(f"""add_instance_handlers em instance não encontrada \
+para {__name__}: {repr(e)}""")
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
-    """
-    Registers instance custom aiogram handlers
-    of custom configured personalidade
-    This is meant for external software using ia.cecil
-    """
+    """Registers instance custom aiogram handlers of custom configured \
+personalidade. This is meant for external software using ia.cecil"""
     try:
         await add_instance_handlers(dispatcher)
     except Exception as e:
-        logger.error("""Could not register custom instance handlers, have \
-you RTFM?""")
         logger.exception(e)
+        logger.error("""Could not register custom instance handlers, \
+have you RTFM?""")

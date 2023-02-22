@@ -168,6 +168,10 @@ async def pegadinha(message):
         pegadinha5,
     ])(message)
 
+async def chatgpt_prompt(message: types.Message) -> str:
+    """Answer /gpt"""
+    return random_texts.chatgpt_prompt(message)
+
 ## Aiogram
 async def add_handlers(dispatcher):
     try:

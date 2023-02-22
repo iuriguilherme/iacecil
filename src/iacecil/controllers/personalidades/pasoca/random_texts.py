@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 import random
 
+from aiogram import types
+
 async def bomdia():
     return random.choice([
         u"bom dia.",
@@ -38,3 +40,18 @@ async def welcome():
         u"Que bom que você veio!",
         u"Deus te abençoe, meu filho!",
     ])
+
+def chatgpt_prompt(
+    message: types.Message,
+    trained_prompt: str = '',
+    name: str = "Tia do Zap",
+) -> str:
+    """Get this personalidade's default ChatGPT prompt"""
+    user: str = message['from']['first_name']
+    text: str = message.get_args()
+    return f"""{name} \
+é uma senhora gentil porém desinformada que responde de forma \
+simpática e gentil, mas não entende do que está falando e só dá \
+informações incorretas.\
+\n\n{trained_prompt}\n\n{user}: {text}\n\n\
+{name}:"""

@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 import random
 
+from aiogram import types
+
 try:
     import instance.personalidades.pave.random_texts as pave
 except Exception as e:
@@ -97,3 +99,7 @@ def start(message):
 
 def welcome(message, count, admin):
     return pave.welcome(message, count, admin)
+
+def chatgpt_prompt(message: types.Message) -> str:
+    """Get personalidade ChatGPT Prompt"""
+    return pave.chatgpt_prompt(message, name = "Tiozão do Churrasco")
