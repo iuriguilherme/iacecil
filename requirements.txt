@@ -28,7 +28,7 @@ click==8.1.3 ; python_version >= '3.7'
 colorama==0.4.6
 contourpy==1.0.7 ; python_version >= '3.8'
 cycler==0.11.0 ; python_version >= '3.6'
-cytoolz==0.12.1 ; implementation_name == 'cpython'
+cytoolz==0.12.1 ; python_version >= '3.6'
 decorator==5.1.1 ; python_version >= '3.5'
 distlib==0.3.6
 eth-abi==2.2.0 ; python_version >= '3.6' and python_version < '4'
@@ -49,7 +49,7 @@ furhat-remote-api==1.0.2
 future==0.18.3 ; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 google-search-results==2.4.1
 graphviz==0.20.1
-greenlet==2.0.1 ; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
+greenlet==2.0.1 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 h11==0.14.0 ; python_version >= '3.7'
 h2==4.1.0 ; python_full_version >= '3.6.1'
 hexbytes==0.3.0 ; python_version >= '3.7' and python_version < '4'
@@ -58,6 +58,7 @@ httpcore==0.16.3 ; python_version >= '3.7'
 httpx==0.23.3 ; python_version >= '3.7'
 hypercorn==0.14.3 ; python_version >= '3.7'
 hyperframe==6.0.1 ; python_full_version >= '3.6.1'
+-e .
 idna==3.4 ; python_version >= '3.5'
 install-requires==0.3.0
 ipfshttpclient==0.8.0a2 ; python_full_version >= '3.6.2' and python_full_version not in '3.7.0, 3.7.1'
@@ -118,7 +119,7 @@ requirementslib==1.6.9 ; python_version >= '3.7'
 rfc3986[idna2008]==1.5.0
 rlp==2.0.1
 s3transfer==0.6.0 ; python_version >= '3.7'
-scipy==1.10.0 ; python_version >= '3.8'
+scipy==1.10.0 ; python_version < '3.12' and python_version >= '3.8'
 setuptools==65.7.0 ; python_version >= '3.7'
 six==1.16.0 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 sniffio==1.3.0 ; python_version >= '3.7'
@@ -127,16 +128,16 @@ sqlalchemy==1.4.46 ; python_version >= '2.7' and python_version not in '3.0, 3.1
 sympy==1.11.1
 tabulate==0.9.0
 toml==0.10.2 ; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
-tomli==2.0.1 ; python_version < '3.11'
+tomli==2.0.1 ; python_version >= '3.7'
 tomlkit==0.11.6 ; python_version >= '3.6'
 toolz==0.12.0 ; python_version >= '3.5'
 tqdm==4.64.1 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 transaction==3.0.1
 typing-extensions==4.4.0 ; python_version >= '3.7'
-tzdata==2022.7 ; python_version >= '3.6'
+tzdata==2022.7 ; python_version >= '2'
 tzlocal==4.2 ; python_version >= '3.6'
 ujson==5.7.0 ; sys_platform != 'win32'
-urllib3==1.26.14 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+urllib3==1.26.14
 uvicorn==0.20.0
 uvloop==0.17.0 ; sys_platform != 'win32'
 validators==0.20.0
