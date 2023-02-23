@@ -66,9 +66,9 @@ class IACecilBot(Bot):
             return self.command
         except exceptions.RetryAfter as exception:
             logger.exception(exception)
-            logger.debug(u"Flood control: waiting {} seconds...\
-            ".format(exception.timeout))
-            await asyncio.sleep(exception.timeout)
+            seconds: int = exception.timeout
+            logger.debug(f"Flood control: waiting {seconds} seconds...")
+            await asyncio.sleep(float(seconds) + 1e-15)
             return await self.exception_handler(
                 function,
                 function_name,
@@ -250,15 +250,15 @@ eactivated')""",
 {str(self)}, function = {str(function)}, function_name = \
 {str(function_name)}, super_function = {str(super_function)}, args = \
 {str(args)}, kwargs = {str(kwargs)}""")
-        except Exception as exception:
-            logger.exception(exception)
-            try:
-                await exception_callback(
-                    exception,
-                    [function_name, 'NotTelegram'],
-                )
-            except Exception as e:
-                logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
+            # ~ try:
+                # ~ await exception_callback(
+                    # ~ exception,
+                    # ~ [function_name, 'NotTelegram'],
+                # ~ )
+            # ~ except Exception as e:
+                # ~ logger.exception(e)
         return self.command
     
     async def send_photo(self, *args, **kwargs):
