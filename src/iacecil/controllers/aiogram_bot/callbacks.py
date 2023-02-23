@@ -108,7 +108,8 @@ async def any_message_callback(message: types.Message) -> None:
 
 async def any_edited_message_callback(message: types.Message) -> None:
     """Fallback callback for edited messages for handlers"""
-    await info_logger(message, ['edited_message', message.chat.type])
+    # ~ await info_logger(message, ['edited_message', message.chat.type])
+    await zodb_logger(message)
 
 async def any_channel_post_callback(message: types.Message) -> None:
     """Fallback callback for channel messages for handlers"""
