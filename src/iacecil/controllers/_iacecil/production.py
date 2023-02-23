@@ -79,12 +79,20 @@ system locale is set and available""")
         logger.exception(e)
     
     try:
-        from instance._bots import bots
+        _bots: object = import_module('.'.join('instance',
+            f"_bots_{sys.argv[2]}"))
+        bots: list = _bots.bots
     except Exception as e:
-        logger.error("Bot list not set! Please RTFM")
         logger.exception(e)
-        bots: list = ['default']
-    modules: list = [import_module('.' + bot, 'instance.bots') for bot in bots]
+        logger.error("Supplied list not found, using default _bots.py")
+        try:
+            from instance._bots import bots
+        except Exception as e:
+            logger.exception(e)
+            logger.error("Bot list not set! Please RTFM")
+            bots: list = ['default']
+    modules: list = [import_module('.' + bot, 'instance.bots') \
+        for bot in bots]
     configs: dict = {
         module.__name__.split('.')[2]: \
         (getattr(module, 'BotConfig')() \
