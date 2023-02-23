@@ -79,8 +79,7 @@ system locale is set and available""")
         logger.exception(e)
     
     try:
-        _bots: object = import_module('.'.join('instance',
-            f"_bots_{sys.argv[2]}"))
+        _bots: object = import_module(f"instance._bots_{sys.argv[2]}")
         bots: list = _bots.bots
     except Exception as e:
         logger.exception(e)
