@@ -105,9 +105,7 @@ XQU56JMvt8IbBpON8d8TfI7oAAgyqMRvSF_FEnT2QiVbie1UBAAMCAANzAAMjBA''',
                 'rb',
             ))
         except Exception as e1:
-            logger.warning(u"Arquivo não encontrado: {}".format(
-                repr(e1))
-            )
+            logger.exception(e1)
             return await pegadinha4(message)
 async def pegadinha2(message):
     try:
@@ -124,9 +122,7 @@ UEBEUFFncjjtkd6HBdAVnKVQAAleqMRvSF-lEWQpWEeJ0UWUBAAMCAANzAAMjBA''',
                 'rb',
             ))
         except Exception as e1:
-            logger.warning(u"Arquivo não encontrado: {}".format(
-                repr(e1))
-            )
+            logger.exception(e1)
             return await pegadinha4(message)
 async def pegadinha3(message):
     try:
@@ -204,12 +200,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'ignorante',
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'ignorante',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         ## Saúda com trollada
         @dispatcher.message_handler(
             filters.IDFilter(
@@ -244,12 +240,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'welcome',
-                    message,
-                    e1,
-                    ['exception', 'welcome'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'welcome',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception', 'welcome'] + descriptions,
+                # ~ )
 
         ## /brinde
         @dispatcher.message_handler(
@@ -277,12 +273,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'brinde',
-                    message,
-                    e1,
-                    ['exception', 'brinde'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'brinde',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception', 'brinde'] + descriptions,
+                # ~ )
         ## Seja mau vindo
         @dispatcher.message_handler(
             content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
@@ -310,12 +306,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'welcome',
-                    message,
-                    e1,
-                    ['exception', 'welcome'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'welcome',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception', 'welcome'] + descriptions,
+                # ~ )
 
         ## Piadas sem graça
         # ~ @dispatcher.message_handler(
@@ -349,12 +345,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'versiculo',
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'versiculo',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         ## /info
         @dispatcher.message_handler(
             commands = ['info'],
@@ -374,12 +370,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'info',
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ 'info',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             filters.Text(contains = 'quanto', ignore_case = True),
             filters.Regexp('(?i)\\b(vale|custa|cobra)\\b'),
@@ -401,12 +397,12 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'quanto',
-                    message,
-                    e1,
-                    ['exception', 'pave', 'quanto'],
-                )
+                # ~ await error_callback(
+                    # ~ 'quanto',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception', 'pave', 'quanto'],
+                # ~ )
 
         @dispatcher.message_handler(
             filters.Regexp(r'\b({})\b'.format('|'.join(random_texts.bebidas())))
@@ -428,11 +424,11 @@ async def add_handlers(dispatcher):
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    'bebida',
-                    message,
-                    e1,
-                    ['exception', 'pave', 'bebida'],
-                )
+                # ~ await error_callback(
+                    # ~ 'bebida',
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception', 'pave', 'bebida'],
+                # ~ )
     except Exception as e:
         logger.exception(e)

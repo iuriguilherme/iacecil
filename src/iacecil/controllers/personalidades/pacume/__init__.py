@@ -178,12 +178,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                             )
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Problema tentando mandar audio",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Problema tentando mandar audio",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
             finally:
                 if opus_file is not None:
                     os.remove(opus_file)
@@ -220,12 +220,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Não consegui mandar patada",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Não consegui mandar patada",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             content_types = types.ContentTypes.NEW_CHAT_MEMBERS,
         )
@@ -255,12 +255,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro enviando mensagem de más vindas",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro enviando mensagem de más vindas",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             content_types = types.ContentTypes.LEFT_CHAT_MEMBER,
         )
@@ -281,12 +281,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro dando tchau",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro dando tchau",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(commands = ['piada'])
         async def piada_callback(message: types.Message) -> None:
             """Piadas sem graça"""
@@ -306,12 +306,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando mandar piada",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando mandar piada",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(commands = ['versiculo'])
         async def versiculo_callback(message: types.Message) -> None:
             """Versículos bíblicos fora de contexto"""
@@ -333,12 +333,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando mandar versículo",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando mandar versículo",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(commands = ['info'])
         async def info_callback(message: types.Message) -> None:
             """Reply to /info"""
@@ -356,12 +356,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando responder /info",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando responder /info",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(filters.Regexp('\w{2,}(a|ã)o(\?|\!|\.)*$'))
         async def rima_ao_callback(message: types.Message) -> None:
             """
@@ -386,12 +386,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando responder rima com ão",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando responder rima com ão",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             filters.Regexp(
                 r'\b({})\b'.format('|'.join(random_texts.bebidas())),
@@ -416,12 +416,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando responder para bebidas",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando responder para bebidas",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         @dispatcher.message_handler(
             filters.Text(contains = 'quanto', ignore_case = True),
             filters.Regexp('(?i)\\b(vale|custa|cobra)\\b'),
@@ -447,12 +447,12 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         raise Exception(f"command was {str(command)}")
             except Exception as e1:
                 logger.exception(e1)
-                await error_callback(
-                    "Erro tentando responder para quanto",
-                    message,
-                    e1,
-                    ['exception'] + descriptions,
-                )
+                # ~ await error_callback(
+                    # ~ "Erro tentando responder para quanto",
+                    # ~ message,
+                    # ~ e1,
+                    # ~ ['exception'] + descriptions,
+                # ~ )
         try:
             await add_instance_handlers(dispatcher)
         except Exception as e1:
