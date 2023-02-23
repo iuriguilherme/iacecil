@@ -86,39 +86,39 @@ class IACecilBot(Bot):
 e logger groups! Fix this before continuing! Either change the ids fro\
 m the log  groups in the config file, or ensure the bot is part of the \
 logger groups. Exiting...""")
-            else:
-                try:
-                    await error_callback(
-                        u"Probably kicked from this group",
-                        str(self.command),
-                        exception,
-                        [function_name, 'BotKicked', 'exception'],
-                    )
-                except Exception as e1:
-                    try:
-                        await exception_callback(
-                            e1,
-                            [function_name, 'BotKicked'],
-                        )
-                    except Exception as e2:
-                        logger.warning(repr(e2))
+            # ~ else:
+                # ~ try:
+                    # ~ await error_callback(
+                        # ~ u"Probably kicked from this group",
+                        # ~ str(self.command),
+                        # ~ exception,
+                        # ~ [function_name, 'BotKicked', 'exception'],
+                    # ~ )
+                # ~ except Exception as e1:
+                    # ~ try:
+                        # ~ await exception_callback(
+                            # ~ e1,
+                            # ~ [function_name, 'BotKicked'],
+                        # ~ )
+                    # ~ except Exception as e2:
+                        # ~ logger.warning(repr(e2))
         except exceptions.BotBlocked as exception:
             logger.exception(exception)
-            try:
-                await error_callback(
-                    u"Probably blocked by this user",
-                    self.command,
-                    exception,
-                    [function_name, 'BotBlocked', 'exception'],
-                )
-            except Exception as e1:
-                try:
-                    await exception_callback(
-                        e1,
-                        [function_name, 'BotBlocked'],
-                    )
-                except Exception as e2:
-                    logger.warning(repr(e2))
+            # ~ try:
+                # ~ await error_callback(
+                    # ~ u"Probably blocked by this user",
+                    # ~ self.command,
+                    # ~ exception,
+                    # ~ [function_name, 'BotBlocked', 'exception'],
+                # ~ )
+            # ~ except Exception as e1:
+                # ~ try:
+                    # ~ await exception_callback(
+                        # ~ e1,
+                        # ~ [function_name, 'BotBlocked'],
+                    # ~ )
+                # ~ except Exception as e2:
+                    # ~ logger.warning(repr(e2))
         except exceptions.ChatNotFound as exception:
             logger.exception(exception)
             try:
