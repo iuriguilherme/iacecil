@@ -153,3 +153,4 @@ Thumbs.db
 *.rdb
 *.sock
 .env
+config.py

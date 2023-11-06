@@ -457,9 +457,22 @@ t/v1/metadata/x509/example@example.com""",
             }, # synthesizer
             'extension': "wav",
             'output_format': "pcm",
+            'prompt': {
+                'before': os.getenv(
+                    'FURHAT_PROMPT_BEFORE',
+                    default = "Me: ",
+                ), # before
+                'after': os.getenv(
+                    'FURHAT_PROMPT_AFTER',
+                    default = ""
+                ), # after
+            } # prompt
         } # furhat
         openai: dict = {
-            'api_key': 'sk-1234567890abdef',
+            'api_key': os.getenv("OPENAI_API_KEY",
+                default = 'sk-1234567890abdef'),
+            'api_keys': [os.getenv("OPENAI_API_KEY",
+                default = 'sk-1234567890abdef')],
             'engine': 'text-davinci-003',
             'max_tokens': 4000,
         } # openai
