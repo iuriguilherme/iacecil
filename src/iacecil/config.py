@@ -417,11 +417,26 @@ f0123456789abcdef""",
         } # discord
         furhat: dict = {
             'bot': "f1",
-            'address': "127.0.0.1",
-            'voice': "Camila",
-            'mask': "adult",
-            'character': "Titan",
-            'language': "pt-BR",
+            'address': os.getenv(
+                'FURHAT_REMOTE_API',
+                default = "127.0.0.1",
+            ), # address
+            'voice': os.getenv(
+                'FURHAT_VOICE',
+                default = "Joanna",
+            ), # voice
+            'mask': os.getenv(
+                'FURHAT_MASK',
+                default = "adult",
+            ), # mask
+            'character': os.getenv(
+                'FURHAT_CHARACTER',
+                default = "Titan",
+            ), # character
+            'language': os.getenv(
+                'FURHAT_LANGUAGE',
+                default = "en-US",
+            ), # language
             'led': {'green': 0, 'red': 150, 'blue': 30},
             'attend': {'x': 0, 'y': 0, 'z': 0},
             'voice_url': "https://www.intriguing.com/mp/_sounds/hg/",

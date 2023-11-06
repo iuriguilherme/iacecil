@@ -150,7 +150,7 @@ setup(install_requires = [
     "wtforms==3.0.1; python_version >= '3.7'",
     "yarl==1.8.2; python_version >= '3.7'",
     'youtube-dl==2021.12.17',
-    'yt-dlp==2023.1.6',
+    'yt-dlp==2023.10.13',
     'zc.lockfile==2.0',
     'zc.zlibstorage==1.2.0',
     'zconfig==3.6.1',
