@@ -3,7 +3,7 @@ Plugin mate-matica para ia.cecil: Mate Mática
 
 ia.cecil
 
-Copyleft 2019-2022 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2019-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -47,22 +47,30 @@ def coord(seed = None, *args, **kwargs) -> float:
     numpy.random.seed(seed)
     return numpy.random.rand()
 
-async def get_pi(precision: int = 53) -> str:
+async def get_pi(precision: int = 51) -> str:
     """A melhor aproximação de π com python (por enquanto)"""
     while precision > 0:
         try:
-            with mpmath.workdps(precision + 1):
+            with mpmath.workdps(precision + 2):
+                ## Porque precision = 3 vai gerar 3.14 quando a pessoa
+                ## no Telegram presume 3.141 e na linha a seguir vamos
+                ## omitir o último dígito pois ele vai vir arredondado,
+                ## o que também é indesejável
                 return str(mpmath.pi)[:-1]
         except Exception as exception:
             await exception_callback(exception, ['matematica', 'fib'])
             return await get_pi(precision - 1)
     return str(mpmath.pi)[:-1]
 
-async def get_phi(precision: int = 53) -> str:
+async def get_phi(precision: int = 51) -> str:
     """A melhor aproximação de φ com python (por enquanto)"""
     while precision > 0:
         try:
-            with mpmath.workdps(precision + 1):
+            with mpmath.workdps(precision + 2):
+                ## Porque precision = 3 vai gerar 1.62 quando a pessoa
+                ## no Telegram presume 1.618 e na linha a seguir vamos
+                ## omitir o último dígito pois ele vai vir arredondado,
+                ## o que também é indesejável
                 return str(mpmath.phi)[:-1]
         except Exception as exception:
             await exception_callback(exception, ['matematica', 'fib'])
@@ -86,14 +94,20 @@ def cmd_random(args):
         ## Mas tem outras formas de testar isto, ler o manual do dict()
         argumento = ''.join(args['command_list'])
         if argumento:
-            if argumento.isdigit() and int(argumento) <= 872 and int(argumento) > 2:
-                tamanho = int(argumento)
+            if argumento.isdigit():
+                if int(argumento) <= 872 and int(argumento) > 2:
+                    tamanho = int(argumento)
             else:
-                response.append(u"Tamanho deve ser entre 1 e 872, %s não serve! Revertendo para %s...\n" % (str(argumento), str(tamanho)))
+                response.append(f"""Tamanho deve ser entre 1 e 872, \
+{argumento} não serve! Revertendo para {tamanho}...\n""")
         aleatorio = os.urandom(tamanho)
-        response.append(u"<b>HEX</b>:\n<pre>%s</pre>\n" % binascii.hexlify(aleatorio).decode('utf-8'))
-        response.append(u"<b>B64</b>:\n<pre>%s</pre>" % binascii.b2a_base64(aleatorio).decode('utf-8'))
-        response.append(u"<b>HQX</b>:\n<pre>%s</pre>" % binascii.b2a_hqx(binascii.rlecode_hqx(aleatorio)).decode('utf-8'))
+        response.append(f"""<b>HEX</b>:\n<pre>\
+{binascii.hexlify(aleatorio).decode('utf-8')}</pre>\n""")
+        response.append(f"""<b>B64</b>:\n<pre>\
+{binascii.b2a_base64(aleatorio).decode('utf-8')}</pre>""")
+        response.append(f"""<b>HQX</b>:\n<pre>\
+{binascii.b2a_hqx(binascii.rlecode_hqx(aleatorio)).decode('utf-8')}\
+</pre>""")
         return {
             'status': True,
             'type': 'grupo',
@@ -144,22 +158,46 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         )
         async def pi_callback(message):
             await message_callback(message, ['pi', message.chat.type])
-            precision: int = 53
-            if ''.join(message.get_args()).isdigit():
-                precision = max(0, int(''.join(message.get_args()))) + 2
-            command = await message.reply(await get_pi(precision))
-            await command_callback(command, ['pi', message.chat.type])
+            precision: int = 51
+            parameter: object = ''.join(message.get_args())
+            if parameter.isdigit() and int(parameter) > 0:
+                ## Limite de mensagem longa do Telegram (4096 menos os
+                ## demais elementos do command_logger)
+                precision = min(3113, max(0, int(parameter)))
+                if precision < int(parameter):
+                    await message.reply(f"""{parameter} é muito alto, \
+vou usar {precision}""")
+                logger.info(f"""Tentando calcular pi com precisão \
+{precision}, se travar foi por causa disso""")
+                command = await message.reply(await get_pi(precision))
+                await command_callback(command, ['pi',
+                    message.chat.type])
+            else:
+                await message.reply(f"""{parameter} não é um número \
+natural maior que zero""")
 
         @dispatcher.message_handler(
             commands = ['phi'],
         )
         async def phi_callback(message):
             await message_callback(message, ['phi', message.chat.type])
-            precision: int = 53
-            if ''.join(message.get_args()).isdigit():
-                precision = max(0, int(''.join(message.get_args()))) + 2
-            command = await message.reply(await get_phi(precision))
-            await command_callback(command, ['phi', message.chat.type])
+            precision: int = 51
+            parameter: object = ''.join(message.get_args())
+            if parameter.isdigit() and int(parameter) > 0:
+                ## Limite de mensagem longa do Telegram (4096 menos os
+                ## demais elementos do command_logger)
+                precision = min(3113, max(0, int(parameter)))
+                if precision < parameter:
+                    await message.reply(f"""{parameter} é muito alto, \
+vou usar {precision}""")
+                logger.info(f"""Tentando calcular phi com precisão \
+{precision}, se travar foi por causa disso""")
+                command = await message.reply(await get_phi(precision))
+                await command_callback(command,
+                    ['phi', message.chat.type])
+            else:
+                await message.reply(f"""{parameter} não é um número \
+natural maior que zero""")
 
         @dispatcher.message_handler(
             commands = ['dice', 'dado', 'd'],
@@ -178,8 +216,8 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         raise ValueError()
             except ValueError:
                 await message.reply(f"""{message.get_args()} não é um \
-número de faces de um dado válido, vou usar um dado de seis faces normal.\
-""")
+número de faces de um dado válido, vou usar um dado de seis faces \
+normal.""")
             command = await message.reply(await dice(faces))
             await command_callback(command, ['dice', message.chat.type])
 
@@ -188,12 +226,14 @@ número de faces de um dado válido, vou usar um dado de seis faces normal.\
             commands = ['fib', 'fibonacci'],
         )
         async def fibonacci_callback(message):
-            await message_callback(message, ['fibonacci', message.chat.type])
+            await message_callback(message, ['fibonacci',
+                message.chat.type])
             position: int = 0
             if ''.join(message.get_args()).isdigit():
                 position = max(0, int(''.join(message.get_args())))
             command = await message.reply(await get_fibonacci(position))
-            await command_callback(command, ['fibonacci', message.chat.type])
+            await command_callback(command, ['fibonacci',
+                message.chat.type])
     except Exception as e:
         logger.exception(e)
         raise

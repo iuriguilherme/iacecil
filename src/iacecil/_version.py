@@ -1,7 +1,7 @@
 """
 ia.cecil
 
-Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,5 +19,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
-__version__: str = "0.2.16"
+__version__: str = "0.2.17"
 
