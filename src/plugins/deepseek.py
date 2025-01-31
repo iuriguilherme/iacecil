@@ -28,16 +28,6 @@ MA 02110-1301, USA.
 import logging
 logger: logging.Logger = logging.getLogger(__name__)
 
-# ~ import aiohttp
-# ~ import asyncio
-# ~ import glob
-import json
-# ~ import os
-# ~ import random
-# ~ import typing
-# ~ import uuid
-
-# ~ import openai
 from ollama import AsyncClient
 
 from aiogram import (
@@ -45,7 +35,9 @@ from aiogram import (
     types,
 )
 from aiogram.utils.markdown import (
+    # ~ escape_md,
     italic,
+    spoiler,
 )
 
 from iacecil.controllers.aiogram_bot.callbacks import (
@@ -54,114 +46,8 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
 )
 from iacecil.controllers.util import (
-    # ~ dice_high,
     dice_low,
 )
-# ~ from ...persistence.zodb_orm import (
-    # ~ get_messages_texts_list,
-    # ~ get_furhat_texts_messages,
-    # ~ set_furhat_text,
-# ~ )
-# ~ from ....plugins.natural import (
-    # ~ generate,
-    # ~ concordance,
-    # ~ collocations,
-    # ~ common_contexts,
-    # ~ count,
-    # ~ similar,
-# ~ )
-# ~ from ...personalidades import (
-    # ~ gerar_comando,
-    # ~ gerar_texto,
-    # ~ generate_command_furhat,
-    # ~ generate_text_furhat,
-# ~ )
-# ~ from ...._version import __version__ as iacecil_version
-# ~ from iacecil.controllers.personalidades import (
-    # ~ gerar_texto,
-# ~ )
-
-# ~ async def get_aiogram_deepseek_r1_completion(*args, **kwargs) -> str:
-    # ~ """Generate Deepseek R1 text completion for Telegram Bot"""
-    # ~ text: str | None = None
-    # ~ try:
-        # ~ logger.info(f"Getting deepseek completion request")
-        # ~ kwargs['prompt'] = await gerar_texto(
-            # ~ 'chatgpt_prompt',
-            # ~ kwargs.get('dispatcher').bot,
-            # ~ kwargs.get('message'),
-        # ~ )
-        # ~ kwargs['ollama_host'] = kwargs.get('dispatcher').config.deepseek.get(
-            # ~ 'ollama', {'host': "http://127.0.0.1:11434"}).get('host',
-            # ~ "http://127.0.0.1:11434")
-        # ~ kwargs['ollama_model'] = kwargs.get('dispatcher').config.deepseek.get(
-            # ~ 'ollama', {'model': "deepseek-r1:1.5b"}).get('model',
-            # ~ "deepseek-r1:1.5b")
-        # ~ post_data: dict[str, str] = {
-            # ~ 'model': kwargs.get('ollama_model'),
-            # ~ 'prompt': kwargs.get('prompt'),
-            # ~ 'stream': False,
-        # ~ }
-        # ~ async with aiohttp.ClientSession() as session:
-            # ~ async with session.post('/'.join([kwargs.get('ollama_host'),
-                # ~ 'api', 'generate']), data = post_data) as response:
-                # ~ logger.info(f"Status: {response.status}")
-                # ~ logger.info(f"""Content-type: \
-# ~ {response.headers['content-type']}""")
-                # ~ html = await response.text()
-                # ~ logger.info(f"Body: {html[:15]}...")
-                # ~ text = html
-        # ~ completion: openai.Completion = await get_completion(*args,
-            # ~ **kwargs)
-        # ~ choice: dict = random.choice(completion.choices)
-        # ~ text: str = choice.get('text')
-    # ~ except Exception as e:
-        # ~ logger.exception(e)
-        # ~ raise
-    # ~ return text
-
-# ~ async def get_aiogram_deepseek_r1_chat(*args, **kwargs) -> str:
-    # ~ """Generate Deepseek R1 chat text completion for Telegram Bot"""
-    # ~ text: str | None = None
-    # ~ try:
-        # ~ logger.info(f"Getting deepseek completion request")
-        # ~ kwargs['prompt'] = await gerar_texto(
-            # ~ 'chatgpt_prompt',
-            # ~ kwargs.get('dispatcher').bot,
-            # ~ kwargs.get('message').get_args(),
-        # ~ )
-        # ~ logger.info(f"Using prompt: {kwargs.get('prompt')}")
-        # ~ kwargs['ollama_host'] = kwargs.get('dispatcher').config.deepseek.get(
-            # ~ 'ollama', {'host': "http://127.0.0.1:11434"}).get('host',
-            # ~ "http://127.0.0.1:11434")
-        # ~ logger.info(f"Using host: {kwargs.get('ollama_host')}")
-        # ~ kwargs['ollama_model'] = kwargs.get('dispatcher').config.deepseek.get(
-            # ~ 'ollama', {'model': "deepseek-r1:1.5b"}).get('model',
-            # ~ "deepseek-r1:1.5b")
-        # ~ logger.info(f"Using model: {kwargs.get('ollama_model')}")
-        # ~ post_data: dict[str, str] = {
-            # ~ 'model': kwargs.get('ollama_model'),
-            # ~ 'prompt': kwargs.get('prompt'),
-            # ~ 'stream': False,
-        # ~ }
-        # ~ async with aiohttp.ClientSession() as session:
-            # ~ async with session.post('/'.join([kwargs.get('ollama_host'),
-                # ~ 'api', 'generate']), data = post_data) as response:
-                # ~ logger.info(f"Status: {response.status}")
-                # ~ logger.info(f"""Content-type: \
-# ~ {response.headers['content-type']}""")
-                # ~ html = await response.text()
-                # ~ logger.info(f"Body: {html[:15]}...")
-                # ~ logger.info(f"Body: {html}...")
-                # ~ text = html
-        # ~ completion: openai.Completion = await get_completion(*args,
-            # ~ **kwargs)
-        # ~ choice: dict = random.choice(completion.choices)
-        # ~ text: str = choice.get('text')
-    # ~ except Exception as e:
-        # ~ logger.exception(e)
-        # ~ raise
-    # ~ return text
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """Aiogram Handlers"""
@@ -202,7 +88,9 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                         # ~ command_buffer = []
                 # ~ if command:
                     # ~ await command_callback(command, descriptions)
-                command = await message.reply(''.join(['...'] + think_buffer))
+                command = await message.reply(
+                    spoiler(italic(''.join(think_buffer))),
+                    parse_mode = 'MarkdownV2')
                 await command_callback(command, descriptions)
                 command = await message.reply(''.join(answer_buffer))
                 await command_callback(command, descriptions)
@@ -216,7 +104,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                 # ~ )
         @dispatcher.message_handler(content_types = types.ContentTypes.TEXT,
             state = "*")
-        async def chance_gpt_callback(message: types.Message) -> None:
+        async def chance_deepseek_callback(message: types.Message) -> None:
             """Responde toda e qualquer mensagem em uma chance \
 aleatória"""
             try:
