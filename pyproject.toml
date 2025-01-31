@@ -1,3 +1,60 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "iacecil"
+version = "0.2.18"
+description = "ia.cecil"
+
+[tool.poetry.dependencies]
+python = "==3.10"
+aiodns = "*"
+aiogram = "==2.25.1"
+aiohttp = {extras = ["speedups"], version = "*"}
+apscheduler = "*"
+beautifulsoup4 = "*"
+boto3 = "*"
+brotlipy = "*"
+colorama = "*"
+ffmpeg-python = "*"
+flask-sqlalchemy = "*"
+flask-wtf = "*"
+furhat-remote-api = "*"
+google-search-results = "*"
+graphviz = "*"
+install-requires = "*"
+lxml = "*"
+matplotlib = "*"
+mpmath = "*"
+natsort = "*"
+networkx = {extras = ["default"], version = "*"}
+nltk = "*"
+numpy = "*"
+ollama = "*"
+openai = "*"
+pandas = "*"
+pydantic = {extras = ['dotenv'], version = "*"}
+pypng = "*"
+pyqrcode = "*"
+python-telegram-bot = "*"
+pytz = "*"
+quart = "*"
+requests = "*"
+sympy = "*"
+tabulate = "*"
+ujson = "*"
+urllib3 = "*"
+uvicorn = "*"
+uvloop = "*"
+validators = "*"
+web3 = "*"
+youtube-dl = "*"
+yt-dlp = "*"
+"zc.zlibstorage" = "*"
+zodb = "*"
+pydantic-settings = "*"
+quart-flask-patch = "*"
+
+[tool.poetry.dev-dependencies]
+iacecil = {path = ".", version = "*"}

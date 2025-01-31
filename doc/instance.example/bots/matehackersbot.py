@@ -1,9 +1,12 @@
-"""t.me/matehackersbot"""
+"""
+Example Telegram Bot (t.me/matehackersbot)
+Copy this file to instance/bots/matehackersbot.py
+"""
 
 import logging
 logger = logging.getLogger(__name__)
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 try:
     from .default import DefaultBotConfig
@@ -15,6 +18,7 @@ default_config = DefaultBotConfig()
 
 class BotConfig(BaseSettings):
     coinmarketcap: dict = default_config.coinmarketcap
+    deepseek: dict = default_config.deepseek
     discord: dict = default_config.discord
     donate: dict = default_config.donate
     furhat: dict = default_config.furhat
@@ -41,14 +45,12 @@ class BotConfig(BaseSettings):
             "qr",
             "storify",
             "tropixel",
-            "web3_wrapper",
             "ytdl",
             "rss",
             "tts",
             "garimpo",
             "natural",
             "default",
-            # ~ "tracker",
             "welcome",
         ], # enable
         disable = [
@@ -75,9 +77,11 @@ class BotConfig(BaseSettings):
             # ~ "default",
             # ~ "tts",
             # ~ "natural",
+            "web3_wrapper",
             "tracker",
             # ~ "welcome",
             # ~ "garimpo",
+            "deepseek",
         ], # disable
     ) # plugins
     telegram: dict = dict(

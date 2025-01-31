@@ -1,6 +1,9 @@
-"""Default configuration"""
+"""
+Default configuration for any bot
+Copy this file to instance/bots/default.py
+"""
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 class DefaultBotConfig(BaseSettings):
     """Default bot configuration"""
@@ -9,8 +12,8 @@ class DefaultBotConfig(BaseSettings):
     ## 'hashes', 'mate_matica', 'natural', 'portaria',
     ## 'qr', 'storify', 'totalvoice', 'tropixel', 'tts',
     ## 'welcome', 'ytdl'
-    ## FIXME: Some plugins currently will not work if loaded after others,
-    ## have to find out which is the correct order.
+    ## FIXME: Some plugins currently will not work if loaded after
+    ## others, have to find out which is the correct order.
     ## This assumes the current behaviour of ordered python lists.
     plugins: dict = {
         'all': [
@@ -34,6 +37,7 @@ class DefaultBotConfig(BaseSettings):
             "tts",
             "welcome",
             "ytdl",
+            "deepseek",
         ], # all
         'enable': [
             "default",
@@ -92,8 +96,8 @@ class DefaultBotConfig(BaseSettings):
         'boteco': "garbage",
     }
     ## Plugin personalidade
-    ## List of working personalidades: 'iacecil', 'cryptoforex', 'default', 
-    ## 'matebot', 'metarec', 'pave', 'pacume', 'pasoca'
+    ## List of working personalidades: 'iacecil', 'cryptoforex',
+    ## 'default', 'matebot', 'metarec', 'pave', 'pacume', 'pasoca'
     personalidade: str = 'default'
     
     ## Plugin cryptoforex
@@ -223,8 +227,8 @@ class DefaultBotConfig(BaseSettings):
                 'auth_provider_x509_cert_url': """garbage""",
                 'client_x509_cert_url': """garbage""",
             }, # google
-            ## https://azure.microsoft.com/en-us/services/cognitive-services/
-            ## speech-to-text/
+            ## https://azure.microsoft.com/en-us/services/cognitive-ser\
+            ## vices/speech-to-text/
             'microsoft': {}, # microsoft
         }, # recognizer
         'synthesizer': {
@@ -240,3 +244,9 @@ class DefaultBotConfig(BaseSettings):
         'extension': "wav",
         'output_format': "pcm",
     } # furhat
+    deepseek: dict = {
+        'ollama': {
+            'host': "http://127.0.0.1:11434",
+            'model': "deepseek-r1:1.5b",
+        }, # ollama
+    } # deepseek

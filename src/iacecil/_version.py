@@ -19,5 +19,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
-__version__: str = "0.2.17"
+__version__: str = "0.2.18"
 

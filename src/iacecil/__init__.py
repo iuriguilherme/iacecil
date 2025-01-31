@@ -1,7 +1,7 @@
 """
 ia.cecil
 
-Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 name: str = 'iacecil'
 description: str = "Chatbot framework and set of tools"
-version: str = '0.0.0.0'
+version: str = '0.0.0'
 commit: str = '0000000'
 
 try:

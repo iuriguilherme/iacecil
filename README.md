@@ -355,7 +355,7 @@ O arquivo `testbot.py` deve ser parecido com isto:
 
 **instance/bots/testbot.py**
 ```
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 try:
     from .default import DefaultBotConfig
@@ -432,7 +432,7 @@ software segundo o passo anterior, lembrando de incluir o dicionário de
 configuração furhat e openai: 
 
 ```python
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 try:
     from .default import DefaultBotConfig
@@ -463,6 +463,25 @@ O programa roda com esse controlador:
 ```
 python -m iacecil fpersonas  
 ```
+
+---
+
+#### Deepseek
+
+Para usar o Deepseek com ia.cecil, atualmente são suportados os seguintes 
+métodos:  
+
+1. Ollama
+
+##### Ollama
+
+ia.cecil uses the [ollama pip package](https://pypi.org/project/ollama/) to 
+interact with deepseek.  
+
+Install ollama locally, set it to serve on the default port as described in 
+the [docs](https://github.com/ollama/ollama/tree/main/docs).  
+
+Run the Deepseek model (for example `ollama run deepseek-r1:1.5b`)  
 
 ---
 
@@ -619,7 +638,7 @@ acesse via `CURL IP:5000`
 Licença
 ---
 
-Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>  
+Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>  
 
 **Este programa é um software livre; você pode redistribuí-lo e/ou**  
 **modificá-lo sob os termos da Licença Pública Geral GNU como publicada**  

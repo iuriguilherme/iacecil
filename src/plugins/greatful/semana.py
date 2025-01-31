@@ -3,7 +3,7 @@ Plugin greatful para ia.cecil: Comandos para Greatful
 
 ia.cecil
 
-Copyleft 2019-2022 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2019-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

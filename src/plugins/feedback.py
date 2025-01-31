@@ -3,7 +3,7 @@ Plugin feedback para ia.cecil: Envia feedback para o grupo de administração.
 
 ia.cecil
 
-Copyleft 2016-2022 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2016-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

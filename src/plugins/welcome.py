@@ -3,7 +3,7 @@ Plugin welcome para ia.cecil: Boas vindas a pessoas que entram em grupos
 
 ia.cecil
 
-Copyleft 2020-2022 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2020-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

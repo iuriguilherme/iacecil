@@ -1,7 +1,7 @@
 """
 ia.cecil
 
-Copyleft 2012-2023 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 import asyncio
 import json
+import quart_flask_patch
 import secrets
 from aiogram import (
     Bot,
@@ -53,7 +54,6 @@ from aiogram import (
 from quart import (
     Quart,
     current_app,
-    flask_patch,
     jsonify,
     render_template,
 )

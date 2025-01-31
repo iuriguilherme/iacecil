@@ -1,7 +1,7 @@
 """
 Plugin log para ia.cecil: logging/debugging
 
-Copyleft 2016-2023 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2016-2025 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
