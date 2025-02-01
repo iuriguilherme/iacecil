@@ -53,7 +53,8 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     """Aiogram Handlers"""
     try:
         @dispatcher.message_handler(commands = ['ds', 'deepseek'])
-        async def deepseek_callback(message: types.Message) -> None:
+        async def deepseek_callback(message: types.Message,
+            reply: bool = False) -> None:
             """Callback for /ds command handler"""
             command: types.Message | None = None
             think: bool = False
@@ -67,10 +68,14 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     'ollama', {'model': "deepseek-r1:1.5b"}).get('model',
                     "deepseek-r1:1.5b")
                 await message_callback(message, descriptions)
-                ollama_message: dict[str] = {'role': 'user',
-                    'content': message.get_args()}
+                ollama_messages: list[dict] = []
+                if reply:
+                    ollama_messages.append({'role': 'assistant',
+                        'content': message['reply_to_message']['text']})
+                ollama_messages.append({'role': 'user',
+                    'content': message.get_args()})
                 async for part in await AsyncClient().chat(
-                    model = ollama_model, messages = [ollama_message],
+                    model = ollama_model, messages = ollama_messages,
                     stream = True):
                     logger.debug(f"""Chat completion part:
 {part['message']['content']}""")
@@ -109,7 +114,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
             descriptions: list[str] = ['resposta', 'deepseek',
                 dispatcher.config.personalidade, message.chat.type]
             try:
-                await deepseek_callback(message)
+                await deepseek_callback(message, True)
             except Exception as e:
                 logger.exception(e)
                 await error_callback(
