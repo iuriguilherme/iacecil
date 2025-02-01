@@ -55,13 +55,14 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         @dispatcher.message_handler(commands = ['ds', 'deepseek'])
         async def deepseek_callback(message: types.Message) -> None:
             """Callback for /ds command handler"""
-            descriptions: list[str] = ['deepseek',
-                dispatcher.config.personalidade, message.chat.type]
             command: types.Message | None = None
             think: bool = False
             think_buffer: list = []
             answer_buffer: list = []
             try:
+                descriptions: list[str] = ['deepseek',
+                    dispatcher.config.personalidade, message.chat.type]
+                await message_callback(message, descriptions)
                 ollama_model: str = dispatcher.config.deepseek.get(
                     'ollama', {'model': "deepseek-r1:1.5b"}).get('model',
                     "deepseek-r1:1.5b")
@@ -96,12 +97,27 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                 await command_callback(command, descriptions)
             except Exception as e:
                 logger.exception(e)
-                # ~ await error_callback(
-                    # ~ "Erro genérico",
-                    # ~ message,
-                    # ~ e,
-                    # ~ ['exception'] + descriptions,
-                # ~ )
+                await error_callback(
+                    "Erro com resposta deepseek",
+                    message,
+                    e,
+                    ['exception'] + descriptions,
+                )
+        @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+        async def resposta_deepseek_callback(message: types.Message) -> None:
+            """Reply all replies to this bot"""
+            descriptions: list[str] = ['resposta', 'deepseek',
+                dispatcher.config.personalidade, message.chat.type]
+            try:
+                await deepseek_callback(message)
+            except Exception as e:
+                logger.exception(e)
+                await error_callback(
+                    "Erro com resposta deepseek",
+                    message,
+                    e,
+                    ['exception'] + descriptions,
+                )
         @dispatcher.message_handler(content_types = types.ContentTypes.TEXT,
             state = "*")
         async def chance_deepseek_callback(message: types.Message) -> None:
