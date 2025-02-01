@@ -73,24 +73,28 @@ Estatísticas
 ---
 
 ```
-    1199 text files.
-     532 unique files.
-    1033 files ignored.
+    100 files
+    196 text files.
+    classified 181 files
+    Duplicate file check 181 files (173 known unique)    Unique: 100 files
+    176 unique files.
+    Counting: 100
+    59 files ignored.
 
-github.com/AlDanial/cloc v 1.90  T=167.99 s (1.3 files/s, 186.1 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.19 s (946.1 files/s, 129617.4 lines/s)
 --------------------------------------------------------------------------------
 Language                      files          blank        comment           code
 --------------------------------------------------------------------------------
-Python                          177           1810           7242          19152
+Python                          127           1500           4287          14509
+Markdown                          3            369              0           1356
 HTML                             22             19             78           1338
-Markdown                          3            343              0           1210
-XML                               2              0              0             22
+Text                             15             74              0            478
+TOML                              1              3              0             57
 JavaScript                        4              4             19              5
-Bourne Again Shell                1              0              0              4
+Bourne Again Shell                1              0              1              3
 CSS                               3              0             10              3
-TOML                              1              0              0              3
 --------------------------------------------------------------------------------
-SUM:                            213           2176           7349          21737
+SUM:                            176           1969           4395          17749
 --------------------------------------------------------------------------------
 ```
 
