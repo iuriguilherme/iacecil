@@ -18,6 +18,7 @@ class XMPPBot(ClientXMPP):
         self.add_event_handler("disconnected", self.on_disconnected)
 
     async def start(self, event):
+        logger.info(f"XMPP session started as {self.boundjid.full}")
         self.send_presence()
         self.get_roster()
 
@@ -32,6 +33,9 @@ class XMPPBot(ClientXMPP):
             self.connector.running = False
 
     async def message(self, msg):
+        if msg['from'].full == self.boundjid.full:
+            ## Own messages echoed back by server; replying would loop
+            return
         if msg['type'] in ('chat', 'normal'):
             env = Envelope(
                 platform='xmpp',

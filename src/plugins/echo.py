@@ -42,3 +42,15 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     except Exception as e:
         logger.exception(e)
         raise
+
+async def echo_envelope(envelope) -> str:
+    """Echo handler for connector platforms (testing)"""
+    return envelope.text
+
+async def _add_connector_handlers(manager) -> None:
+    """Echo every message that no command handler claimed"""
+    manager.set_default_handler(echo_envelope)
+
+add_handlers_xmpp = _add_connector_handlers
+add_handlers_loopback = _add_connector_handlers
+add_handlers_discord = _add_connector_handlers

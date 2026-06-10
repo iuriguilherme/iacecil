@@ -60,13 +60,16 @@ class ConnectorManager:
             return bool(conf.get('token'))
         return True
 
-    def _load_connectors(self):
+    def _config_as_dict(self):
         if hasattr(self.bot_config, 'model_dump'):
-            config_dict = self.bot_config.model_dump()
-        else:
-            config_dict = getattr(self.bot_config, '__dict__', {})
-            if not config_dict and isinstance(self.bot_config, dict):
-                config_dict = self.bot_config
+            return self.bot_config.model_dump()
+        config_dict = getattr(self.bot_config, '__dict__', {})
+        if not config_dict and isinstance(self.bot_config, dict):
+            config_dict = self.bot_config
+        return config_dict
+
+    def _load_connectors(self):
+        config_dict = self._config_as_dict()
 
         allowed_connectors = {'telegram', 'xmpp', 'loopback', 'discord'}
         
@@ -118,6 +121,11 @@ class ConnectorManager:
         elif self.default_handler:
             handler = self.default_handler
             
+        if not handler:
+            logger.info(
+                f"No handler for {envelope.platform} message"
+                f" (cmd={cmd!r}, registered: {list(self.command_registry)})"
+            )
         if handler:
             try:
                 reply_text = await handler(envelope)
@@ -147,7 +155,20 @@ class ConnectorManager:
             except Exception:
                 pass
 
+    async def _load_plugins(self):
+        plugins_conf = self._config_as_dict().get('plugins') or {}
+        disabled = set(plugins_conf.get('disable', []))
+        enabled = [p for p in plugins_conf.get('enable', [])
+            if p not in disabled]
+        for name in self.connectors:
+            if name == 'telegram':
+                ## Legacy aiogram path loads telegram plugins (aiogram_bot)
+                continue
+            for plugin in enabled:
+                await load_plugin(name, plugin, self)
+
     async def run_all(self):
+        await self._load_plugins()
         tasks = []
         for name, connector in self.connectors.items():
             tasks.append(asyncio.create_task(self._run_connector(name, connector)))
