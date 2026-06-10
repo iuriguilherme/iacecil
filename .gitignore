@@ -154,3 +154,5 @@ Thumbs.db
 *.sock
 .env
 config.py
+*.local.md
+

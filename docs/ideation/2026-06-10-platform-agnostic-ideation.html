@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: Platform-Agnostic ia.cecil</title>
+<style>
+:root {
+  --bg: #fbfaf8;
+  --ink: #25231f;
+  --muted: #6b675e;
+  --accent: #0e7a5f;
+  --accent-soft: #e6f2ee;
+  --accent-text: #0a5c48;
+  --warn-soft: #fdf0e3;
+  --warn-text: #93521a;
+  --line: #e3e0d8;
+  --card: #ffffff;
+  --code-bg: #f1efe9;
+  --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.page { max-width: 920px; margin-inline: auto; padding: 2.5rem 1.5rem 4rem; }
+p, li { max-width: 72ch; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0.3rem 0 0.5rem; }
+h2 { font-size: 1.3rem; margin: 2.6rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--line); }
+h3 { font-size: 1.08rem; margin: 0; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+pre { background: var(--code-bg); padding: 0.8rem 1rem; border-radius: 8px; overflow-x: auto; max-width: 100%; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent-text); }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.meta-header { display: flex; flex-wrap: wrap; gap: 0.5rem 1.8rem; margin: 0.8rem 0 0; font-size: 0.85rem; color: var(--muted); }
+.meta-header strong { color: var(--ink); font-weight: 600; }
+.stats { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.4rem 0 0; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 1rem; font-size: 0.82rem; color: var(--muted); }
+.stat b { display: block; font-size: 1.15rem; color: var(--ink); }
+.idea { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem 1.4rem; margin: 1.2rem 0; }
+.idea-head { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.idchip { font-family: var(--mono); font-size: 0.8rem; font-weight: 700; background: var(--accent-soft); color: var(--accent-text); border-radius: 999px; padding: 0.15rem 0.65rem; }
+.chips { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-left: auto; }
+.chip { font-size: 0.72rem; font-weight: 600; border-radius: 999px; padding: 0.18rem 0.6rem; background: var(--code-bg); color: var(--muted); }
+.chip.conf-high { background: var(--accent-soft); color: var(--accent-text); }
+.chip.conf-med { background: var(--warn-soft); color: var(--warn-text); }
+.field { margin: 0.55rem 0; }
+.field-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; display: block; margin-bottom: 0.1rem; }
+.jump { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 1.2rem; margin: 1rem 0 1.6rem; }
+.jump ol { margin: 0.3rem 0 0; padding-left: 1.4rem; }
+.jump li { margin: 0.15rem 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.axes li { margin: 0.3rem 0; }
+.axes code { font-weight: 600; }
+figure { margin: 1rem 0 0.4rem; }
+figure svg { max-width: 100%; height: auto; display: block; }
+figcaption { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+.composition-signal { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--muted); }
+.grounding-grid { display: grid; grid-template-columns: 1fr; gap: 0.4rem; }
+@media (min-width: 760px) { .grounding-grid { grid-template-columns: 1fr 1fr; gap: 1.2rem; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+<span class="eyebrow">Ideation</span>
+<h1>Platform-Agnostic ia.cecil</h1>
+<div class="meta-header">
+  <span><strong>Date:</strong> 2026-06-10</span>
+  <span><strong>Topic:</strong> platform-agnostic</span>
+  <span><strong>Mode:</strong> repo-grounded</span>
+</div>
+<p style="margin-top:0.9rem;"><strong>Focus:</strong> The current state of the software is not agnostic as originally intended — it only works as a Telegram bot. We need to introduce new platforms like Discord and XMPP and let the bot configuration decide which platforms it connects to.</p>
+
+<div class="stats">
+  <div class="stat"><b>49</b> raw ideas</div>
+  <div class="stat"><b>6</b> frames</div>
+  <div class="stat"><b>7</b> survivors</div>
+  <div class="stat"><b>5/5</b> axes covered</div>
+</div>
+
+<h2 id="grounding">Grounding Context</h2>
+<div class="grounding-grid">
+<div>
+<p><strong>Codebase Context.</strong> Python 3.10, aiogram pinned <code>==2.25.1</code> (EOL), plugin + personality architecture, Quart ASGI wrapper, ZODB persistence, per-bot pydantic configs in <code>instance/bots/</code>. The Telegram coupling is total: all ~30 plugins import aiogram directly (<code>@dispatcher.message_handler</code>, <code>types.Message</code>); <code>IACecilBot</code> subclasses aiogram's <code>Bot</code> with Telegram-specific <code>send_*</code> overrides and exception taxonomy (<code>RetryAfter</code>, <code>BotKicked</code> → <code>sys.exit</code>); personalidades receive <code>types.Message</code>; <code>callbacks.py</code> persists live aiogram objects to ZODB. The <code>discord</code> config dict exists with zero consuming code. Furhat support lives as a parallel controller tree (<code>furhat_bot/</code>, ~300 lines) duplicating personality logic.</p>
+<p><strong>Leverage points.</strong> Uniform plugin contract <code>async def add_handlers(dispatcher)</code>; personalities are mostly text generation; flexible per-bot config; message logging centralized in one file. Strategy (STRATEGY.md): <em>"Composability via runtime-loadable modules — plugins define capabilities, personalities define behavior — so any combination of platform, community, and experiment can be assembled without forking code."</em></p>
+</div>
+<div>
+<p><strong>External Context.</strong> Errbot's backend ABC with normalized Message + extras escape hatch; opsdroid's Connector ABC (<code>connect/listen/send</code>) with <code>@register_event</code> type-level capability detection; Matterbridge's transparent envelope whose <code>Extra</code> map the core never inspects; Hubot's adapter pattern with its known unsolved problem — cross-platform user identity; MS Bot Framework's Activity schema with <code>channelData</code>. Capability-negotiation analogies: XMPP XEP-0030, LSP handshake, GStreamer caps, Unreal RHI feature levels. Library landscape 2026: hikari is the cleanest Discord lib to wrap; slixmpp is the live XMPP choice (aioxmpp is dead); matrix-nio is sans-I/O. The aiogram 2→3 migration is itself breaking — its Router primitive decouples handler registration from the Dispatcher.</p>
+<p><strong>Past Learnings.</strong> No <code>docs/solutions/</code> knowledge base exists; the in-repo prior art is the Furhat fork and the inert Discord config — the de facto record of past platform-integration attempts.</p>
+</div>
+</div>
+
+<h2 id="axes">Topic Axes</h2>
+<ul class="axes">
+  <li><code>connector-boundary</code> — the adapter/driver interface each platform implements</li>
+  <li><code>message-model</code> — normalized message/event types and platform escape hatches</li>
+  <li><code>plugin-migration</code> — moving ~30 aiogram-coupled plugins to a new contract without a big-bang rewrite</li>
+  <li><code>config-and-selection</code> — per-bot platform selection, multi-platform identity, instance/ config shape</li>
+  <li><code>capability-handling</code> — platform-specific features without lowest-common-denominator dumbing-down</li>
+</ul>
+
+<h2 id="ideas">Ranked Ideas</h2>
+
+<div class="jump">
+<span class="eyebrow">Jump to</span>
+<ol>
+  <li><a href="#i1">Aiogram compat shim — plugins run unmodified</a></li>
+  <li><a href="#i2">Loopback connector as platform #0</a></li>
+  <li><a href="#i3">Minimal connector ABC; connectors loaded like plugins</a></li>
+  <li><a href="#i4">Per-bot <code>connections</code> list; kill CLI mode dispatch</a></li>
+  <li><a href="#i5">Personalities go platform-blind first</a></li>
+  <li><a href="#i6">One data-model decision: envelope, persisted record, identity</a></li>
+  <li><a href="#i7">Capability tiers and degradation ladders</a></li>
+</ol>
+</div>
+
+<article class="idea" id="i1">
+<div class="idea-head">
+  <span class="idchip">1</span>
+  <h3>Aiogram compat shim — plugins run unmodified</h3>
+  <div class="chips">
+    <span class="chip">plugin-migration</span>
+    <span class="chip conf-high">Confidence 85%</span>
+    <span class="chip">Complexity Medium</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+The plugins use a tiny, uniform slice of aiogram — roughly ten symbols: <code>Dispatcher.message_handler</code>, <code>register_message_handler</code>, <code>types.Message.reply/.answer</code>, filter kwargs, <code>message.chat.type</code>. Build <code>iacecil.compat</code>: a duck-typed emulation of exactly that surface, backed by a platform-neutral event bus instead of Telegram. All ~30 plugins run unchanged on any platform from day one; native migration happens opportunistically, plugin by plugin, and the shim is deleted last. A stronger variant promotes the Telegram Message schema itself to the canonical wire format, with connectors translating Discord/XMPP events <em>into</em> Telegram-shaped objects.</div>
+<figure>
+<svg viewBox="0 0 760 220" role="img" aria-label="Before and after: plugins coupled to aiogram versus plugins on a compat shim over a neutral bus">
+  <text x="95" y="22" font-size="12" font-weight="700" fill="#6b675e">TODAY</text>
+  <rect x="20" y="35" width="150" height="38" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="95" y="59" font-size="13" text-anchor="middle" fill="#25231f">~30 plugins</text>
+  <line x1="95" y1="73" x2="95" y2="100" stroke="#93521a" stroke-width="2"/>
+  <rect x="20" y="100" width="150" height="38" rx="8" fill="#fdf0e3" stroke="#e3c9a8"/>
+  <text x="95" y="124" font-size="13" text-anchor="middle" fill="#93521a">aiogram 2.25</text>
+  <line x1="95" y1="138" x2="95" y2="165" stroke="#93521a" stroke-width="2"/>
+  <rect x="20" y="165" width="150" height="38" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="95" y="189" font-size="13" text-anchor="middle" fill="#25231f">Telegram only</text>
+
+  <text x="510" y="22" font-size="12" font-weight="700" fill="#6b675e">WITH SHIM</text>
+  <rect x="360" y="35" width="150" height="38" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="435" y="59" font-size="13" text-anchor="middle" fill="#25231f">~30 plugins</text>
+  <text x="435" y="50" font-size="10" text-anchor="middle" fill="#0a5c48" font-weight="600"></text>
+  <line x1="435" y1="73" x2="435" y2="100" stroke="#0e7a5f" stroke-width="2"/>
+  <rect x="360" y="100" width="150" height="38" rx="8" fill="#e6f2ee" stroke="#9fcfc0"/>
+  <text x="435" y="118" font-size="12" text-anchor="middle" fill="#0a5c48" font-weight="600">iacecil.compat</text>
+  <text x="435" y="132" font-size="10" text-anchor="middle" fill="#0a5c48">(fake aiogram surface)</text>
+  <line x1="435" y1="138" x2="435" y2="165" stroke="#0e7a5f" stroke-width="2"/>
+  <rect x="360" y="165" width="150" height="38" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="435" y="189" font-size="13" text-anchor="middle" fill="#25231f">neutral bus</text>
+  <line x1="510" y1="184" x2="560" y2="80" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="510" y1="184" x2="560" y2="184" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="510" y1="184" x2="560" y2="148" stroke="#6b675e" stroke-width="1.6"/>
+  <rect x="565" y="62" width="130" height="32" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="630" y="83" font-size="12" text-anchor="middle" fill="#25231f">Telegram</text>
+  <rect x="565" y="132" width="130" height="32" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="630" y="153" font-size="12" text-anchor="middle" fill="#25231f">Discord</text>
+  <rect x="565" y="168" width="130" height="32" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="630" y="189" font-size="12" text-anchor="middle" fill="#25231f">XMPP</text>
+</svg>
+<figcaption>Illustrative: the shim replaces 30 plugin rewrites with one bounded compatibility module.</figcaption>
+</figure>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> the entire plugin surface is two registration idioms across the whole tree — e.g. <code>src/plugins/echo.py:37-38</code> is just <code>@dispatcher.message_handler()</code> + <code>message.answer()</code>; <code>fediboard.py:40-48</code> adds only <code>filters.Text</code> and <code>message.reply</code>. <code>external:</code> FreeBSD's Linuxulator (emulate the used subset of a foreign ABI, never recompile consumers), Matterbridge's envelope, MS Bot Framework's <code>channelData</code>.</div>
+<div class="field"><span class="field-label">Rationale</span>
+This idea emerged independently from all six ideation frames — the strongest convergence signal of the run. The migration cost everyone fears (30 plugin rewrites) is an illusion: emulating ~10 symbols converts a months-long port into one compatibility module plus per-platform connectors. It also absorbs the unavoidable aiogram 2→3 migration: since 2.25.1 is EOL and every plugin breaks under aiogram 3 anyway, the shim means that forced rewrite is paid once, not twice. A libcst codemod (rejected as a standalone idea) complements this for the eventual native migration.</div>
+<div class="field"><span class="field-label">Downsides</span>
+The shim freezes a 2021-era API as the de facto plugin contract; Telegram-isms (<code>chat.type</code>, numeric chat IDs) leak into the abstraction's vocabulary. Needs a deliberate sunset plan or it becomes permanent.</div>
+</article>
+
+<article class="idea" id="i2">
+<div class="idea-head">
+  <span class="idchip">2</span>
+  <h3>Loopback connector as platform #0</h3>
+  <div class="chips">
+    <span class="chip">connector-boundary</span>
+    <span class="chip conf-high">Confidence 90%</span>
+    <span class="chip">Complexity Low</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Ship an in-tree stdin/REPL connector and define the acceptance test for the whole effort as: the framework boots, loads plugins and personalities, and holds a full conversation with <em>no network platform at all</em>. Telegram is then re-added as just another connector passing the same suite. Sequencing follows: loopback → compat shim → Furhat port (the in-house stress test — speech, no chat_id, no markdown breaks every Telegram assumption Discord wouldn't) → Discord/XMPP.</div>
+<div class="field"><span class="field-label">Basis</span>
+<code>reasoned:</code> any plugin that cannot run against a terminal has, by construction, a hidden Telegram dependency the abstraction failed to capture — the flip turns "is it agnostic?" from an opinion into a runnable falsifier. <code>direct:</code> CLAUDE.md: "No test suite beyond running the bot itself."</div>
+<div class="field"><span class="field-label">Rationale</span>
+One artifact buys three things: the definition-of-done for agnosticism, the project's first test harness (CI becomes possible — directly serving STRATEGY.md's "experiment completion rate" metric), and the development loop for every future connector author. It is the cheapest item on this list and de-risks everything else.</div>
+<div class="field"><span class="field-label">Downsides</span>
+A terminal can't exercise media flows (voice, stickers, photos) realistically, so loopback alone under-tests the capability surface — it needs idea 7's degradation ladders to be honest about media.</div>
+</article>
+
+<article class="idea" id="i3">
+<div class="idea-head">
+  <span class="idchip">3</span>
+  <h3>Minimal connector ABC; connectors loaded like plugins</h3>
+  <div class="chips">
+    <span class="chip">connector-boundary</span>
+    <span class="chip conf-high">Confidence 80%</span>
+    <span class="chip">Complexity High</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Demote Telegram from chassis to connector #1. Define a small connector interface (<code>connect/listen/send</code> + event callbacks, after opsdroid), where each connector owns its own delivery policy — the retry, 2048-char message splitting, and dead-chat handling currently hardcoded in <code>IACecilBot.exception_handler</code> move inside the Telegram connector, and Discord/XMPP connectors bring their own. Connectors are discovered by name from config exactly like plugins are today, optionally via Python entry points (<code>iacecil.connectors</code>) so <code>pip install iacecil-connector-xmpp</code> adds a platform with zero core edits. The first work item inside this boundary: decouple operator observability — today <code>log.py</code> sends debug/error reports to a Telegram chat and <code>bot.py</code> calls <code>sys.exit</code> when kicked from the logger group, meaning the debug tool only works on the platform that's broken.</div>
+<figure>
+<svg viewBox="0 0 740 200" role="img" aria-label="Core with peer connectors: Telegram, Discord, XMPP, Furhat, Loopback all implement the same small interface">
+  <rect x="270" y="20" width="200" height="58" rx="10" fill="#e6f2ee" stroke="#9fcfc0"/>
+  <text x="370" y="44" font-size="13" text-anchor="middle" fill="#0a5c48" font-weight="600">neutral core</text>
+  <text x="370" y="62" font-size="10" text-anchor="middle" fill="#0a5c48">plugins · personalities · bus</text>
+  <line x1="310" y1="78" x2="115" y2="140" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="340" y1="78" x2="255" y2="140" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="370" y1="78" x2="370" y2="140" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="400" y1="78" x2="485" y2="140" stroke="#6b675e" stroke-width="1.6"/>
+  <line x1="430" y1="78" x2="625" y2="140" stroke="#6b675e" stroke-width="1.6"/>
+  <rect x="50" y="140" width="130" height="36" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="115" y="163" font-size="12" text-anchor="middle" fill="#25231f">Telegram</text>
+  <rect x="190" y="140" width="130" height="36" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="255" y="163" font-size="12" text-anchor="middle" fill="#25231f">Discord</text>
+  <rect x="330" y="140" width="80" height="36" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="370" y="163" font-size="12" text-anchor="middle" fill="#25231f">XMPP</text>
+  <rect x="420" y="140" width="130" height="36" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="485" y="163" font-size="12" text-anchor="middle" fill="#25231f">Furhat</text>
+  <rect x="560" y="140" width="130" height="36" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="625" y="163" font-size="12" text-anchor="middle" fill="#25231f">Loopback</text>
+</svg>
+<figcaption>Illustrative: every platform — including the Furhat fork and the loopback harness — becomes a peer behind one small interface.</figcaption>
+</figure>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> <code>bot.py:55-262</code> holds the Telegram failure policy (flood-control retry, splitting at <code>limit = 2048</code>, <code>BotKicked → sys.exit</code>) inside a <code>Bot</code> subclass the whole framework instantiates; the dynamic-loading machinery already exists and is battle-tested at <code>aiogram_bot/__init__.py:104</code> (<code>import_module('.' + plugin, 'plugins')</code>). <code>external:</code> opsdroid's three-method Connector ABC; Errbot backends; pytest/Datasette entry-points discovery.</div>
+<div class="field"><span class="field-label">Rationale</span>
+Reuses the project's strongest proven mechanism (config-driven dynamic module loading) for its weakest area (platform coupling) — extending STRATEGY.md's composability bet one level down. Entry points convert the connector boundary from internal API to ecosystem API: community connectors can exist outside the repo. Without this, every future platform costs "fork the controller tree" — the Furhat tax, already paid once.</div>
+<div class="field"><span class="field-label">Downsides</span>
+The largest single piece of work on this list; the ABC's verb set is a one-shot interface decision that every connector marries. Multi-connector lifecycle (N listeners on one event loop, partial failures) is genuinely new complexity the current single-dispatcher runner never faced.</div>
+</article>
+
+<article class="idea" id="i4">
+<div class="idea-head">
+  <span class="idchip">4</span>
+  <h3>Per-bot <code>connections</code> list; kill CLI mode dispatch</h3>
+  <div class="chips">
+    <span class="chip">config-and-selection</span>
+    <span class="chip conf-high">Confidence 85%</span>
+    <span class="chip">Complexity Medium</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Redefine a bot as <em>persona + plugin set + connections</em>, where <code>connections</code> is a list of (platform, credentials, per-platform overrides) entries in <code>BotConfig</code>. One unified runner reads the config and instantiates one connector per connection — the same bot identity rides Telegram, Discord, and XMPP simultaneously. The four-way CLI mode dispatch in <code>__main__.py</code> (<code>production</code> / <code>fpersonas</code> / <code>furhatgpt</code> / default) collapses: platform selection moves from "which runner module you launch" to data. The dead <code>discord</code> config dict becomes live the day a connector exists.</div>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> <code>config.py:419</code> carries <code>discord: dict = {'token': ""}</code> with zero consuming code; <code>config.py:162-172</code> types <code>telegram</code>/<code>discord</code>/<code>furhat</code> as parallel dicts on the same BotConfig — the schema already gestures at multi-platform while the runtime only ever reads <code>telegram</code>; <code>__main__.py</code> dispatches to four separate runner modules.</div>
+<div class="field"><span class="field-label">Rationale</span>
+This is the user's literal acceptance criterion — "bot config decides which platforms it connects to" — made a first-class config primitive instead of an emergent property of which controller you launch. It also forces the runner unification all other ideas depend on.</div>
+<div class="field"><span class="field-label">Downsides</span>
+Breaks the <code>instance/bots/*.py</code> schema (one migration for existing deployments) and deletes a CLI contract production systems currently invoke — needs a deprecation path for the systemd units that call <code>pipenv run prod</code> and <code>fpersonas</code>.</div>
+</article>
+
+<article class="idea" id="i5">
+<div class="idea-head">
+  <span class="idchip">5</span>
+  <h3>Personalities go platform-blind first</h3>
+  <div class="chips">
+    <span class="chip">plugin-migration</span>
+    <span class="chip conf-high">Confidence 80%</span>
+    <span class="chip">Complexity Low–Medium</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Personalities are nearly pure text generation, yet each ships its own <code>add_handlers(dispatcher)</code> touching aiogram directly. Strip that privilege: a personality becomes a declarative command→async-text-function map (<code>{"start": start, "help": help, ...}</code>), and the core auto-generates platform-appropriate registrations per connector. All 11 personality modules become platform-agnostic in one stroke without editing their text logic — and the Furhat controller's ~300 lines of duplicated personality handling collapse into the same map. The same persona speaks on Telegram, Discord, and a robot face months before plugin parity.</div>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> the personalidade layer is "mostly text generation" yet every module exposes <code>add_handlers(dispatcher)</code> receiving aiogram types; <code>furhat_bot/</code> (<code>personas/</code>, <code>borogodo.py</code>, <code>chatgpt.py</code>) duplicates personality dispatch precisely because the aiogram entanglement made sharing impossible — the fork is the in-repo proof of what the current contract costs.</div>
+<div class="field"><span class="field-label">Rationale</span>
+The cheapest large win available: the layer closest to pure data is coupled for no functional reason. Decoupling it makes "any personality on any platform" true immediately — the core promise of STRATEGY.md's composability claim — and ships a visible cross-platform result early, which keeps a long migration motivated.</div>
+<div class="field"><span class="field-label">Downsides</span>
+Changes the authoring contract for all 11 personalities and every future one (an API freeze decision); personalities that do more than text (Furhat gestures, LED control) need the capability escape hatch from idea 6 to avoid re-coupling.</div>
+</article>
+
+<article class="idea" id="i6">
+<div class="idea-head">
+  <span class="idchip">6</span>
+  <h3>One data-model decision: envelope, persisted record, identity</h3>
+  <div class="chips">
+    <span class="chip">message-model</span>
+    <span class="chip conf-med">Confidence 65%</span>
+    <span class="chip">Complexity High</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Three things that look separate are one schema decision, and should be designed together. (a) The runtime <strong>envelope</strong>: a normalized core (text, sender ref, conversation ref, reply target, tags) plus a <code>raw</code>/<code>extra</code> escape hatch the core never inspects — Matterbridge's transparent-envelope pattern. (b) The <strong>persisted record</strong>: today <code>callbacks.py</code> does <code>setattr(message, 'tags', ...)</code> on live aiogram objects and hands them to <code>zodb_logger</code> — ZODB pickles aiogram class instances, meaning the database itself is aiogram-shaped and years of history become unreadable the day aiogram is upgraded or removed. Store the neutral record instead, with a one-time migration. (c) The <strong>canonical identity registry</strong>: a Person record keyed in ZODB, with each connector resolving its native ID (Telegram user_id, XMPP JID, Discord snowflake) via a link/claim flow — so allowlists, admin rights, and conversation memory follow the human across platforms.</div>
+<figure>
+<svg viewBox="0 0 740 210" role="img" aria-label="Envelope with normalized core and raw escape hatch, flowing to a neutral ZODB record keyed by canonical Person identity">
+  <rect x="30" y="30" width="240" height="150" rx="10" fill="#fff" stroke="#e3e0d8"/>
+  <text x="150" y="52" font-size="12" text-anchor="middle" font-weight="700" fill="#25231f">Envelope</text>
+  <rect x="50" y="65" width="200" height="56" rx="6" fill="#e6f2ee" stroke="#9fcfc0"/>
+  <text x="150" y="86" font-size="11" text-anchor="middle" fill="#0a5c48">normalized core</text>
+  <text x="150" y="102" font-size="10" text-anchor="middle" fill="#0a5c48">text · sender · conversation · tags</text>
+  <rect x="50" y="130" width="200" height="36" rx="6" fill="#fdf0e3" stroke="#e3c9a8"/>
+  <text x="150" y="152" font-size="11" text-anchor="middle" fill="#93521a">raw / extra (core never inspects)</text>
+  <line x1="270" y1="93" x2="330" y2="93" stroke="#6b675e" stroke-width="1.8"/>
+  <text x="300" y="84" font-size="10" text-anchor="middle" fill="#6b675e">persist</text>
+  <rect x="335" y="55" width="180" height="80" rx="10" fill="#fff" stroke="#e3e0d8"/>
+  <text x="425" y="80" font-size="12" text-anchor="middle" font-weight="700" fill="#25231f">neutral ZODB record</text>
+  <text x="425" y="100" font-size="10" text-anchor="middle" fill="#6b675e">(not pickled aiogram objects)</text>
+  <text x="425" y="118" font-size="10" text-anchor="middle" fill="#6b675e">platform · text · refs · ts</text>
+  <line x1="515" y1="95" x2="575" y2="95" stroke="#6b675e" stroke-width="1.8"/>
+  <text x="545" y="86" font-size="10" text-anchor="middle" fill="#6b675e">keyed by</text>
+  <rect x="580" y="40" width="140" height="110" rx="10" fill="#e6f2ee" stroke="#9fcfc0"/>
+  <text x="650" y="65" font-size="12" text-anchor="middle" font-weight="700" fill="#0a5c48">Person</text>
+  <text x="650" y="88" font-size="10" text-anchor="middle" fill="#0a5c48">tg: 123456</text>
+  <text x="650" y="105" font-size="10" text-anchor="middle" fill="#0a5c48">xmpp: a@b.org</text>
+  <text x="650" y="122" font-size="10" text-anchor="middle" fill="#0a5c48">discord: 9876…</text>
+</svg>
+<figcaption>Illustrative: one schema decision spanning runtime envelope, storage, and cross-platform identity.</figcaption>
+</figure>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> <code>callbacks.py:37-52</code> — every handled message flows through <code>message_callback</code>, which mutates the aiogram object before <code>zodb_logger(message)</code>; the DB schema <em>is</em> aiogram, a silent lock-in worse than the import coupling. <code>external:</code> Matterbridge <code>Extra</code> / MS <code>channelData</code> escape hatches; Hubot's cross-platform identity gap is the named unsolved problem in all surveyed prior art; telephony's number-portability database is the industrial solution to the same shape.</div>
+<div class="field"><span class="field-label">Rationale</span>
+The persisted-aiogram discovery is the sharpest finding of the grounding pass — a coupling that would bite any migration plan if found late. Identity is the part of multi-platform that retrofits worst: every plugin storing per-user state hardcodes Telegram IDs today. Solving envelope + storage + identity as one design makes the abstraction durable instead of cosmetic, and would be ia.cecil's actual differentiator over the prior art.</div>
+<div class="field"><span class="field-label">Downsides</span>
+Schema decisions are near-irreversible in ZODB and this one spans persistence, security (who is an admin), and privacy (linking identities across platforms). Requires a data migration for existing instances. Confidence is moderate because the identity-linking UX (claim flow) is unvalidated.</div>
+</article>
+
+<article class="idea" id="i7">
+<div class="idea-head">
+  <span class="idchip">7</span>
+  <h3>Capability tiers and degradation ladders</h3>
+  <div class="chips">
+    <span class="chip">capability-handling</span>
+    <span class="chip conf-med">Confidence 60%</span>
+    <span class="chip">Complexity Medium</span>
+  </div>
+</div>
+<div class="field"><span class="field-label">Description</span>
+Each connector advertises a capability set (voice, stickers, edits, markup dialect, max message length); the framework — not the plugins — owns degradation ladders applied automatically: sticker→image→emoji→text, voice→audio file→transcript, inline keyboard→numbered text menu, long message→split. Policy: <em>degrade, never gate</em> — no plugin may ever be platform-gated, so a text-only XMPP connector still runs the <code>tts</code> and <code>qr</code> plugins, just degraded. The closed five-verb output surface already enumerated in <code>bot.py</code> (<code>send_photo/voice/video/message/sticker</code>) is exactly where the ladders attach.</div>
+<figure>
+<svg viewBox="0 0 740 120" role="img" aria-label="Degradation ladder: sticker falls back to image, then emoji, then text">
+  <rect x="30" y="40" width="130" height="40" rx="8" fill="#e6f2ee" stroke="#9fcfc0"/>
+  <text x="95" y="65" font-size="12" text-anchor="middle" fill="#0a5c48">sticker</text>
+  <line x1="160" y1="60" x2="210" y2="60" stroke="#6b675e" stroke-width="1.8"/>
+  <text x="185" y="50" font-size="10" text-anchor="middle" fill="#6b675e">fallback</text>
+  <rect x="215" y="40" width="130" height="40" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="280" y="65" font-size="12" text-anchor="middle" fill="#25231f">image</text>
+  <line x1="345" y1="60" x2="395" y2="60" stroke="#6b675e" stroke-width="1.8"/>
+  <rect x="400" y="40" width="130" height="40" rx="8" fill="#fff" stroke="#e3e0d8"/>
+  <text x="465" y="65" font-size="12" text-anchor="middle" fill="#25231f">emoji</text>
+  <line x1="530" y1="60" x2="580" y2="60" stroke="#6b675e" stroke-width="1.8"/>
+  <rect x="585" y="40" width="130" height="40" rx="8" fill="#fdf0e3" stroke="#e3c9a8"/>
+  <text x="650" y="65" font-size="12" text-anchor="middle" fill="#93521a">plain text</text>
+</svg>
+<figcaption>Illustrative: plugins emit their richest output; the connector resolves what the platform can carry.</figcaption>
+</figure>
+<div class="field"><span class="field-label">Basis</span>
+<code>direct:</code> <code>bot.py:264-300</code> — the entire output capability surface is five overridden methods in one file, a closed, ladder-able set. <code>external:</code> Unreal's RHI feature levels (the engine <em>emulates</em> missing GPU features downward, not just reports them — a step beyond XEP-0030/LSP capability reporting that none of the surveyed bot frameworks took); GStreamer caps negotiation. <code>reasoned:</code> the Furhat fork is the in-repo proof that capability mismatch forces forks when the framework doesn't own degradation.</div>
+<div class="field"><span class="field-label">Rationale</span>
+Capability mismatch is why "agnostic" frameworks rot into lowest-common-denominator text pipes or per-platform forks. Framework-owned degradation is the third option: N+M code instead of N×M branches, written once in the core and inherited by every current and future plugin on every platform.</div>
+<div class="field"><span class="field-label">Downsides</span>
+Degradation quality is judgment-heavy (a transcribed voice note is not a voice note); some fallbacks need real work (transcription). Risk of over-engineering before a second platform exists — sensible to ship the advertisement mechanism first and add ladders on demand.</div>
+</article>
+
+<h2 id="rejections">Rejection Summary</h2>
+<table>
+<thead><tr><th>#</th><th>Idea</th><th>Reason Rejected</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Sans-I/O effects core (plugins return effect objects, never perform I/O)</td><td>Too expensive relative to value — loopback (idea 2) delivers the testability payoff cheaply; better as a brainstorm variant of idea 3's boundary design.</td></tr>
+<tr><td>2</td><td>Furhat as validation connector (standalone)</td><td>Folded into idea 2's sequencing — it's a validation tactic, not a separate direction.</td></tr>
+<tr><td>3</td><td>Neutral ZODB persistence (standalone)</td><td>Merged into idea 6 — storage is one leg of the single data-model decision.</td></tr>
+<tr><td>4</td><td>Canonical identity registry (standalone)</td><td>Merged into idea 6 — identity keys the same schema.</td></tr>
+<tr><td>5</td><td>Operator-channel decoupling (Telegram-only debug logging; BotKicked → sys.exit)</td><td>Real reliability bug but subordinate to idea 3 — named there as the first work item inside the connector boundary.</td></tr>
+<tr><td>6</td><td>Ride the aiogram 2→3 migration (standalone)</td><td>Absorbed as the timing argument inside idea 1 — rewrite once, not twice.</td></tr>
+<tr><td>7</td><td>libcst codemod migration</td><td>Weaker duplicate of the shim (idea 1); noted there as a complement for the eventual native migration.</td></tr>
+<tr><td>8</td><td>Matterbridge sidecar / out-of-process connectors</td><td>Delegates the composability bet to an external project and adds multi-process ops burden for a solo maintainer; its cost baseline is worth citing when scoping idea 3.</td></tr>
+<tr><td>9</td><td>Declarative plugin manifests (registration as data)</td><td>Competes with idea 1's "don't touch plugins" economics; it is the post-shim native contract — a brainstorm variant of idea 1's end state.</td></tr>
+<tr><td>10</td><td>Transparent envelope (standalone)</td><td>Merged into idea 6.</td></tr>
+<tr><td>11</td><td>Personality-first synthesis</td><td>Merged into idea 5.</td></tr>
+<tr><td>12</td><td>Five-verb chokepoint synthesis</td><td>Design insight distributed into ideas 3 and 7.</td></tr>
+</tbody>
+</table>
+
+<h2 id="sources">Sources &amp; References</h2>
+<ul>
+  <li><a href="https://github.com/iuriguilherme/iacecil/blob/main/src/iacecil/controllers/aiogram_bot/bot.py">src/iacecil/controllers/aiogram_bot/bot.py</a> — Telegram failure policy, five-verb send surface</li>
+  <li><a href="https://github.com/iuriguilherme/iacecil/blob/main/src/iacecil/controllers/aiogram_bot/callbacks.py">src/iacecil/controllers/aiogram_bot/callbacks.py</a> — aiogram objects persisted to ZODB</li>
+  <li><a href="https://github.com/iuriguilherme/iacecil/blob/main/src/iacecil/config.py">src/iacecil/config.py</a> — inert discord dict, parallel platform configs</li>
+  <li><a href="https://github.com/iuriguilherme/iacecil/blob/main/STRATEGY.md">STRATEGY.md</a> — composability approach, tracks, metrics</li>
+  <li><a href="https://errbot.readthedocs.io/en/latest/user_guide/plugin_development/backend_specifics.html">Errbot backend specifics</a> · <a href="https://github.com/opsdroid/opsdroid">opsdroid</a> · <a href="https://github.com/42wim/matterbridge">Matterbridge</a> · <a href="https://github.com/hubotio/hubot">Hubot</a></li>
+  <li><a href="https://docs.aiogram.dev/en/latest/migration_2_to_3.html">aiogram 2→3 migration guide</a> · <a href="https://github.com/hikari-py/hikari">hikari</a> · <a href="https://pypi.org/project/slixmpp/">slixmpp</a> · <a href="https://github.com/matrix-nio/matrix-nio">matrix-nio</a></li>
+</ul>
+
+<footer class="composition-signal">Composed 2026-06-10 by ce-ideate from the user focus "platform-agnostic ia.cecil" · grounding: repo scan + STRATEGY.md + external research · 49 raw ideas across 6 frames</footer>
+
+</div>
+</body>
+</html>
