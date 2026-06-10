@@ -28,6 +28,7 @@ import sys
 from textwrap import wrap
 from aiogram import (
     Bot,
+    Dispatcher,
     exceptions,
     types,
 )
