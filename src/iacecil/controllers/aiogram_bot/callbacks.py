@@ -45,6 +45,27 @@ async def message_callback(
     if message is not None:
         setattr(message, 'tags', descriptions)
         try:
+            from ...models.envelope import Envelope
+            from aiogram import Dispatcher
+            dispatcher = Dispatcher.get_current()
+            if hasattr(dispatcher, 'manager'):
+                env = Envelope(
+                    platform='telegram',
+                    sender_ref=str(message.from_user.id),
+                    conversation_ref=str(message.chat.id),
+                    text=message.text or '',
+                    reply_ref=str(message.reply_to_message.message_id) if message.reply_to_message else None,
+                    tags=set(descriptions),
+                    raw=message,
+                    extra={
+                        'first_name': message.from_user.first_name,
+                        'last_name': message.from_user.last_name
+                    }
+                )
+                await dispatcher.manager.dispatch(env)
+        except Exception as e:
+            logger.error(f"Failed to emit envelope in message_callback: {e}")
+        try:
             if current_app.furhat and message.text is not None:
                 await furhat_logger(message.text)
         except Exception as exception:

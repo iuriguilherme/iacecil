@@ -82,10 +82,10 @@ class IACecilBot(Bot):
                 self.config.telegram['users']['special']['debug'],
                 self.config.telegram['users']['special']['info']
             ]:
-                sys.exit(u"""\n***TERMINATED***\nBot was kicked from th\
-e logger groups! Fix this before continuing! Either change the ids fro\
-m the log  groups in the config file, or ensure the bot is part of the \
-logger groups. Exiting...""")
+                logger.error("Bot was kicked from logger groups! Marking telegram connector down.")
+                dispatcher = Dispatcher.get_current()
+                if hasattr(dispatcher, 'manager') and 'telegram' in dispatcher.manager.connectors:
+                    dispatcher.manager.connectors['telegram'].running = False
             # ~ else:
                 # ~ try:
                     # ~ await error_callback(
