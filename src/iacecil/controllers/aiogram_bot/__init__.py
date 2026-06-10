@@ -99,19 +99,8 @@ async def add_filters(dispatcher: Dispatcher) -> None:
 
 async def add_plugin(dispatcher: Dispatcher, plugin: str) -> None:
     """Imports plugin and register handlers to dispatcher"""
-    try:
-        logger.debug(f"Activating plugin {plugin} for {dispatcher.name}")
-        module = import_module('.' + plugin, 'plugins')
-        try:
-            logger.debug("Registering handlers")
-            await getattr(module, 'add_handlers')(dispatcher)
-        except AttributeError:
-            logger.debug("Plugin don't have handlers to register")
-        logger.info(f"Activated plugin {plugin} for {dispatcher.name}")
-    except Exception as e:
-        logger.warning(f"""Failed to activate plugin {plugin} for \
-{dispatcher.name}""")
-        logger.exception(e)
+    from ...connectors import load_plugin
+    await load_plugin('telegram', plugin, dispatcher)
 
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """

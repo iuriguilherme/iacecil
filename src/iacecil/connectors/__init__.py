@@ -5,6 +5,21 @@ from .base import BaseConnector
 
 logger = logging.getLogger(__name__)
 
+async def load_plugin(connector_name: str, plugin: str, target) -> None:
+    """Loads a plugin for a specific connector"""
+    try:
+        module = import_module('.' + plugin, 'plugins')
+        entry_name = 'add_handlers' if connector_name == 'telegram' else f'add_handlers_{connector_name}'
+        
+        if hasattr(module, entry_name):
+            await getattr(module, entry_name)(target)
+            logger.info(f"Activated plugin {plugin} for {connector_name}")
+        else:
+            logger.warning(f"Plugin {plugin} has no entry point {entry_name} for connector {connector_name}")
+    except Exception as e:
+        logger.warning(f"Failed to activate plugin {plugin} for {connector_name}")
+        logger.exception(e)
+
 class ConnectorManager:
     def __init__(self, bot_config):
         self.bot_config = bot_config
