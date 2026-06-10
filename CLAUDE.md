@@ -74,6 +74,11 @@ The `instance/` directory is local-only and not versioned. See `doc/` for exampl
 
 ZODB object database. Legacy per-bot storage in `src/iacecil/controllers/persistence/zodb_orm.py` (read-only legacy data); platform-neutral records and Person registry in `persistence/neutral.py`. Data stored in `instance/zodb/`. Tests are isolated from real data via the autouse fixture in `tests/conftest.py` — never remove it.
 
+### Knowledge stores
+
+- `docs/solutions/` — documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
+- `CONCEPTS.md` — shared domain vocabulary (entities, named processes, status concepts); relevant when orienting to the codebase or discussing domain concepts.
+
 ### Adding a new plugin
 
 1. Create `src/plugins/myplugin.py`
