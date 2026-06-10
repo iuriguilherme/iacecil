@@ -18,7 +18,6 @@ class XMPPBot(ClientXMPP):
         self.add_event_handler("disconnected", self.on_disconnected)
 
     async def start(self, event):
-        self.connector.session_started = True
         self.send_presence()
         self.get_roster()
 
@@ -49,7 +48,6 @@ class Connector(BaseConnector):
         self.running = False
         self.bot = None
         self.failure = None
-        self.session_started = False
 
     async def connect(self):
         jid = self.config.get('jid')

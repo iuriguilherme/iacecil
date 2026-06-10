@@ -85,7 +85,7 @@ async def add_handlers(dispatcher):
             dispatcher.config.personalidade,
             message.chat.type,
         ])
-        command = await mensagem_bom_dia()
+        command = await message.reply(await mensagem_bomdia())
         await command_callback(command, [
             'mensagemBomdia',
             dispatcher.config.personalidade,
