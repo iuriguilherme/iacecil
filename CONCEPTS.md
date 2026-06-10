@@ -14,6 +14,11 @@ The platform-neutral representation of one inbound or outbound message. Carries 
 A personality module that decides what text the bot says, independent of platform. Exposes envelope-safe commands (its connector-facing surface) and legacy platform handlers (its Telegram-facing surface). One personalidade is configured per bot.
 *Avoid:* persona, personality module
 
+### Plugin
+An independent feature module that adds message handlers to the bot, activated per bot through an ordered enable list. A plugin may expose a Telegram-facing surface, a connector-facing surface for the other platforms, or both; a plugin lacking a surface for some connector is skipped there with a warning rather than failing.
+
+On Telegram, the enable list's order is load-bearing: the first matching handler wins, so a plugin with broad filters can starve every plugin and Personalidade handler registered after it. Which orderings work is discovered by trial and error, and some plugin combinations are incompatible in any order — an accepted limitation. All plugin handlers register before the Personalidade's handlers.
+
 ## Identity and persistence
 
 ### Person
