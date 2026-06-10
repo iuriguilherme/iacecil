@@ -1,7 +1,7 @@
 ia.cecil
 ===
 
-[![Certified Organic Code](https://img.shields.io/badge/code-certified%20organic%20🧑‍🌾-brightgreen?style=for-the-badge)](https://github.com/zwbao/certified-organic-code)
+[![95% Organic Code](https://img.shields.io/badge/code-95%25%20organic%20🧑‍🌾-green?style=for-the-badge)](https://github.com/zwbao/certified-organic-code)
 
 Why is everything in Spanish?
 ---
@@ -78,7 +78,8 @@ Estatísticas
     100 files
     196 text files.
     classified 181 files
-    Duplicate file check 181 files (173 known unique)    Unique: 100 files
+    Duplicate file check 181 files (173 known unique)
+    Unique: 100 files
     176 unique files.
     Counting: 100
     59 files ignored.
