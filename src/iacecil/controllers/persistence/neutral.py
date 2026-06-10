@@ -42,7 +42,7 @@ class Person(persistent.Persistent):
         self.id = person_id or str(uuid.uuid4())
         self.mappings = BTrees.OOBTree.TreeSet()
 
-async def resolve_person(platform: str, native_id: str) -> Person:
+async def resolve_person(platform: str, native_id: str) -> str:
     db = await get_people_db()
     with db.transaction() as connection:
         root = connection.root
@@ -55,15 +55,15 @@ async def resolve_person(platform: str, native_id: str) -> Person:
         person_id = root.mappings.get(mapping_key)
         
         if person_id and person_id in root.people:
-            return root.people[person_id]
-        
+            return person_id
+
         person = Person()
         person.mappings.add(mapping_key)
         root.people[person.id] = person
         root.mappings[mapping_key] = person.id
-        return person
+        return person.id
 
-async def merge_persons(id1: str, id2: str) -> Person:
+async def merge_persons(id1: str, id2: str) -> str:
     db = await get_people_db()
     with db.transaction() as connection:
         root = connection.root
@@ -71,13 +71,13 @@ async def merge_persons(id1: str, id2: str) -> Person:
         p2 = root.people.get(id2)
         if not p1 or not p2:
             raise ValueError("Person not found")
-            
+
         for mapping in p2.mappings:
             p1.mappings.add(mapping)
             root.mappings[mapping] = p1.id
-            
+
         del root.people[p2.id]
-        return p1
+        return p1.id
 
 async def persist_envelope(envelope):
     db = await get_messages_db()

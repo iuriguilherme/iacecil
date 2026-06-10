@@ -1,45 +1,41 @@
 import pytest
-import os
-import shutil
-from iacecil.controllers.persistence.neutral import resolve_person, merge_persons, persist_envelope, _people_db, _messages_db
+from iacecil.controllers.persistence.neutral import (
+    resolve_person,
+    merge_persons,
+    persist_envelope,
+)
 from iacecil.models.envelope import Envelope
 
-@pytest.fixture(autouse=True)
-def clean_zodb():
+async def _mappings_for(person_id):
     import iacecil.controllers.persistence.neutral as neutral
-    if os.path.exists("instance/zodb"):
-        shutil.rmtree("instance/zodb")
-    neutral._people_db = None
-    neutral._messages_db = None
-    yield
-    if neutral._people_db:
-        neutral._people_db.close()
-    if neutral._messages_db:
-        neutral._messages_db.close()
+    db = await neutral.get_people_db()
+    with db.transaction() as conn:
+        return set(conn.root.people[person_id].mappings)
 
 @pytest.mark.asyncio
 async def test_resolve_person_new_and_existing():
     p1 = await resolve_person("telegram", "12345")
-    assert ("telegram", "12345") in p1.mappings
-    
+    assert ("telegram", "12345") in await _mappings_for(p1)
+
     p2 = await resolve_person("telegram", "12345")
-    assert p1.id == p2.id
+    assert p1 == p2
 
     p3 = await resolve_person("xmpp", "user@host.com")
-    assert p1.id != p3.id
+    assert p1 != p3
 
 @pytest.mark.asyncio
 async def test_merge_persons():
     p1 = await resolve_person("telegram", "111")
     p2 = await resolve_person("xmpp", "222")
-    
-    merged = await merge_persons(p1.id, p2.id)
-    assert ("telegram", "111") in merged.mappings
-    assert ("xmpp", "222") in merged.mappings
+
+    merged = await merge_persons(p1, p2)
+    mappings = await _mappings_for(merged)
+    assert ("telegram", "111") in mappings
+    assert ("xmpp", "222") in mappings
 
     p1_again = await resolve_person("telegram", "111")
     p2_again = await resolve_person("xmpp", "222")
-    assert p1_again.id == p2_again.id == merged.id
+    assert p1_again == p2_again == merged
 
 @pytest.mark.asyncio
 async def test_persist_envelope():
@@ -53,7 +49,7 @@ async def test_persist_envelope():
     )
     msg_id = await persist_envelope(env)
     assert msg_id is not None
-    
+
     import iacecil.controllers.persistence.neutral as neutral
     db = await neutral.get_messages_db()
     with db.transaction() as conn:
