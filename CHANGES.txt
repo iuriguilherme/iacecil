@@ -92,3 +92,4 @@ v0.2.11.0, 2023-02-10 -- Furhat, GPT3 e múltiplas pessoas
 v0.2.13.0, 2023-02-21 -- ChatGPT com Telegram
 v0.2.14.5, 2023-10-14 -- Botonaro
 v0.2.15, 2023-11-06 -- Mudando esquema de versões de novo, e Furhat + GPT simplificado
+v0.3.0, 2026-06-10 -- Camada de conectores multi-plataforma (Telegram, XMPP, loopback), envelope neutro, registro de pessoas (ZODB) e primeira suíte de testes; Python 3.11
