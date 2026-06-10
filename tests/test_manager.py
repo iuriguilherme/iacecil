@@ -73,35 +73,55 @@ async def test_manager_run_all(caplog):
     with caplog.at_level(logging.ERROR):
         await manager.run_all()
     
-    # Assert loopback crashed and marked down, but didn't take down telegram (telegram exited instantly since fake listen does nothing)
+    # Loopback crashed and is marked down; telegram exited cleanly and is NOT marked down
     assert "Connector loopback failed: Crash!" in caplog.text
     assert "Connector loopback marked down." in caplog.text
-    assert "Connector telegram marked down." in caplog.text
+    assert "Connector telegram marked down." not in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_dispatch_routing():
-    manager = ConnectorManager({'telegram': {'token': '123'}})
-    
+    manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+
     start_handler = AsyncMock(return_value="Hello Start")
     default_handler = AsyncMock(return_value="Hello Default")
-    
+
     manager.register_command("start", start_handler)
     manager.set_default_handler(default_handler)
-    
-    manager.connectors['telegram'].send = AsyncMock()
-    
-    env1 = Envelope("telegram", "s", "c", "/start args")
+
+    manager.connectors['xmpp'].send = AsyncMock()
+
+    env1 = Envelope("xmpp", "s", "c", "/start args")
     await manager.dispatch(env1)
     start_handler.assert_called_once_with(env1)
     default_handler.assert_not_called()
-    manager.connectors['telegram'].send.assert_called_once()
-    
+    manager.connectors['xmpp'].send.assert_called_once()
+
     start_handler.reset_mock()
-    manager.connectors['telegram'].send.reset_mock()
-    
-    env2 = Envelope("telegram", "s", "c", "normal text")
+    manager.connectors['xmpp'].send.reset_mock()
+
+    env2 = Envelope("xmpp", "s", "c", "normal text")
     await manager.dispatch(env2)
     start_handler.assert_not_called()
     default_handler.assert_called_once_with(env2)
-    manager.connectors['telegram'].send.assert_called_once()
+    manager.connectors['xmpp'].send.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_dispatch_skips_telegram_registry():
+    """Telegram-origin envelopes are persisted but never dispatched to the
+    command registry -- legacy aiogram handlers own Telegram replies (R6)."""
+    manager = ConnectorManager({'telegram': {'token': '123'}})
+
+    start_handler = AsyncMock(return_value="Hello Start")
+    default_handler = AsyncMock(return_value="Hello Default")
+    manager.register_command("start", start_handler)
+    manager.set_default_handler(default_handler)
+    manager.connectors['telegram'].send = AsyncMock()
+
+    await manager.dispatch(Envelope("telegram", "s", "c", "/start args"))
+    await manager.dispatch(Envelope("telegram", "s", "c", "plain text"))
+
+    start_handler.assert_not_called()
+    default_handler.assert_not_called()
+    manager.connectors['telegram'].send.assert_not_called()

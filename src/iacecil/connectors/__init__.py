@@ -102,6 +102,11 @@ class ConnectorManager:
         except Exception as e:
             logger.error(f"Failed to persist envelope: {e}")
 
+        if envelope.platform == 'telegram':
+            ## Legacy aiogram handlers own command replies on Telegram;
+            ## dispatching here too would answer every command twice (R6).
+            return
+
         text = envelope.text or ""
         cmd = None
         if text.startswith('/'):
@@ -132,15 +137,15 @@ class ConnectorManager:
         try:
             await connector.connect()
             await connector.listen()
+            logger.info(f"Connector {name} exited.")
         except Exception as e:
             logger.error(f"Connector {name} failed: {e}")
-        finally:
             logger.error(f"Connector {name} marked down.")
-            if name in self.connectors:
-                try:
-                    await connector.disconnect()
-                except:
-                    pass
+        finally:
+            try:
+                await connector.disconnect()
+            except Exception:
+                pass
 
     async def run_all(self):
         tasks = []

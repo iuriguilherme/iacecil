@@ -1,5 +1,4 @@
 import logging
-import asyncio
 from .base import BaseConnector
 from iacecil.models.envelope import Envelope
 
@@ -24,25 +23,17 @@ class Connector(BaseConnector):
     async def listen(self):
         if not self.dispatcher:
             raise ValueError("Dispatcher not initialized")
-            
-        try:
-            # Polling loop
-            while self.running:
-                # we don't do while self.running around start_polling usually, start_polling blocks
-                # but if start_polling exits, we could retry if self.running is still True.
-                await self.dispatcher.start_polling(
-                    reset_webhook=True,
-                    timeout=20,
-                    relax=0.1,
-                    fast=True,
-                    allowed_updates=None,
-                )
-                if not self.running:
-                    break
-                await asyncio.sleep(1)
-        except Exception as e:
-            logger.error(f"Polling exception: {e}")
-            raise
+
+        ## start_polling blocks until stop_polling is called or polling
+        ## fails; a failure propagates so the manager marks this
+        ## connector down.
+        await self.dispatcher.start_polling(
+            reset_webhook=True,
+            timeout=20,
+            relax=0.1,
+            fast=True,
+            allowed_updates=None,
+        )
 
     async def send(self, envelope: Envelope):
         if not self.bot:

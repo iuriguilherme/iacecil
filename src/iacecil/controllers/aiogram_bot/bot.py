@@ -28,7 +28,6 @@ import sys
 from textwrap import wrap
 from aiogram import (
     Bot,
-    Dispatcher,
     exceptions,
     types,
 )
@@ -83,10 +82,10 @@ class IACecilBot(Bot):
                 self.config.telegram['users']['special']['debug'],
                 self.config.telegram['users']['special']['info']
             ]:
-                logger.error("Bot was kicked from logger groups! Marking telegram connector down.")
-                dispatcher = Dispatcher.get_current()
-                if hasattr(dispatcher, 'manager') and 'telegram' in dispatcher.manager.connectors:
-                    dispatcher.manager.connectors['telegram'].running = False
+                ## A kick from a logger group only breaks that log sink;
+                ## the connector keeps serving every other chat.
+                logger.error("""Bot was kicked from a logger group; \
+that log sink is unavailable but the connector keeps serving.""")
             # ~ else:
                 # ~ try:
                     # ~ await error_callback(
