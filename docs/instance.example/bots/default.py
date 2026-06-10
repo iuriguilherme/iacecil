@@ -250,3 +250,4 @@ class DefaultBotConfig(BaseSettings):
             'model': "deepseek-r1:1.5b",
         }, # ollama
     } # deepseek
+    xmpp: dict = {'jid': '', 'password': ''}
