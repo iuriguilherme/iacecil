@@ -69,7 +69,7 @@ async def portaria(message, ctx=None):
     return u"ó @admin, esse é persona non grata!"
 
 async def mensagem_bomdia(envelope=None, ctx=None):
-    return await message.reply(await random_texts.bomdia())
+    return await random_texts.bomdia()
 
 async def chatgpt_prompt(message: types.Message) -> str:
     """Answer /gpt"""
@@ -138,4 +138,5 @@ async def furhat_contains_iterations():
     return [Iteration(text = 'bom dia', callback = furhat_bomdia)]
 
 
-commands = {'info': info, 'welcome': welcome, 'portaria': portaria, 'mensagem_bomdia': mensagem_bomdia}
+## Envelope-safe text commands only.
+commands = {'info': info, 'mensagem_bomdia': mensagem_bomdia}

@@ -107,4 +107,5 @@ async def add_handlers(dispatcher):
     await add_default_handlers(dispatcher)
 
 
-commands = {'help': help, 'welcome': welcome, 'info': info}
+## Envelope-safe text commands only.
+commands = {'help': help}

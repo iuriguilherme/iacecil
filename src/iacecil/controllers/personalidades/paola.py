@@ -124,4 +124,5 @@ async def furhat_contains_iterations(*args, **kwargs) -> list:
     ]
 
 
-commands = {'croak': croak}
+## croak is a Furhat callback, not a chat command.
+commands = {}

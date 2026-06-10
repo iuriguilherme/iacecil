@@ -92,4 +92,5 @@ async def add_handlers(dispatcher):
 
 
 
-commands = {'tropixel': tropixel, 'portaria': portaria}
+## tropixel/portaria are join-event handlers; aiogram path only.
+commands = {}

@@ -136,4 +136,5 @@ async def furhat_contains_iterations() -> list:
     ]
 
 
-commands = {'borogodo_foradoar': borogodo_foradoar}
+## borogodo_foradoar is a Furhat callback, not a chat command.
+commands = {}

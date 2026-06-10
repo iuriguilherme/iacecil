@@ -190,4 +190,6 @@ async def furhat_contains_iterations():
     ]
 
 
-commands = {'start': start, 'help': help, 'welcome': welcome, 'portaria': portaria, 'info': info}
+## Envelope-safe text commands only; join-event handlers (welcome,
+## portaria) and config-fed handlers (info) stay on the aiogram path.
+commands = {'start': start, 'help': help}

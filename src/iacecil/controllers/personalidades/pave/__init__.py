@@ -434,4 +434,6 @@ async def add_handlers(dispatcher):
         logger.exception(e)
 
 
-commands = {'start': start, 'welcome': welcome, 'info': info, 'portaria': portaria, 'pegadinha4': pegadinha4, 'pegadinha1': pegadinha1, 'pegadinha2': pegadinha2, 'pegadinha3': pegadinha3, 'pegadinha5': pegadinha5, 'pegadinha': pegadinha}
+## Envelope-safe text commands only; pegadinhas reply with media
+## via aiogram and stay on that path.
+commands = {'info': info}

@@ -463,4 +463,5 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         logger.exception(e)
 
 
-commands = {'start': start, 'welcome': welcome, 'portaria': portaria, 'bye': bye, 'info': info}
+## Envelope-safe text commands only.
+commands = {'info': info}
