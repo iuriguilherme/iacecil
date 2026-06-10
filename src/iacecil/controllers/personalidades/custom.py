@@ -39,3 +39,6 @@ personalidade. This is meant for external software using ia.cecil"""
         logger.exception(e)
         logger.error("""Could not register custom instance handlers, \
 have you RTFM?""")
+
+
+commands = {}

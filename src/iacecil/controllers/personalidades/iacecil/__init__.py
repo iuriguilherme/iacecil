@@ -79,3 +79,6 @@ async def furhat_startswith_iterations():
     return (await furhat_startswith_iterations_default()) + [
         Iteration(text = 'fofice', callback = furhat_fofice),
     ]
+
+
+commands = {}

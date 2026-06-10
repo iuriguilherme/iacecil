@@ -50,7 +50,7 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def tropixel(message):
+async def tropixel(message, ctx=None):
     return u"""Bem vinde{members}!\n\nSe você quer ser desconstruíde e \
 re-construíde, ter suas idéias modificadas, reificadas, pisoteadas e am\
 adas, se seu ego é grande o suficiente para ter amor ao que faz mas con\
@@ -75,7 +75,7 @@ se o comando /rede pra pegar o link).""".format(
         title = message.chat.title,
     )
 
-async def portaria(message):
+async def portaria(message, ctx=None):
     return u"""...sem querer incomodar @admin, mas tá na minha lista de\
  desafetos o {members} e o nosso convívio precisa de mais terapia.\
 """.format(
@@ -90,3 +90,7 @@ async def portaria(message):
 async def add_handlers(dispatcher):
     await add_default_handlers(dispatcher)
 
+
+
+## tropixel/portaria are join-event handlers; aiogram path only.
+commands = {}

@@ -125,13 +125,13 @@ def quart_startup(config, dispatchers):
             await add_handlers(dispatcher)
             await add_jobs(dispatcher)
             dispatcher.scheduler.start()
-            loop.create_task(dispatcher.start_polling(
-                reset_webhook = True,
-                timeout = 20,
-                relax = 0.1,
-                fast = True,
-                allowed_updates = None,
-            ))
+            from ...connectors import ConnectorManager
+            manager = ConnectorManager(dispatcher.config)
+            dispatcher.manager = manager
+            if 'telegram' in manager.connectors:
+                manager.connectors['telegram'].dispatcher = dispatcher
+                manager.connectors['telegram'].bot = dispatcher.bot
+            loop.create_task(manager.run_all())
             try:
                 await dispatcher.bot.send_message(
                     chat_id = dispatcher.config.telegram['users'][

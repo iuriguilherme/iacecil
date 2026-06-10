@@ -78,3 +78,6 @@ async def furhat_contains_iterations():
                 'not working',
             ]
     ]
+
+
+commands = {}

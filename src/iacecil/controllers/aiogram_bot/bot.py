@@ -82,10 +82,10 @@ class IACecilBot(Bot):
                 self.config.telegram['users']['special']['debug'],
                 self.config.telegram['users']['special']['info']
             ]:
-                sys.exit(u"""\n***TERMINATED***\nBot was kicked from th\
-e logger groups! Fix this before continuing! Either change the ids fro\
-m the log  groups in the config file, or ensure the bot is part of the \
-logger groups. Exiting...""")
+                ## A kick from a logger group only breaks that log sink;
+                ## the connector keeps serving every other chat.
+                logger.error("""Bot was kicked from a logger group; \
+that log sink is unavailable but the connector keeps serving.""")
             # ~ else:
                 # ~ try:
                     # ~ await error_callback(

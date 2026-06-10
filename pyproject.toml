@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.poetry]
 name = "iacecil"
-version = "0.2.18"
+version = "0.3.0"
 description = "ia.cecil"
 
 [tool.poetry.dependencies]
-python = "==3.10"
+python = "==3.11"
 aiodns = "*"
 aiogram = "==2.25.1"
 aiohttp = {extras = ["speedups"], version = "*"}
@@ -41,6 +41,7 @@ python-telegram-bot = "*"
 pytz = "*"
 quart = "*"
 requests = "*"
+slixmpp = "*"
 sympy = "*"
 tabulate = "*"
 ujson = "*"

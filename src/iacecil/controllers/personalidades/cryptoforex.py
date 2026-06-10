@@ -49,7 +49,7 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def help(message):
+async def help(message, ctx=None):
     return u"""
 Crypto Forex Bot help
 
@@ -74,7 +74,7 @@ Example: /conv 1 BTC USD
 To see a list of available commands, type /lista
 """
 
-async def welcome(message):
+async def welcome(message, ctx=None):
     return u"""Bem vinda(o) {members} ao grupo {title}\n\nVerifique a m\
 ensagem fixada (se houver) para saber o que está acontecendo e quais sã\
 o as regras do grupo. Qualquer coisa, estou à disposição. Mas não acost\
@@ -87,7 +87,7 @@ uma que é de graça...""".format(
         title = message.chat.title,
     )
 
-async def info(infos):
+async def info(infos, ctx=None):
     return u"""Eu sou uma MateBot com personalidade de investidora fore\
 x configurada para converter valores de criptomoedas, entre outros coma\
 ndos relacionados ao criptomercado. O meu código fonte está em \
@@ -105,3 +105,7 @@ te interessada no meu desenvolvimento se encontra, o link de acesso \
 
 async def add_handlers(dispatcher):
     await add_default_handlers(dispatcher)
+
+
+## Envelope-safe text commands only.
+commands = {'help': help}
