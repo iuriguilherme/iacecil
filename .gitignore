@@ -155,4 +155,6 @@ Thumbs.db
 .env
 config.py
 *.local.md
+!.geminiignore
+*.lock
 
