@@ -19,14 +19,12 @@ def run_app(*args):
     config_dict['loopback'] = {'enabled': True}
     
     manager = ConnectorManager(config_dict)
-    
-    # Minimal personality answers for testing purposes since U5 isn't fully there yet
-    # Or just use the default handler
+
+    ## Personality commands handle /start, /help etc; everything else
+    ## gets an echo so the REPL always answers.
     async def fallback_handler(env):
-        if env.text.startswith('/start'):
-            return "Loopback: /start command received"
         return f"Echo: {env.text}"
-        
+
     manager.set_default_handler(fallback_handler)
     
     try:

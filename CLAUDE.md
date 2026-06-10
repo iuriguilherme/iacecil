@@ -34,16 +34,22 @@ ia.cecil is a multi-platform chatbot (primarily Telegram via aiogram, also Disco
 ### Entry point dispatch (`src/iacecil/__main__.py`)
 
 `python -m iacecil [mode]` dispatches to controller modules:
-- no arg → `controllers/_iacecil/testing.py`
+- no arg → `controllers/_iacecil/testing.py` (loopback REPL dev runner — type `/start` on stdin)
 - `production` or `ENV=production` → `controllers/_iacecil/production.py`
 - `fpersonas` → `controllers/_iacecil/fpersonas.py` (Furhat robot personas)
 - `furhatgpt` / `chatgpt` / `furhat` → `controllers/_iacecil/furhatgpt.py`
 
 ### Core layers
 
-**Plugins** (`src/plugins/`): Independent modules that register aiogram message handlers. Each plugin exposes `async def add_handlers(dispatcher)`. Plugins are loaded dynamically by name from `config.plugins['enable']`, skipping any in `config.plugins['disable']`. Handler registration order follows the `enable` list.
+**Connectors** (`src/iacecil/connectors/`): Platform abstraction. Each connector implements `connect/listen/send/disconnect` (`base.py` ABC). `ConnectorManager` loads connectors by config-section credentials (telegram: non-empty `token`; xmpp: `jid`+`password`; loopback: `enabled`), registers the configured personality's `commands`, and dispatches inbound `Envelope`s. Telegram-origin envelopes are persisted but NOT dispatched to the command registry — legacy aiogram handlers own Telegram replies. A connector failure marks it down without killing siblings.
 
-**Personalidades** (`src/iacecil/controllers/personalidades/`): Personality modules that control *what text* the bot generates for commands. Each personality exposes async functions like `start(message)`, `help(message)`, and `add_handlers(dispatcher)`. Personalidade handlers are registered *after* all plugin handlers. Available personalities: `default`, `iacecil`, `cryptoforex`, `matebot`, `metarec`, `pave`, `pacume`, `pasoca`, `gamboa`, `paola`, `custom`.
+**Envelope** (`src/iacecil/models/envelope.py`): Frozen platform-neutral message dataclass (platform, sender_ref, conversation_ref, text, reply_ref, tags) with `raw` (native object, excluded from repr, never persisted) and `extra` escape hatches.
+
+**Neutral persistence** (`src/iacecil/controllers/persistence/neutral.py`): Person registry (`people.fs`, `(platform, native_id)` → person id, auto-create + merge) and normalized message records (`messages.fs`). Only normalized envelope fields are stored — never platform objects.
+
+**Plugins** (`src/plugins/`): Independent modules that register aiogram message handlers. The legacy entry `async def add_handlers(dispatcher)` binds only under the Telegram connector; other connectors resolve `add_handlers_<connector>` and no-op with a logged warning when absent. Plugins are loaded dynamically by name from `config.plugins['enable']`, skipping any in `config.plugins['disable']`. Handler registration order follows the `enable` list.
+
+**Personalidades** (`src/iacecil/controllers/personalidades/`): Personality modules that control *what text* the bot generates for commands. Each personality exposes async functions like `start(message)`, `help(message)`, `add_handlers(dispatcher)` (aiogram path), and a `commands` dict mapping command name → envelope-safe async text function (connector path). Personalidade handlers are registered *after* all plugin handlers. Available personalities: `default`, `iacecil`, `cryptoforex`, `matebot`, `metarec`, `pave`, `pacume`, `pasoca`, `gamboa`, `paola`, `custom`.
 
 **Aiogram controller** (`src/iacecil/controllers/aiogram_bot/`): Creates `IACecilBot` and `Dispatcher` instances. Attaches `config`, `users`, `plugins`, `scheduler` to the dispatcher. Calls plugin `add_handlers` and personality `add_handlers` at startup.
 
@@ -66,7 +72,7 @@ The `instance/` directory is local-only and not versioned. See `doc/` for exampl
 
 ### Persistence
 
-ZODB object database (`src/iacecil/controllers/persistence/zodb_orm.py`). Data stored in `instance/zodb/`.
+ZODB object database. Legacy per-bot storage in `src/iacecil/controllers/persistence/zodb_orm.py` (read-only legacy data); platform-neutral records and Person registry in `persistence/neutral.py`. Data stored in `instance/zodb/`. Tests are isolated from real data via the autouse fixture in `tests/conftest.py` — never remove it.
 
 ### Adding a new plugin
 
