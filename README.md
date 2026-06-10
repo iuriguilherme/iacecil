@@ -1,6 +1,8 @@
 ia.cecil
 ===
 
+[![Certified Organic Code](https://img.shields.io/badge/code-certified%20organic%20🧑‍🌾-brightgreen?style=for-the-badge)](https://github.com/zwbao/certified-organic-code)
+
 Why is everything in Spanish?
 ---
 
