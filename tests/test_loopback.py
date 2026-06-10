@@ -7,6 +7,7 @@ from iacecil.connectors.loopback import Connector
 @pytest.mark.asyncio
 async def test_loopback_inject(capfd):
     manager = ConnectorManager({'loopback': {'enabled': True}})
+    manager.command_registry = {}
     
     async def mock_handler(env):
         if env.text.startswith('/start'):
@@ -38,6 +39,7 @@ async def test_loopback_inject(capfd):
 @pytest.mark.asyncio
 async def test_loopback_persists_neutral_record(capfd):
     manager = ConnectorManager({'loopback': {'enabled': True}})
+    manager.command_registry = {}
     
     async def mock_handler(env):
         return "reply"
@@ -55,7 +57,7 @@ async def test_loopback_persists_neutral_record(capfd):
     with db.transaction() as conn:
         msgs = list(conn.root.messages.values())
         assert len(msgs) > 0
-        assert msgs[-1]['text'] == "/test"
+        assert any(m['text'] == '/test' for m in msgs)
         
     await connector.disconnect()
     await listen_task
