@@ -25,7 +25,7 @@ python -m iacecil fpersonas
 python -m iacecil furhatgpt
 ```
 
-Requires Python 3.10. No test suite beyond running the bot itself (`pipenv run test`).
+Requires Python 3.11. The test suite is invoked with `pipenv run pytest`.
 
 ## Architecture
 
