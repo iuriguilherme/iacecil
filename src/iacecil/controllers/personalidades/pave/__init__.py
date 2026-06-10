@@ -53,14 +53,14 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def start(message):
+async def start(message, ctx=None):
     return random_texts.start(message)
 
-async def welcome(message):
+async def welcome(message, ctx=None):
     bot = Dispatcher.get_current().bot
     admin = u"@admin"
-    count = await bot.get_chat_members_count(message.chat.id)
-    if message.chat.type in ['group', 'supergroup']:
+    count = getattr(message, 'extra', {}).get('count', 0) if not hasattr(message, 'chat') else await bot.get_chat_members_count(message.chat.id)
+    if hasattr(message, 'chat') and message.chat.type in ['group', 'supergroup']:
         try:
             admin = [member.user for member in \
                 await bot.get_chat_administrators(
@@ -70,7 +70,7 @@ async def welcome(message):
             pass
     return random_texts.welcome(message, count, admin)
 
-async def info():
+async def info(envelope=None, ctx=None):
     return u"""Eu sou um bot com personalidade de tiozão do pavê (termo\
  moderno politicamente correto: "humor boomer") configurado e desenvolv\
 ido para ser impertinente, sarcástico, ignorante, agressivo e sem noção\
@@ -79,18 +79,18 @@ nto que nunca vai ser pra te agradar. Para enviar sugestões ou relatar \
 problemas para o pessoal que faz manutenção, use o comando /feedback po\
 r exemplo /feedback Obrigado pelo bot!"""
 
-async def portaria(message):
+async def portaria(message, ctx=None):
     return u"alá @admin, esse guampudo conseguiu voltar!"
 
 ## Pegadinha
 ### FIXME armazenar file_id, porque muda conforme o grupo
-async def pegadinha4(message):
+async def pegadinha4(message, ctx=None):
     bot = Dispatcher.get_current().bot
     return await message.reply(
         u"é {}, pa pa pa".format(
             await bot.get_chat_members_count(message.chat.id)),
     )
-async def pegadinha1(message):
+async def pegadinha1(message, ctx=None):
     try:
         return await message.reply_photo('''AgACAgEAAx0EWWIw7gABAzPXYid\
 XQU56JMvt8IbBpON8d8TfI7oAAgyqMRvSF_FEnT2QiVbie1UBAAMCAANzAAMjBA''',
@@ -107,7 +107,7 @@ XQU56JMvt8IbBpON8d8TfI7oAAgyqMRvSF_FEnT2QiVbie1UBAAMCAANzAAMjBA''',
         except Exception as e1:
             logger.exception(e1)
             return await pegadinha4(message)
-async def pegadinha2(message):
+async def pegadinha2(message, ctx=None):
     try:
         return await message.reply_photo('''AgACAgEAAx0EWWIw7gABAzPOYid\
 UEBEUFFncjjtkd6HBdAVnKVQAAleqMRvSF-lEWQpWEeJ0UWUBAAMCAANzAAMjBA''',
@@ -124,7 +124,7 @@ UEBEUFFncjjtkd6HBdAVnKVQAAleqMRvSF-lEWQpWEeJ0UWUBAAMCAANzAAMjBA''',
         except Exception as e1:
             logger.exception(e1)
             return await pegadinha4(message)
-async def pegadinha3(message):
+async def pegadinha3(message, ctx=None):
     try:
         return await message.reply_animation('''CgACAgEAAx0EWWIw7gABAzL\
 4YiYP73EVBmcEbCrr_XztGpitP30AAgoCAALGHDFF5NSrfwkfoP4jBA''',
@@ -143,7 +143,7 @@ async def pegadinha3(message):
                 repr(e1))
             )
             return await pegadinha4(message)
-async def pegadinha5(message):
+async def pegadinha5(message, ctx=None):
     bot = Dispatcher.get_current().bot
     try:
         ## esprimente a linguiça
@@ -155,7 +155,7 @@ async def pegadinha5(message):
             repr(exception))
         )
         return await pegadinha4(message)
-async def pegadinha(message):
+async def pegadinha(message, ctx=None):
     return await random.choice([
         pegadinha1,
         pegadinha2,
@@ -432,3 +432,6 @@ async def add_handlers(dispatcher):
                 # ~ )
     except Exception as e:
         logger.exception(e)
+
+
+commands = {'start': start, 'welcome': welcome, 'info': info, 'portaria': portaria, 'pegadinha4': pegadinha4, 'pegadinha1': pegadinha1, 'pegadinha2': pegadinha2, 'pegadinha3': pegadinha3, 'pegadinha5': pegadinha5, 'pegadinha': pegadinha}

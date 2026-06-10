@@ -85,7 +85,7 @@ async def add_handlers(dispatcher) -> None:
     # ~ shutup,
 # ~ )
 
-async def croak(*args, **kwargs) -> str:
+async def croak(*args, ctx=None, **kwargs):
     """Mensagem padrão pra todo e qualqeur problema, herança da Gamboa"""
     return """Desculpa eu não poder falar contigo agora, o meu programador tá \
 mexendo no meu código e eu tenho medo de me perder."""
@@ -122,3 +122,6 @@ async def furhat_contains_iterations(*args, **kwargs) -> list:
                 'google',
             ]
     ]
+
+
+commands = {'croak': croak}

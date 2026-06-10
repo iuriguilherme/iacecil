@@ -54,7 +54,7 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def info():
+async def info(envelope=None, ctx=None):
     return u"""Eu sou uma chatbot com personalidade de tia do zap confi\
 gurada e desenvolvido para mandar mensagem de bom dia e hoax (termo mod\
 erno: "fake news"). A tua opinião em relação à minha atitude influencia\
@@ -62,13 +62,13 @@ erno: "fake news"). A tua opinião em relação à minha atitude influencia\
 estões ou relatar problemas para o pessoal que faz manutenção, use o co\
 mando /feedback por exemplo /feedback Obrigado pelo bot!"""
 
-async def welcome(message):
+async def welcome(message, ctx=None):
     return await random_texts.welcome()
 
-async def portaria(message):
+async def portaria(message, ctx=None):
     return u"ó @admin, esse é persona non grata!"
 
-async def mensagem_bomdia():
+async def mensagem_bomdia(envelope=None, ctx=None):
     return await message.reply(await random_texts.bomdia())
 
 async def chatgpt_prompt(message: types.Message) -> str:
@@ -136,3 +136,6 @@ async def furhat_bomdia(config, message):
 
 async def furhat_contains_iterations():
     return [Iteration(text = 'bom dia', callback = furhat_bomdia)]
+
+
+commands = {'info': info, 'welcome': welcome, 'portaria': portaria, 'mensagem_bomdia': mensagem_bomdia}

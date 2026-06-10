@@ -45,21 +45,30 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def start(message):
+async def start(message, ctx=None):
+    if hasattr(message, 'from_user'):
+        first_name = message.from_user.first_name
+        last_name = message.from_user.last_name
+        telegram_id = message.from_user.id
+    else:
+        first_name = getattr(message, 'extra', {}).get('first_name', '')
+        last_name = getattr(message, 'extra', {}).get('last_name', '')
+        telegram_id = getattr(message, 'sender_ref', '')
+        
     return u"""Oi oi oi {first_name} {last_name}, me use, me use. O teu\
  id no telegram é {telegram_id}""".format(
-        first_name = message.from_user.first_name,
-        last_name = message.from_user.last_name,
-        telegram_id = message.from_user.id,
+        first_name = first_name,
+        last_name = last_name,
+        telegram_id = telegram_id,
     )
 
-async def help(message):
+async def help(message, ctx=None):
     return u"""Eu sou uma bot social com múltiplas personalidades progr\
 amada para aprender conforme o ambiente onde estou. Para saber quais co\
 mandos estou respondendo, envie /lista\nPara mais informações sobre a m\
 inha atual personalidade, envie /info"""
 
-async def welcome(message):
+async def welcome(message, ctx=None):
     return u"""Bem vinda(o)(e){members} ao grupo {title}\n\nVerifique a\
  mensagem fixada (se houver) para saber o que está acontecendo e se qui\
 ser e puder, se apresente. Não parece, mas o pessoal daqui está genuina\
@@ -73,7 +82,7 @@ u tempo. Qualquer coisa, estou à disposição.""".format(
         title = message.chat.title,
     )
 
-async def portaria(message):
+async def portaria(message, ctx=None):
     return u"""sem querer caguetar @admin, mas taí de novo o {members}\
 """.format(
         members = 's' if len(message.new_chat_members) > 1 else ' ' + 
@@ -83,7 +92,7 @@ async def portaria(message):
             ]) for member in message.new_chat_members]),
     )
 
-async def info(infos):
+async def info(infos, ctx=None):
     return u"""Eu sou uma MateBot com personalidade padrão configurada \
 para responder os comandos básicos. O meu código fonte está em \
 {repository} , Quem me administra é {admin} , quem me desenvolve é \
@@ -179,3 +188,6 @@ async def furhat_contains_iterations():
                 # ~ 'siri',
             ]
     ]
+
+
+commands = {'start': start, 'help': help, 'welcome': welcome, 'portaria': portaria, 'info': info}

@@ -13,6 +13,24 @@ class ConnectorManager:
         self.default_handler = None
         
         self._load_connectors()
+        self._load_personality()
+
+    def _load_personality(self):
+        from iacecil.controllers.personalidades import personalidades, default
+        persona_name = getattr(self.bot_config, 'personalidade', 'default')
+        if hasattr(self.bot_config, 'model_dump'):
+            config_dict = self.bot_config.model_dump()
+            persona_name = config_dict.get('personalidade', 'default')
+        elif isinstance(self.bot_config, dict):
+            persona_name = self.bot_config.get('personalidade', 'default')
+
+        persona_module = personalidades.get(persona_name, default)
+        
+        if hasattr(persona_module, 'commands'):
+            for cmd, handler in persona_module.commands.items():
+                self.register_command(cmd, handler)
+        else:
+            logger.error(f"Personality {persona_name} has no commands dict")
 
     def _is_active(self, name, conf):
         if not conf:
@@ -62,6 +80,13 @@ class ConnectorManager:
         self.default_handler = handler
 
     async def dispatch(self, envelope):
+        from iacecil.controllers.persistence.neutral import persist_envelope, resolve_person
+        try:
+            await resolve_person(envelope.platform, envelope.sender_ref)
+            await persist_envelope(envelope)
+        except Exception as e:
+            logger.error(f"Failed to persist envelope: {e}")
+
         text = envelope.text or ""
         cmd = None
         if text.startswith('/'):

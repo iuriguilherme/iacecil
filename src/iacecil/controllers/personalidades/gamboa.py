@@ -96,7 +96,7 @@ async def add_handlers(dispatcher):
     # ~ shutup,
 # ~ )
 
-async def borogodo_foradoar(config, message) -> str:
+async def borogodo_foradoar(config, message, ctx=None):
     return """Desculpa eu não poder falar contigo agora, o meu programador tá \
 mexendo no meu código e eu tenho medo de me perder."""
 
@@ -134,3 +134,6 @@ async def furhat_contains_iterations() -> list:
                 'not working',
             ]
     ]
+
+
+commands = {'borogodo_foradoar': borogodo_foradoar}

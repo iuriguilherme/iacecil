@@ -70,17 +70,17 @@ except Exception as e:
         logger.debug(f"no random_texts at all for {__name__}")
         # ~ logger.exception(e1)
 
-async def start(message: types.Message) -> str:
+async def start(message: types.Message, ctx=None):
     """Answer /start"""
     return random_texts.start(message)
 
-async def welcome(message: types.Message) -> str:
+async def welcome(message: types.Message, ctx=None):
     """Answer new members"""
     bot: Bot = Dispatcher.get_current().bot
     admin: str = "@admin"
-    count: str = await bot.get_chat_members_count(message.chat.id)
+    count: str = getattr(message, 'extra', {}).get('count', '0') if not hasattr(message, 'chat') else await bot.get_chat_members_count(message.chat.id)
     ## FIXME move this to handlers with filters for groups
-    if message.chat.type in ['group', 'supergroup']:
+    if hasattr(message, 'chat') and message.chat.type in ['group', 'supergroup']:
         try:
             admin: str = [member.user for member in \
                 await bot.get_chat_administrators(
@@ -90,11 +90,11 @@ async def welcome(message: types.Message) -> str:
             logger.exception(e)
     return random_texts.welcome(message, count, admin)
 
-async def portaria(message: types.Message) -> str:
+async def portaria(message: types.Message, ctx=None):
     """Answer unwanted new members"""
     return "Puta que pariu, entrou esse filho da puta aqui ó @admin"
 
-async def bye(message: types.Message) -> str:
+async def bye(message: types.Message, ctx=None):
     """Answer member lefts"""
     bot: Bot = Dispatcher.get_current().bot
     admin: str = "admin"
@@ -113,7 +113,7 @@ async def bye(message: types.Message) -> str:
             logger.exception(e)
     return random_texts.respostas_bye(admin)
 
-async def info() -> str:
+async def info(envelope=None, ctx=None):
     """Answers /info"""
     return """\
 Eu sou um bot com personalidade de tiozão do churrasco (termo moderno \
@@ -461,3 +461,6 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     except Exception as e:
         logger.error(f"Couldn't register {__name__} handlers")
         logger.exception(e)
+
+
+commands = {'start': start, 'welcome': welcome, 'portaria': portaria, 'bye': bye, 'info': info}
