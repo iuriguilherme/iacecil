@@ -123,15 +123,15 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     e,
                     ['exception'] + descriptions,
                 )
-        @dispatcher.message_handler(content_types = types.ContentTypes.TEXT,
-            state = "*")
-        async def chance_deepseek_callback(message: types.Message) -> None:
-            """Responde toda e qualquer mensagem em uma chance \
-aleatória"""
-            try:
-                if len(message.text) > 15 and await dice_low(30):
-                    await deepseek_callback(message)
-            except Exception as e:
-                logger.exception(e)
+#         @dispatcher.message_handler(content_types = types.ContentTypes.TEXT,
+#             state = "*")
+#         async def chance_deepseek_callback(message: types.Message) -> None:
+#             """Responde toda e qualquer mensagem em uma chance \
+# aleatória"""
+#             try:
+#                 if len(message.text) > 15 and await dice_low(30):
+#                     await deepseek_callback(message)
+#             except Exception as e:
+#                 logger.exception(e)
     except Exception as e:
         logger.exception(e)
