@@ -155,9 +155,11 @@ class ConnectorManager:
 
     async def dispatch(self, envelope):
         from iacecil.controllers.persistence.neutral import persist_envelope, resolve_person
+        from iacecil.controllers.persistence.chat_store import store_message
         try:
             await resolve_person(envelope.platform, envelope.sender_ref)
             await persist_envelope(envelope, direction='in')
+            await store_message(self.bot_id, envelope, direction='in')
         except Exception as e:
             logger.error(f"Failed to persist envelope: {e}")
 
@@ -196,6 +198,8 @@ class ConnectorManager:
                     await self.send(reply_env)
                     try:
                         await persist_envelope(reply_env, direction='out')
+                        await store_message(self.bot_id, reply_env,
+                            direction='out')
                     except Exception as e:
                         logger.error(f"Failed to persist outbound envelope: {e}")
             except Exception as e:
