@@ -49,17 +49,97 @@ async def test_manager_loading(caplog):
     config = {
         'telegram': {'token': '123'},
         'xmpp': {'jid': 'user@host', 'password': 'pw'},
-        'discord': {}, # empty
-        'unknown_service': {'token': 'fake'}
+        'discord': {}, # empty credentials -> inactive
+        'openai': {'api_key': 'fake'}, # non-connector section
     }
-    
-    with caplog.at_level(logging.ERROR):
+
+    with caplog.at_level(logging.DEBUG):
         manager = ConnectorManager(config)
-    
+
     assert 'telegram' in manager.connectors
     assert 'xmpp' in manager.connectors
     assert 'discord' not in manager.connectors
-    assert "Unknown connector section 'unknown_service' with credentials, skipping." in caplog.text
+    assert 'openai' not in manager.connectors
+    ## Non-connector sections are a quiet skip, not an error storm
+    assert "ERROR" not in [r.levelname for r in caplog.records
+        if 'openai' in r.getMessage()]
+
+
+@pytest.mark.asyncio
+async def test_manager_import_failure_logs_error(caplog, monkeypatch):
+    """A connector module that exists but fails to import (missing
+    platform dependency) logs an error; siblings still load."""
+    import iacecil.connectors as connectors_pkg
+    real_import = connectors_pkg.import_module
+
+    def fake_import(name, package=None):
+        if name == '.matrix' and package == 'iacecil.connectors':
+            raise ModuleNotFoundError("No module named 'nio'", name='nio')
+        return real_import(name, package)
+
+    monkeypatch.setattr(connectors_pkg, 'import_module', fake_import)
+    config = {
+        'telegram': {'token': '123'},
+        'matrix': {'homeserver': 'https://x', 'token': 't'},
+    }
+    with caplog.at_level(logging.ERROR):
+        manager = ConnectorManager(config)
+
+    assert 'telegram' in manager.connectors
+    assert 'matrix' not in manager.connectors
+    assert "missing dependency nio" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_manager_send_routes_and_warns_once(caplog):
+    manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+    manager.connectors['xmpp'].send = AsyncMock()
+
+    env = Envelope("xmpp", "s", "c", "hi")
+    assert await manager.send(env) is True
+    manager.connectors['xmpp'].send.assert_called_once_with(env)
+
+    missing = Envelope("matrix", "s", "c", "hi")
+    with caplog.at_level(logging.WARNING):
+        assert await manager.send(missing) is False
+        assert await manager.send(missing) is False
+    warnings = [r for r in caplog.records
+        if "No active connector for platform matrix" in r.getMessage()]
+    assert len(warnings) == 1
+
+
+@pytest.mark.asyncio
+async def test_manager_send_never_raises():
+    manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+    manager.connectors['xmpp'].send = AsyncMock(side_effect=RuntimeError("boom"))
+    assert await manager.send(Envelope("xmpp", "s", "c", "hi")) is False
+
+
+@pytest.mark.asyncio
+async def test_dummy_connector_activates_with_zero_manager_edits():
+    """R13 acceptance: a new platform is one module + one config
+    section; the manager needs no edits."""
+    dummy_mod = types.ModuleType("iacecil.connectors.dummy")
+    class DummyConnector(FakeConnector):
+        required_keys = ('secret',)
+    dummy_mod.Connector = DummyConnector
+    sys.modules["iacecil.connectors.dummy"] = dummy_mod
+    try:
+        manager = ConnectorManager({'dummy': {'secret': 's3cr3t'}})
+        assert 'dummy' in manager.connectors
+        inactive = ConnectorManager({'dummy': {'secret': ''}})
+        assert 'dummy' not in inactive.connectors
+    finally:
+        del sys.modules["iacecil.connectors.dummy"]
+
+
+@pytest.mark.asyncio
+async def test_manager_bot_id_default_and_explicit():
+    manager = ConnectorManager({'xmpp': {'jid': 'u@h', 'password': 'pw'}})
+    assert manager.bot_id == "default"
+    named = ConnectorManager({'xmpp': {'jid': 'u@h', 'password': 'pw'}},
+        bot_id="mybot")
+    assert named.bot_id == "mybot"
 
 
 @pytest.mark.asyncio

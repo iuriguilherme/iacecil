@@ -5,6 +5,9 @@ from iacecil.models.envelope import Envelope
 logger = logging.getLogger(__name__)
 
 class Connector(BaseConnector):
+    required_keys = ('token',)
+    MAX_TEXT = 4096
+
     def __init__(self, manager, config):
         super().__init__(manager, config)
         self.bot = None
@@ -38,15 +41,18 @@ class Connector(BaseConnector):
     async def send(self, envelope: Envelope):
         if not self.bot:
             return
-            
+
         chat_id = envelope.conversation_ref
-        reply_to_message_id = envelope.reply_ref
-        
-        await self.bot.send_message(
-            chat_id=chat_id,
-            text=envelope.text,
-            reply_to_message_id=reply_to_message_id
-        )
+        text = envelope.text or ""
+
+        ## Telegram rejects messages over 4096 chars; chunk, replying
+        ## only on the first chunk.
+        for i in range(0, len(text), self.MAX_TEXT):
+            await self.bot.send_message(
+                chat_id=chat_id,
+                text=text[i:i + self.MAX_TEXT],
+                reply_to_message_id=envelope.reply_ref if i == 0 else None,
+            )
 
     async def disconnect(self):
         self.running = False

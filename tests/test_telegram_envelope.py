@@ -68,3 +68,27 @@ async def test_connector_send():
         text='reply text',
         reply_to_message_id='10'
     )
+
+@pytest.mark.asyncio
+async def test_connector_send_chunks_at_telegram_limit():
+    from iacecil.connectors.telegram import Connector
+    manager = MagicMock()
+    conn = Connector(manager, {'token': 'fake'})
+    conn.bot = AsyncMock()
+
+    env = Envelope(
+        platform='telegram',
+        sender_ref='1',
+        conversation_ref='chat1',
+        text='x' * 4500,
+        reply_ref='10',
+    )
+
+    await conn.send(env)
+    calls = conn.bot.send_message.call_args_list
+    assert len(calls) == 2
+    assert len(calls[0].kwargs['text']) == 4096
+    assert len(calls[1].kwargs['text']) == 404
+    ## Reply reference only on the first chunk
+    assert calls[0].kwargs['reply_to_message_id'] == '10'
+    assert calls[1].kwargs['reply_to_message_id'] is None

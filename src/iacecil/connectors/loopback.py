@@ -4,6 +4,8 @@ from .base import BaseConnector
 from iacecil.models.envelope import Envelope
 
 class Connector(BaseConnector):
+    required_keys = ('enabled',)
+
     def __init__(self, manager, config):
         super().__init__(manager, config)
         self.queue = asyncio.Queue()

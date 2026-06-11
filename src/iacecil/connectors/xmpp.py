@@ -47,6 +47,10 @@ class XMPPBot(ClientXMPP):
             await self.manager.dispatch(env)
 
 class Connector(BaseConnector):
+    required_keys = ('jid', 'password')
+    ## Conservative message length limit; servers vary
+    MAX_TEXT = 4000
+
     def __init__(self, manager, config):
         super().__init__(manager, config)
         self.running = False
@@ -74,9 +78,8 @@ class Connector(BaseConnector):
             return
 
         text = envelope.text or ""
-        ## Conservative message length limit; servers vary
-        for i in range(0, len(text), 4000):
-            chunk = text[i:i+4000]
+        for i in range(0, len(text), self.MAX_TEXT):
+            chunk = text[i:i + self.MAX_TEXT]
             self.bot.send_message(mto=envelope.conversation_ref, mbody=chunk, mtype='chat')
 
     async def disconnect(self):
