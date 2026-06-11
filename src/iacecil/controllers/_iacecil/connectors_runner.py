@@ -84,11 +84,16 @@ def build_managers(configs: dict) -> list:
     for bot_id, config in configs.items():
         try:
             manager = ConnectorManager(config, bot_id=bot_id)
-            _attach_log_sinks(manager, config)
-            managers.append(manager)
         except Exception as e:
             logger.error(f"Failed to build manager for bot {bot_id}: {e}")
             logger.exception(e)
+            continue
+        try:
+            ## A broken sink config degrades logging, not the bot
+            _attach_log_sinks(manager, config)
+        except Exception as e:
+            logger.error(f"Failed to attach log sinks for bot {bot_id}: {e}")
+        managers.append(manager)
     return managers
 
 
