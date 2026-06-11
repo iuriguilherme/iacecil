@@ -201,8 +201,20 @@ class DefaultBotConfig(BaseSettings):
         }, # users
     } # telegram
     discord: dict = {
+        ## Bot token from https://discord.com/developers/applications;
+        ## also enable the "Message Content Intent" toggle on the Bot
+        ## page or every inbound message arrives with empty text.
         'token': None,
     } # discord
+    matrix: dict = {
+        'homeserver': None, # e.g. "https://matrix.org"
+        ## Access token preferred (rotatable). The password fallback is
+        ## bootstrap-only: log in once, copy the access token from the
+        ## session, put it in 'token' and remove 'password'.
+        'token': None,
+        'user': None, # e.g. "@mybot:matrix.org" (password login only)
+        'password': None,
+    } # matrix
     furhat: dict = {
         'bot': "garbage",
         'address': "127.0.0.1",
