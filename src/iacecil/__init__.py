@@ -23,8 +23,9 @@ import logging
 import natsort
 import os
 
-## FIXME: Chupa
-logging.basicConfig(level = "INFO")
+from dotenv import load_dotenv
+load_dotenv()
+logging.basicConfig(level = os.getenv('LOG_LEVEL', 'INFO').upper())
 logger = logging.getLogger(__name__)
 
 name: str = 'iacecil'
