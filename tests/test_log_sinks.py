@@ -205,6 +205,51 @@ async def test_burst_bounded_queue_drops_oldest(cleanup_loggers):
 
 
 @pytest.mark.asyncio
+async def test_requeued_boot_records_survive_midflush_refill(cleanup_loggers):
+    """Records held for a not-yet-connected sink must not be evicted
+    when other tasks refill the bounded deque during the flush's
+    awaits — requeue prepends instead of appending."""
+    import iacecil.controllers.log_sinks as log_sinks_mod
+    manager = make_manager(platforms=('slow', 'fast'))
+    manager.connectors['slow'].running = False
+    handler = ConnectorLogHandler(manager, [
+        {'platform': 'slow', 'conversation_ref': 's', 'level': 'ERROR',
+         'logger': 'iacecil.test.slow'},
+        {'platform': 'fast', 'conversation_ref': 'f', 'level': 'ERROR',
+         'logger': 'iacecil.test.fast'},
+    ])
+    ## Tiny bound so a mid-flush refill hits capacity
+    handler.queue = type(handler.queue)(maxlen=3)
+    slow_log = make_logger('iacecil.test.slow', handler)
+    fast_log = make_logger('iacecil.test.fast', handler)
+
+    slow_log.error("boot record for slow sink")
+    fast_log.error("fast one")
+
+    refilled = False
+
+    async def send_and_refill(envelope):
+        ## Models another task emitting during the delivery await
+        nonlocal refilled
+        if not refilled:
+            refilled = True
+            ## New records also waiting on the slow sink: total held
+            ## records exceed the bound, and the oldest must win
+            handler.queue.append((handler.sinks[0], "[ERROR] refill a"))
+            handler.queue.append((handler.sinks[0], "[ERROR] refill b"))
+            handler.queue.append((handler.sinks[0], "[ERROR] refill c"))
+        return True
+
+    manager.send = AsyncMock(side_effect=send_and_refill)
+    await handler.flush_ready()
+
+    ## The boot record sits at the FRONT of the queue, not evicted
+    assert "boot record for slow sink" in handler.queue[0][1]
+    slow_log.handlers.clear()
+    fast_log.handlers.clear()
+
+
+@pytest.mark.asyncio
 async def test_absent_platform_dropped_via_manager_send(cleanup_loggers):
     """A sink naming a platform with no connector routes through
     manager.send, which warns once and drops."""

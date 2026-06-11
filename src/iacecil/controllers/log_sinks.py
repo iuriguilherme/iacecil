@@ -125,7 +125,12 @@ class ConnectorLogHandler(logging.Handler):
                 sys.stderr.write(f"log sink delivery failed: {e!r}\n")
             finally:
                 _delivering.reset(token)
-        self.queue.extend(requeue)
+        ## Prepend, don't append: records emitted by other tasks during
+        ## the awaits above may have refilled the bounded deque, and
+        ## extend() would evict exactly the boot-time records we are
+        ## holding for a not-yet-connected sink. Front placement keeps
+        ## the oldest undelivered records; overload drops the newest.
+        self.queue.extendleft(reversed(requeue))
 
     async def drain(self):
         """Run by ConnectorManager.run_all; cancelled on shutdown with

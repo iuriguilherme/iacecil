@@ -72,11 +72,13 @@ def _get_db(path: str):
         db = ZODB.DB(zc.zlibstorage.ZlibStorage(storage))
     _dbs[path] = db
     while len(_dbs) > MAX_OPEN_DBS:
-        _, old_db = _dbs.popitem(last=False)
+        old_path, old_db = _dbs.popitem(last=False)
         try:
             old_db.close()
-        except Exception:
-            pass
+        except Exception as e:
+            ## A failed close leaves the FileStorage .lock behind;
+            ## surface it instead of masking.
+            logger.warning(f"Failed to close evicted chat DB {old_path}: {e}")
     return db
 
 
