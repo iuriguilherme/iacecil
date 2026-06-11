@@ -83,11 +83,30 @@ def build_managers(configs: dict) -> list:
     managers = []
     for bot_id, config in configs.items():
         try:
-            managers.append(ConnectorManager(config, bot_id=bot_id))
+            manager = ConnectorManager(config, bot_id=bot_id)
+            _attach_log_sinks(manager, config)
+            managers.append(manager)
         except Exception as e:
             logger.error(f"Failed to build manager for bot {bot_id}: {e}")
             logger.exception(e)
     return managers
+
+
+def _attach_log_sinks(manager, config) -> None:
+    """Wire the bot's configured log sinks (if any) into the root
+    logger; the manager's run_all owns the drain task lifecycle."""
+    config_dict = (config.model_dump() if hasattr(config, 'model_dump')
+        else config if isinstance(config, dict)
+        else getattr(config, '__dict__', {}))
+    sinks = config_dict.get('log_sinks') or []
+    if not sinks:
+        return
+    from iacecil.controllers.log_sinks import ConnectorLogHandler
+    handler = ConnectorLogHandler(manager, sinks)
+    logging.getLogger().addHandler(handler)
+    manager.log_handler = handler
+    logger.info(
+        f"Bot {manager.bot_id}: {len(sinks)} log sink(s) attached.")
 
 
 async def run_managers(managers: list) -> None:

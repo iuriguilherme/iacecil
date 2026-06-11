@@ -419,6 +419,18 @@ f0123456789abcdef""",
         discord: dict = {
             'token': "",
         } # discord
+        matrix: dict = {
+            'homeserver': "",
+            'token': "",
+            'user': "",
+            'password': "",
+        } # matrix
+        ## Operator log sinks: route logging records to chat
+        ## conversations on any active connector. Entries:
+        ## {'platform': 'matrix', 'conversation_ref': '!room:server',
+        ##  'level': 'ERROR', 'logger': 'iacecil.connectors.xmpp',
+        ##  'tags': [], 'verbose': False}
+        log_sinks: list = []
         furhat: dict = {
             'bot': "f1",
             'address': os.getenv(

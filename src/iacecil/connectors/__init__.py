@@ -47,6 +47,8 @@ class ConnectorManager:
         self.command_registry = {}
         self.default_handler = None
         self._send_warned_platforms = set()
+        ## Optional ConnectorLogHandler; run_all owns its drain task.
+        self.log_handler = None
 
         self._load_connectors()
         self._load_personality()
@@ -233,8 +235,21 @@ class ConnectorManager:
 
     async def run_all(self):
         await self._load_plugins()
+        drain_task = None
+        if self.log_handler is not None:
+            drain_task = asyncio.create_task(self.log_handler.drain())
         tasks = []
         for name, connector in self.connectors.items():
             tasks.append(asyncio.create_task(self._run_connector(name, connector)))
-        if tasks:
-            await asyncio.gather(*tasks)
+        try:
+            if tasks:
+                await asyncio.gather(*tasks)
+        finally:
+            if drain_task is not None:
+                ## Shutdown flush is bounded: drain's cancel path runs
+                ## one final flush, then we stop waiting.
+                drain_task.cancel()
+                try:
+                    await asyncio.wait_for(drain_task, timeout=5)
+                except (asyncio.CancelledError, asyncio.TimeoutError):
+                    pass
