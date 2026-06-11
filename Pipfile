@@ -72,6 +72,7 @@ python_version = "3.11"
 #papagaio = 'python start.py debug fpapagaio f239 True'
 #personas = 'python start.py debug fpersonas f239 ic_fh,mb_fh,pc_fh 1'
 prod = 'python -m iacecil production'
+connectors = 'python -m iacecil connectors'
 test = 'python -m iacecil'
 dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'
 paola = 'python -m iacecil fpersonas'

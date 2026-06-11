@@ -38,6 +38,9 @@ args: {sys.argv[1:]}""")
         from .controllers._iacecil import production
     elif (len(sys.argv) > 1 and sys.argv[1] in ['fpersonas']):
         from .controllers._iacecil import fpersonas
+    elif (len(sys.argv) > 1 and sys.argv[1] in ['connectors']):
+        from .controllers._iacecil.connectors_runner import run_app
+        run_app(*sys.argv)
     elif (len(sys.argv) > 1 and sys.argv[1] in [
       'chatgpt',
       'furhat',
