@@ -157,7 +157,7 @@ class ConnectorManager:
         from iacecil.controllers.persistence.neutral import persist_envelope, resolve_person
         try:
             await resolve_person(envelope.platform, envelope.sender_ref)
-            await persist_envelope(envelope)
+            await persist_envelope(envelope, direction='in')
         except Exception as e:
             logger.error(f"Failed to persist envelope: {e}")
 
@@ -194,6 +194,10 @@ class ConnectorManager:
                         text=reply_text,
                     )
                     await self.send(reply_env)
+                    try:
+                        await persist_envelope(reply_env, direction='out')
+                    except Exception as e:
+                        logger.error(f"Failed to persist outbound envelope: {e}")
             except Exception as e:
                 logger.error(f"Error handling envelope: {e}")
 

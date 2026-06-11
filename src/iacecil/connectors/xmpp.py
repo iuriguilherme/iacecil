@@ -37,12 +37,14 @@ class XMPPBot(ClientXMPP):
             ## Own messages echoed back by server; replying would loop
             return
         if msg['type'] in ('chat', 'normal'):
+            stanza_id = str(msg['id']) if msg['id'] else None
             env = Envelope(
                 platform='xmpp',
                 sender_ref=str(msg['from'].bare),
                 conversation_ref=str(msg['from'].bare),
                 text=msg['body'],
-                raw=msg
+                raw=msg,
+                native_message_id=stanza_id,
             )
             await self.manager.dispatch(env)
 

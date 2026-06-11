@@ -49,6 +49,8 @@ async def message_callback(
             from aiogram import Dispatcher
             dispatcher = Dispatcher.get_current()
             if hasattr(dispatcher, 'manager'):
+                message_id = getattr(message, 'message_id', None)
+                message_date = getattr(message, 'date', None)
                 env = Envelope(
                     platform='telegram',
                     sender_ref=str(message.from_user.id),
@@ -60,7 +62,9 @@ async def message_callback(
                     extra={
                         'first_name': message.from_user.first_name,
                         'last_name': message.from_user.last_name
-                    }
+                    },
+                    native_message_id=str(message_id) if message_id is not None else None,
+                    timestamp=message_date.timestamp() if message_date is not None else None,
                 )
                 await dispatcher.manager.dispatch(env)
         except Exception as e:

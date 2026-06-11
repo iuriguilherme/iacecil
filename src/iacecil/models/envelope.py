@@ -11,3 +11,9 @@ class Envelope:
     tags: Set[str] = field(default_factory=set)
     raw: Any = field(default=None, repr=False)
     extra: Dict[str, Any] = field(default_factory=dict)
+    ## Platform-assigned message id, when the platform exposes one
+    ## (telegram message_id, matrix event id, discord snowflake).
+    native_message_id: Optional[str] = None
+    ## Unix epoch seconds (UTC). Persistence fills in "now" when the
+    ## platform supplied none.
+    timestamp: Optional[float] = None

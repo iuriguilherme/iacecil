@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 import uuid
 import BTrees
 import transaction
@@ -79,13 +80,13 @@ async def merge_persons(id1: str, id2: str) -> str:
         del root.people[p2.id]
         return p1.id
 
-async def persist_envelope(envelope):
+async def persist_envelope(envelope, direction: str = 'in'):
     db = await get_messages_db()
     with db.transaction() as connection:
         root = connection.root
         if not hasattr(root, 'messages'):
             root.messages = BTrees.OOBTree.OOBTree()
-            
+
         record = {
             'platform': envelope.platform,
             'sender_ref': envelope.sender_ref,
@@ -93,8 +94,13 @@ async def persist_envelope(envelope):
             'text': envelope.text,
             'reply_ref': envelope.reply_ref,
             'tags': list(envelope.tags),
+            'direction': direction,
+            'native_message_id': getattr(envelope, 'native_message_id', None),
+            ## UTC epoch seconds; platform time when supplied, else now.
+            ## Old records lack these keys — readers use .get().
+            'timestamp': getattr(envelope, 'timestamp', None) or time.time(),
         }
-        
+
         msg_id = str(uuid.uuid4())
         root.messages[msg_id] = record
         return msg_id
