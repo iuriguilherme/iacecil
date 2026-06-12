@@ -9,7 +9,7 @@ production runner: `instance/_bots.py` (or `instance/_bots_<name>.py`
 via argv) lists the bots; `instance/bots/<name>.py` provides each
 bot's BotConfig; DefaultBotConfig is the fallback.
 
-Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>
+Copyleft 2012-2026 Iuri Guilherme <https://iuri.neocities.org/>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

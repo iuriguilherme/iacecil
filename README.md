@@ -645,7 +645,7 @@ acesse via `CURL IP:5000`
 Licença
 ---
 
-Copyleft 2012-2025 Iuri Guilherme <https://iuri.neocities.org/>  
+Copyleft 2012-2026 Iuri Guilherme <https://iuri.neocities.org/>  
 
 **Este programa é um software livre; você pode redistribuí-lo e/ou**  
 **modificá-lo sob os termos da Licença Pública Geral GNU como publicada**  
