@@ -64,6 +64,7 @@ async def test_echo_round_trip_persists_in_and_out():
     manager = ConnectorManager({'loopback': {'enabled': True}})
     from plugins.echo import add_envelope_handlers
     await add_envelope_handlers(manager)
+    manager.connectors['loopback'].running = True
     manager.connectors['loopback'].send = AsyncMock()
 
     await manager.dispatch(Envelope('loopback', 'u', 'c', 'echo me'))

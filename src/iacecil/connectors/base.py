@@ -17,6 +17,7 @@ class BaseConnector(ABC):
     def __init__(self, manager, config):
         self.manager = manager
         self.config = config
+        self.running: bool = False
 
     @classmethod
     def is_active(cls, conf: dict) -> bool:

@@ -99,6 +99,7 @@ async def test_dispatch_writes_chat_store_for_all_platforms():
     manager = ConnectorManager({'loopback': {'enabled': True}},
         bot_id='mybot')
     await add_envelope_handlers(manager)
+    manager.connectors['loopback'].running = True
     manager.connectors['loopback'].send = AsyncMock()
 
     await manager.dispatch(Envelope('loopback', 'u', 'local_chat', 'ping'))

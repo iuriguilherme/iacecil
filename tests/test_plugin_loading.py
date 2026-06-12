@@ -41,51 +41,51 @@ def mock_plugins(monkeypatch):
 async def test_plugin_legacy_telegram(caplog):
     target = object()
     with caplog.at_level(logging.INFO):
-        await load_plugin('telegram', 'plugin_legacy', 'default', target)
+        await load_plugin('telegram', 'plugin_legacy', target)
     sys.modules["plugins.plugin_legacy"].add_handlers.assert_called_once_with(target)
-    assert "Activated plugin plugin_legacy for connector telegram" in caplog.text
+    assert f"Activated plugin plugin_legacy for telegram (legacy)" in caplog.text
 
 @pytest.mark.asyncio
 async def test_plugin_legacy_xmpp(caplog):
     target = object()
-    await load_plugin('xmpp', 'plugin_legacy', 'default', target)
+    await load_plugin('xmpp', 'plugin_legacy', target)
     sys.modules["plugins.plugin_legacy"].add_handlers.assert_not_called()
-    assert ("Plugin plugin_legacy has no entry point add_handlers_xmpp"
-        " or add_envelope_handlers for connector xmpp") in caplog.text
+    assert ("Plugin plugin_legacy has no entry point for connector xmpp"
+        ) in caplog.text
 
 @pytest.mark.asyncio
 async def test_plugin_xmpp_xmpp(caplog):
     target = object()
     with caplog.at_level(logging.INFO):
-        await load_plugin('xmpp', 'plugin_xmpp', 'default', target)
+        await load_plugin('xmpp', 'plugin_xmpp', target)
     sys.modules["plugins.plugin_xmpp"].add_handlers_xmpp.assert_called_once_with(target)
-    assert "Activated plugin plugin_xmpp for connector xmpp" in caplog.text
+    assert "Activated plugin plugin_xmpp for xmpp (per-connector)" in caplog.text
 
 @pytest.mark.asyncio
 async def test_plugin_empty(caplog):
     target = object()
-    await load_plugin('xmpp', 'plugin_empty', 'default', target)
-    assert ("Plugin plugin_empty has no entry point add_handlers_xmpp"
-        " or add_envelope_handlers for connector xmpp") in caplog.text
+    await load_plugin('xmpp', 'plugin_empty', target)
+    assert ("Plugin plugin_empty has no entry point for connector xmpp"
+        ) in caplog.text
 
 @pytest.mark.asyncio
 async def test_plugin_generic_binds_non_telegram(caplog):
     """Generic envelope loader serves any non-telegram connector."""
     target = object()
     with caplog.at_level(logging.INFO):
-        await load_plugin('xmpp', 'plugin_generic', 'default', target)
-        await load_plugin('discord', 'plugin_generic', 'default', target)
+        await load_plugin('xmpp', 'plugin_generic', target)
+        await load_plugin('discord', 'plugin_generic', target)
     generic = sys.modules["plugins.plugin_generic"].add_envelope_handlers
     assert generic.call_count == 2
-    assert "Activated plugin plugin_generic for connector xmpp" in caplog.text
-    assert "Activated plugin plugin_generic for connector discord" in caplog.text
+    assert "Activated plugin plugin_generic for xmpp (generic)" in caplog.text
+    assert "Activated plugin plugin_generic for discord (generic)" in caplog.text
 
 @pytest.mark.asyncio
 async def test_plugin_generic_skipped_on_telegram():
     """Telegram resolves only the legacy aiogram loader; the generic
     envelope loader never binds there (arbitration rule)."""
     target = object()
-    await load_plugin('telegram', 'plugin_generic', 'default', target)
+    await load_plugin('telegram', 'plugin_generic', target)
     sys.modules["plugins.plugin_generic"].add_envelope_handlers.assert_not_called()
 
 @pytest.mark.asyncio
@@ -95,9 +95,9 @@ async def test_plugin_both_per_connector_wins():
     target = object()
     mod = sys.modules["plugins.plugin_both"]
 
-    await load_plugin('xmpp', 'plugin_both', 'default', target)
+    await load_plugin('xmpp', 'plugin_both', target)
     mod.add_handlers_xmpp.assert_called_once_with(target)
     mod.add_envelope_handlers.assert_not_called()
 
-    await load_plugin('discord', 'plugin_both', 'default', target)
+    await load_plugin('discord', 'plugin_both', target)
     mod.add_envelope_handlers.assert_called_once_with(target)

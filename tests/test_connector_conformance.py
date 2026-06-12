@@ -152,15 +152,22 @@ async def test_self_message_guard_matrix():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('name', sorted(CONNECTOR_CLASSES))
-async def test_echo_round_trip_contract(name):
+async def test_echo_round_trip_contract(name, monkeypatch):
     """One real manager per platform with echo registered: every
     non-telegram connector answers exactly once with the original text;
     telegram persists but never replies (arbitration pin)."""
     from plugins.echo import add_envelope_handlers
+    import iacecil.controllers.persistence.neutral as neutral
+    import iacecil.controllers.persistence.chat_store as chat_store
+
+    monkeypatch.setattr(neutral, 'persist_envelope', AsyncMock())
+    monkeypatch.setattr(neutral, 'resolve_person', AsyncMock())
+    monkeypatch.setattr(chat_store, 'store_message', AsyncMock())
 
     manager = ConnectorManager({name: ACTIVATION_CONFIGS[name]},
         bot_id='conformance')
     assert name in manager.connectors
+    manager.connectors[name].running = True
     await add_envelope_handlers(manager)
     manager.connectors[name].send = AsyncMock()
 

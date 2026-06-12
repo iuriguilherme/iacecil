@@ -84,6 +84,11 @@ class Connector(BaseConnector):
                 except Exception as e:
                     logger.warning(f"Matrix whoami failed: {e}")
         else:
+            logger.warning(
+                f"Matrix connector for {self.user_id or 'unknown'} using"
+                " password login; this is bootstrap-only — please exchange"
+                " for an access token and update your config for better"
+                " security.")
             response = await self.client.login(self.config.get('password'))
             if not getattr(response, 'access_token', None):
                 raise ConnectionError(f"Matrix login failed: {response!r}")

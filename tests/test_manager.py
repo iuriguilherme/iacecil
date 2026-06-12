@@ -74,7 +74,7 @@ async def test_manager_import_failure_logs_error(caplog, monkeypatch):
 
     def fake_import(name, package=None):
         if name == '.matrix' and package == 'iacecil.connectors':
-            raise ModuleNotFoundError("No module named 'nio'", name='nio')
+            raise ImportError("missing dependency nio")
         return real_import(name, package)
 
     monkeypatch.setattr(connectors_pkg, 'import_module', fake_import)
@@ -87,12 +87,13 @@ async def test_manager_import_failure_logs_error(caplog, monkeypatch):
 
     assert 'telegram' in manager.connectors
     assert 'matrix' not in manager.connectors
-    assert "missing dependency nio" in caplog.text
+    assert "Failed to load connector matrix" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_manager_send_routes_and_warns_once(caplog):
     manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+    manager.connectors['xmpp'].running = True
     manager.connectors['xmpp'].send = AsyncMock()
 
     env = Envelope("xmpp", "s", "c", "hi")
@@ -104,13 +105,14 @@ async def test_manager_send_routes_and_warns_once(caplog):
         assert await manager.send(missing) is False
         assert await manager.send(missing) is False
     warnings = [r for r in caplog.records
-        if "No active connector for platform matrix" in r.getMessage()]
+        if "Drop envelope for matrix" in r.getMessage()]
     assert len(warnings) == 1
 
 
 @pytest.mark.asyncio
 async def test_manager_send_never_raises():
     manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+    manager.connectors['xmpp'].running = True
     manager.connectors['xmpp'].send = AsyncMock(side_effect=RuntimeError("boom"))
     assert await manager.send(Envelope("xmpp", "s", "c", "hi")) is False
 
@@ -162,6 +164,7 @@ async def test_manager_run_all(caplog):
 @pytest.mark.asyncio
 async def test_dispatch_routing():
     manager = ConnectorManager({'xmpp': {'jid': 'user@host', 'password': 'pw'}})
+    manager.connectors['xmpp'].running = True
 
     start_handler = AsyncMock(return_value="Hello Start")
     default_handler = AsyncMock(return_value="Hello Default")
