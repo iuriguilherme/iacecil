@@ -24,7 +24,13 @@ import natsort
 import os
 
 from dotenv import load_dotenv
-load_dotenv()
+try:
+    load_dotenv()
+except PermissionError:
+    pass
+except Exception as e:
+    logging.warning(f"Failed to load .env: {e}")
+
 logging.basicConfig(level = os.getenv('LOG_LEVEL', 'INFO').upper())
 logger = logging.getLogger(__name__)
 
