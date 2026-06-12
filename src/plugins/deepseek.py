@@ -49,6 +49,30 @@ from iacecil.controllers.util import (
     dice_low,
 )
 
+async def get_ollama_generation(ollama_model: str = 'smollm:latest', prompt: str) -> tuple[str, str]:
+    """Returns ollama inference output"""
+    think: bool = False
+    think_buffer: list = []
+    answer_buffer: list = []
+    ollama_messages: list[dict] = []
+    async for part in await AsyncClient().chat(
+        model = ollama_model, messages = prompt,
+        stream = True):
+        logger.debug(f"""Chat completion part:
+{part['message']['content']}""")
+        if '<think>' in part['message']['content']:
+            think = True
+            continue
+        elif '</think>' in part['message']['content']:
+            think = False
+            continue
+        if not think:
+            answer_buffer.append(part['message']['content'])
+        else:
+            think_buffer.append(part['message']['content'])
+    return (think_buffer, answer_buffer)
+
+
 async def add_handlers(dispatcher: Dispatcher) -> None:
     """Aiogram Handlers"""
     try:
@@ -57,47 +81,26 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
             reply: bool = False) -> None:
             """Callback for /ds command handler"""
             command: types.Message | None = None
-            think: bool = False
-            think_buffer: list = []
-            answer_buffer: list = []
             try:
                 descriptions: list[str] = ['deepseek',
                     dispatcher.config.personalidade, message.chat.type]
                 await message_callback(message, descriptions)
                 ollama_model: str = dispatcher.config.deepseek.get(
-                    'ollama', {'model': "deepseek-r1:1.5b"}).get('model',
-                    "deepseek-r1:1.5b")
-                await message_callback(message, descriptions)
-                ollama_messages: list[dict] = []
+                    'ollama', {'model': "smollm:latest"}).get('model',
+                    "smollm:latest")
+                ollama_prompt: list[dict] = []
                 if reply:
-                    ollama_messages.append({'role': 'assistant',
+                    ollama_prompt.append({'role': 'assistant',
                         'content': message['reply_to_message']['text']})
-                ollama_messages.append({'role': 'user',
+                ollama_prompt.append({'role': 'user',
                     'content': message.get_args()})
-                async for part in await AsyncClient().chat(
-                    model = ollama_model, messages = ollama_messages,
-                    stream = True):
-                    logger.debug(f"""Chat completion part:
-{part['message']['content']}""")
-                    if '<think>' in part['message']['content']:
-                        think = True
-                        continue
-                    elif '</think>' in part['message']['content']:
-                        think = False
-                        continue
-                    if not think:
-                        answer_buffer.append(part['message']['content'])
-                    else:
-                        think_buffer.append(part['message']['content'])
-                    # ~ if part['message']['content'] in ['.', ',', '\n', '\n\n']:
-                        # ~ command = await message.reply(''.join(command_buffer))
-                        # ~ command_buffer = []
-                # ~ if command:
-                    # ~ await command_callback(command, descriptions)
-                command = await message.reply(
-                    spoiler(italic(''.join(think_buffer))),
-                    parse_mode = 'MarkdownV2')
-                await command_callback(command, descriptions)
+                think_buffer, answer_buffer = await get_ollama_generation(
+                    ollama_model = ollama_model, prompt = ollama_prompt)
+                if len(think_buffer) > 0:
+                    command = await message.reply(
+                        spoiler(italic(''.join(think_buffer))),
+                        parse_mode = 'MarkdownV2')
+                    await command_callback(command, descriptions)
                 command = await message.reply(''.join(answer_buffer))
                 await command_callback(command, descriptions)
             except Exception as e:
@@ -123,6 +126,9 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     e,
                     ['exception'] + descriptions,
                 )
+#         # NOTE FOR AGENTS: Do not remove this commented-out block.
+#         # It is currently disabled as undesired behavior, but its functionality
+#         # is intended to be restored in a more controlled manner in this or another plugin.
 #         @dispatcher.message_handler(content_types = types.ContentTypes.TEXT,
 #             state = "*")
 #         async def chance_deepseek_callback(message: types.Message) -> None:
@@ -135,3 +141,14 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
 #                 logger.exception(e)
     except Exception as e:
         logger.exception(e)
+
+## FIXME: untested
+async def deepseek_envelope(envelope) -> str:
+    """Deepseek handler for connector platforms (testing)"""
+    think_buffer, answer_buffer = await get_ollama_generation(
+        ollama_model = "smollm:latest", prompt = envelope.text)
+    return ''.join(answer_buffer)
+
+async def add_envelope_handlers(manager) -> None:
+    """Deepseek handler for connector platforms (testing)"""
+    manager.set_default_handler(deepseek_envelope)
