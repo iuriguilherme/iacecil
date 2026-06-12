@@ -40,6 +40,7 @@ def load_bot_configs(argv: list) -> dict:
     instance/ loading: bot list from instance/_bots.py (or
     instance/_bots_<argv[2]>.py), per-bot BotConfig from
     instance/bots/<name>.py, DefaultBotConfig as fallback."""
+    logger.info("Loading default bot configuration...")
     from iacecil.config import DefaultBotConfig
     default_config = DefaultBotConfig()
     try:
@@ -49,7 +50,8 @@ def load_bot_configs(argv: list) -> dict:
         logger.warning(
             "Default bot configuration not found; using built-in defaults")
 
-    bots = None
+    logger.info("Loading bots list from local configuration...")
+    bots: list[str] | None = None
     try:
         if len(argv) > 2:
             _bots = import_module(f"instance._bots_{argv[2]}")
@@ -60,6 +62,7 @@ def load_bot_configs(argv: list) -> dict:
         logger.error(f"Bot list not found ({e}); using ['default']")
         bots = ['default']
 
+    logger.info("Loading bots configuration...")
     configs = {}
     for bot in bots:
         try:
@@ -79,6 +82,7 @@ def load_bot_configs(argv: list) -> dict:
 def build_managers(configs: dict) -> list:
     """One ConnectorManager per bot; a bot failing to build does not
     stop its siblings (R2 at bot granularity)."""
+    logger.info("Building bot managers...")
     from iacecil.connectors import ConnectorManager
     managers = []
     for bot_id, config in configs.items():

@@ -32,22 +32,27 @@ try:
 args: {sys.argv[1:]}""")
     except:
         logger.critical(f"Running {__name__} {__version__}")
-    if (len(sys.argv) > 1 and sys.argv[1] in \
-        ['production', 'staging']) or \
-        os.environ.get('ENV', None) in ['production', 'staging']:
-        from .controllers._iacecil import production
-    elif (len(sys.argv) > 1 and sys.argv[1] in ['fpersonas']):
-        from .controllers._iacecil import fpersonas
-    elif (len(sys.argv) > 1 and sys.argv[1] in ['connectors']):
-        from .controllers._iacecil.connectors_runner import run_app
-        run_app(*sys.argv)
-    elif (len(sys.argv) > 1 and sys.argv[1] in [
-      'chatgpt',
-      'furhat',
-      'furhatgpt',
-    ]):
-        from .controllers._iacecil import furhatgpt
+    if len(sys.argv) > 1:
+        if (sys.argv[1] in \
+            ['production', 'staging']) or \
+            os.environ.get('ENV', None) in ['production', 'staging']:
+            from .controllers._iacecil import production
+        elif (sys.argv[1] in ['fpersonas']):
+            from .controllers._iacecil import fpersonas
+        elif (sys.argv[1] in ['connectors']):
+            from .controllers._iacecil.connectors_runner import run_app
+            run_app(*sys.argv)
+        elif (sys.argv[1] in [
+        'chatgpt',
+        'furhat',
+        'furhatgpt',
+        ]):
+            from .controllers._iacecil import furhatgpt
+        else:
+            from .controllers._iacecil.testing import run_app
+            run_app(*sys.argv)
     else:
+        logger.info("No arguments provided, using testing mode")
         from .controllers._iacecil.testing import run_app
         run_app(*sys.argv)
 except Exception as e:
