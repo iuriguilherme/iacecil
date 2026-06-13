@@ -17,6 +17,7 @@ from iacecil.models.envelope import Envelope
 from iacecil.connectors import ConnectorManager
 from iacecil.connectors import discord as discord_mod
 from iacecil.connectors import loopback as loopback_mod
+from iacecil.connectors import mastodon as mastodon_mod
 from iacecil.connectors import matrix as matrix_mod
 from iacecil.connectors import telegram as telegram_mod
 from iacecil.connectors import xmpp as xmpp_mod
@@ -26,6 +27,7 @@ CONNECTOR_CLASSES = {
     'xmpp': xmpp_mod.Connector,
     'discord': discord_mod.Connector,
     'matrix': matrix_mod.Connector,
+    'mastodon': mastodon_mod.Connector,
     'loopback': loopback_mod.Connector,
 }
 
@@ -36,6 +38,7 @@ DECLARED_LIMITS = {
     'xmpp': 4000,
     'discord': 2000,
     'matrix': 16000,
+    'mastodon': 500,
     'loopback': 0,
 }
 
@@ -44,6 +47,7 @@ ACTIVATION_CONFIGS = {
     'xmpp': {'jid': 'bot@host', 'password': 'pw'},
     'discord': {'token': 'x'},
     'matrix': {'homeserver': 'https://h', 'token': 'x'},
+    'mastodon': {'api_base_url': 'https://h', 'access_token': 'x'},
     'loopback': {'enabled': True},
 }
 
@@ -72,6 +76,10 @@ def make_send_capture(name):
         conn.client = SimpleNamespace(room_send=AsyncMock())
         return conn, lambda: [c.kwargs['content']['body']
             for c in conn.client.room_send.call_args_list]
+    if name == 'mastodon':
+        conn.client = SimpleNamespace(status_post=MagicMock())
+        return conn, lambda: [c.args[0]
+            for c in conn.client.status_post.call_args_list]
     raise ValueError(name)
 
 
@@ -147,6 +155,18 @@ async def test_self_message_guard_matrix():
     own = SimpleNamespace(sender='@bot:h', body='hi', event_id='$1',
         server_timestamp=None)
     await conn._on_event('!r:h', own)
+    manager.dispatch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_self_message_guard_mastodon():
+    manager = AsyncMock()
+    conn = mastodon_mod.Connector(manager,
+        {'api_base_url': 'https://h', 'access_token': 'x'})
+    conn.own_account_id = 42
+    own = {'account': {'id': 42}, 'id': 1, 'content': '<p>hi</p>',
+        'created_at': None}
+    await conn._handle_status(own)
     manager.dispatch.assert_not_called()
 
 

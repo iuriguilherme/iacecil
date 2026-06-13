@@ -425,6 +425,10 @@ f0123456789abcdef""",
             'user': "",
             'password': "",
         } # matrix
+        mastodon: dict = {
+            'api_base_url': "",
+            'access_token': "",
+        } # mastodon
         ## Operator log sinks: route logging records to chat
         ## conversations on any active connector. Entries:
         ## {'platform': 'matrix', 'conversation_ref': '!room:server',
