@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideation: Python Packaging Modernization — ia.cecil</title>
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:400,500,600,700|jetbrains-mono:400,500">
+<style>
+  :root{
+    --bg:#f7f6f3; --canvas:#fffefb; --ink:#1f2227; --muted:#5d636e;
+    --line:#e4e1d8; --line-strong:#d2cec1;
+    --accent:#2f6f57; --accent-soft:#e6f1ec; --accent-text:#1f5340;
+    --warn:#9a5b18; --warn-soft:#f6ecdd; --warn-text:#7a4711;
+    --info:#2b5a86; --info-soft:#e6eef6; --info-text:#234b70;
+    --chip:#efece4; --chip-ink:#3b3f47;
+    --radius:10px;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;
+    font-feature-settings:"cv05","ss01","liga";
+  }
+  .page{max-width:900px;margin-inline:auto;padding:48px 24px 96px}
+  main > section{
+    background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);
+    padding:28px 30px;margin-bottom:22px;
+  }
+  p,li{max-width:72ch}
+  a{color:var(--accent-text);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+  a:hover{border-bottom-color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--chip);
+    padding:.12em .4em;border-radius:5px;color:var(--chip-ink)}
+  h1{font-size:2rem;line-height:1.18;margin:0 0 6px;letter-spacing:-.02em;font-weight:700}
+  h2{font-size:1.32rem;margin:0 0 16px;letter-spacing:-.01em;font-weight:650;
+    padding-bottom:10px;border-bottom:2px solid var(--accent-soft)}
+  h3{font-size:1.12rem;margin:0;font-weight:600}
+  .eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--accent-text);margin:0 0 8px}
+  /* header */
+  header.doc{margin-bottom:26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .meta .pill{font-size:.78rem;background:var(--chip);color:var(--chip-ink);
+    border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:500}
+  .meta .pill b{font-weight:600;color:var(--ink)}
+  .lede{font-size:1.06rem;color:var(--muted);margin:16px 0 0;max-width:72ch}
+  /* stats strip */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;
+    margin-bottom:22px}
+  .stat{background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px}
+  .stat .n{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
+    color:var(--accent-text)}
+  .stat .l{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.35}
+  /* grounding */
+  .ground dl{margin:0}
+  .ground dt{font-weight:600;font-size:.82rem;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--muted);margin-top:16px}
+  .ground dd{margin:5px 0 0}
+  .axes{list-style:none;padding:0;margin:8px 0 0;counter-reset:ax}
+  .axes li{counter-increment:ax;position:relative;padding:9px 0 9px 40px;border-top:1px solid var(--line)}
+  .axes li:first-child{border-top:none}
+  .axes li::before{content:counter(ax);position:absolute;left:0;top:8px;
+    width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);
+    font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .axes b{font-weight:600}
+  /* jump list */
+  .jump{margin:0 0 22px;padding:18px 22px;background:var(--accent-soft);
+    border:1px solid #cfe3d9;border-radius:var(--radius)}
+  .jump p{margin:0 0 10px;font-size:.74rem;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--accent-text);max-width:none}
+  .jump ol{margin:0;padding-left:20px;columns:1}
+  .jump li{margin:5px 0;max-width:none}
+  .jump a{border-bottom:none}
+  .jump a:hover{border-bottom:1px solid var(--accent)}
+  /* idea cards */
+  article.idea{background:var(--canvas);border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px 28px;margin-bottom:20px}
+  article.idea .head{display:flex;gap:14px;align-items:flex-start;margin-bottom:4px}
+  .rank{flex:none;width:34px;height:34px;border-radius:8px;background:var(--ink);color:#fff;
+    font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center}
+  .idchips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+  .chip{font-size:.74rem;font-weight:600;border-radius:999px;padding:4px 11px;
+    border:1px solid var(--line);background:var(--chip);color:var(--chip-ink)}
+  .chip.axis{background:var(--info-soft);color:var(--info-text);border-color:#cfdded}
+  .chip.conf{background:var(--accent-soft);color:var(--accent-text);border-color:#cfe3d9}
+  .chip.cx{background:var(--warn-soft);color:var(--warn-text);border-color:#e7d6bb}
+  .field{margin:14px 0}
+  .field .lab{font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:3px}
+  .basis{border-left:3px solid var(--line-strong);padding-left:14px}
+  .basis .tag{font-family:var(--mono);font-size:.78rem;font-weight:500;color:var(--accent-text)}
+  figure{margin:20px 0;padding:18px;background:#fbfaf6;border:1px solid var(--line);border-radius:8px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{font-size:.82rem;color:var(--muted);margin-top:10px;text-align:center}
+  /* rejection table */
+  table{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:4px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    border-bottom:2px solid var(--line-strong)}
+  td:first-child{font-weight:700;color:var(--muted);width:34px;font-variant-numeric:tabular-nums}
+  td b{font-weight:600}
+  footer.composition-signal{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:.8rem;color:var(--muted);text-align:center}
+  footer.composition-signal code{font-size:.86em}
+  @media(max-width:560px){.page{padding:32px 16px 72px}article.idea{padding:20px}main>section{padding:22px 18px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="doc">
+  <p class="eyebrow">Ideation · Repo-grounded</p>
+  <h1>Python Packaging Modernization</h1>
+  <p class="lede">One source of truth, PEP-compliant, tool-agnostic — so the program installs and runs the same whether the operator reaches for uv, poetry, pipenv, vanilla venv, or conda, while keeping all four run-ways (script/uvicorn, module, local package, installed package).</p>
+  <div class="meta">
+    <span class="pill"><b>Date</b> <time datetime="2026-06-13">2026-06-13</time></span>
+    <span class="pill"><b>Topic</b> python-packaging-modernization</span>
+    <span class="pill"><b>Focus</b> single source of truth + latest PEP practices, tool-agnostic</span>
+    <span class="pill"><b>Mode</b> repo-grounded</span>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="n">5</div><div class="l">competing dependency declarations</div></div>
+  <div class="stat"><div class="n">4+</div><div class="l">places version is defined, inconsistently</div></div>
+  <div class="stat"><div class="n">0</div><div class="l">PEP&nbsp;621 <code>[project]</code> tables (the modern standard)</div></div>
+  <div class="stat"><div class="n">52&nbsp;B</div><div class="l"><code>uv.lock</code> — a stub, nothing locked</div></div>
+</div>
+
+<section class="ground" id="grounding">
+  <p class="eyebrow">Phase 1</p>
+  <h2>Codebase Context</h2>
+  <p>ia.cecil began as a runnable script, became a module, and is now an installable package. The packaging configuration carries a sediment layer from each era, and no two layers agree. The grounding below is drawn directly from the repository's packaging files.</p>
+  <dl>
+    <dt>The core contradiction</dt>
+    <dd><a href="https://github.com/iuriguilherme/iacecil/blob/main/pyproject.toml"><code>pyproject.toml</code></a> declares <code>build-backend = "setuptools.build_meta"</code> but lists every dependency under <code>[tool.poetry.dependencies]</code> — tables setuptools never reads. The runtime dependencies in <code>pyproject.toml</code> are therefore <b>inert</b>. There is no PEP&nbsp;621 <code>[project]</code> table at all.</dd>
+
+    <dt>Five dependency sources, none authoritative</dt>
+    <dd><code>[tool.poetry]</code> (inert) · <a href="https://github.com/iuriguilherme/iacecil/blob/main/setup.py"><code>setup.py</code></a> (auto-generated by the abandoned <code>dephell</code> tool; <code>install_requires</code> only) · <a href="https://github.com/iuriguilherme/iacecil/blob/main/setup.cfg"><code>setup.cfg</code></a> (metadata + duplicated <code>[options]</code>/<code>[files]</code> with conflicting <code>package_dir</code> syntax) · <a href="https://github.com/iuriguilherme/iacecil/blob/main/Pipfile"><code>Pipfile</code></a> (the de-facto working one — pinned, with platform markers and dev-packages) · <a href="https://github.com/iuriguilherme/iacecil/blob/main/requirements.txt"><code>requirements.txt</code></a> (fully pinned but <b>stale</b> — e.g. <code>boto3==1.36.10</code> vs the Pipfile's <code>1.40.76</code>).</dd>
+
+    <dt>Version is defined in four-plus places</dt>
+    <dd><code>pyproject.toml</code> hardcodes <code>0.3.0</code>; <code>setup.cfg</code> reads <code>attr: iacecil._version.__version__</code>; <a href="https://github.com/iuriguilherme/iacecil/blob/main/src/iacecil/__init__.py"><code>src/iacecil/__init__.py</code></a> resolves a version at import time (latest git tag → <code>_version.py</code> → hardcoded <code>'0.0.0'</code> fallback); and <code>_version.py</code> holds yet another copy. They can and do disagree.</dd>
+
+    <dt>Locking is hand-synced</dt>
+    <dd><a href="https://github.com/iuriguilherme/iacecil/blob/main/parse_lock.py"><code>parse_lock.py</code></a> is a loose root script whose only job is to read <code>Pipfile.lock</code> and print pins back out in Pipfile/poetry format — manual reconciliation between two lock representations, made physical. <code>uv.lock</code> is a 52-byte header with no packages: uv was reached for but never actually locked anything.</dd>
+
+    <dt>Run-ways &amp; environment drift</dt>
+    <dd>Run commands live in the Pipfile's pipenv-only <code>[scripts]</code> table (<code>test</code>, <code>prod</code>, <code>dev</code> via uvicorn, <code>paola</code>) — not portable to other tools. There is no <code>[project.scripts]</code> console-script entry point, so the <code>iacecil</code> command only exists via <code>python -m iacecil</code> or <code>pipenv run</code>. The <a href="https://github.com/iuriguilherme/iacecil/blob/main/Dockfile"><code>Dockfile</code></a> (misspelled) pins <code>python:3.10</code> while every other source requires 3.11.</dd>
+
+    <dt>Hygiene smells</dt>
+    <dd><code>install-requires</code> — a junk PyPI package — is listed as a real dependency in three files. Stray root scripts (<code>update_personas.py</code>, <code>update_personas2.py</code>, <code>test_sanitizer.py</code>, <code>parse_lock.py</code>, <code>ce-adversarial-reviewer.json</code>) sit outside any package or <code>tests/</code> directory.</dd>
+
+    <dt>Project shape (constraints to preserve)</dt>
+    <dd><code>src/</code> layout with two distribution packages, <code>iacecil</code> and <code>plugins</code>; Python 3.11; dynamic-plugin and pluggable-connector architecture (Telegram, Discord, Mastodon, Matrix, XMPP, Furhat). The four run-ways and tool-agnosticism are explicit operator requirements, not negotiable scope.</dd>
+  </dl>
+</section>
+
+<section id="axes">
+  <p class="eyebrow">Phase 1.5</p>
+  <h2>Topic Axes</h2>
+  <ol class="axes">
+    <li><b>Metadata source of truth</b> — name, version, description, classifiers, URLs, authors living in one declared place.</li>
+    <li><b>Dependency &amp; extras declaration</b> — runtime deps, optional/per-connector extras, and dev groups in standard tables.</li>
+    <li><b>Build backend &amp; package discovery</b> — which PEP&nbsp;517 backend, src-layout discovery, editable installs.</li>
+    <li><b>Locking &amp; reproducibility</b> — how pins are produced and shared across tools without hand-syncing.</li>
+    <li><b>Run-ways &amp; entry points</b> — the four invocation modes, console scripts, and Python/Docker version consistency.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Ranked Ideas</h2>
+  <div class="jump">
+    <p>Jump to</p>
+    <ol>
+      <li><a href="#i1">PEP&nbsp;621 <code>[project]</code> table as the single source of truth</a></li>
+      <li><a href="#i2">Connectors as optional-dependency extras</a></li>
+      <li><a href="#i3">Generated-not-authored locking — commit exactly one lock</a></li>
+      <li><a href="#i4">Portable entry points + a tool-agnostic dev task runner</a></li>
+      <li><a href="#i5">Pick one PEP&nbsp;517 backend; treat it as an implementation detail</a></li>
+      <li><a href="#i6">Manifest &amp; environment hygiene sweep</a></li>
+    </ol>
+  </div>
+
+  <!-- IDEA 1 -->
+  <article class="idea" id="i1">
+    <div class="head"><div class="rank">1</div><h3>PEP&nbsp;621 <code>[project]</code> table as the single source of truth</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Metadata SoT</span>
+      <span class="chip conf">Confidence · High (92%)</span>
+      <span class="chip cx">Complexity · Medium</span>
+      <span class="chip">Keystone</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>Move all package metadata — name, description, authors, classifiers, URLs, <code>requires-python</code>, dependencies — into a single standard <code>[project]</code> table in <code>pyproject.toml</code>. Declare the version once with <code>dynamic = ["version"]</code> and let the build backend read it from the code (or from a git tag), collapsing the four current version sources into one. Then delete <code>[tool.poetry]</code>, <code>setup.py</code>, and the metadata duplication in <code>setup.cfg</code>. PEP&nbsp;621 is the format <em>every</em> modern tool — uv, poetry, pdm, hatch, pip — reads natively, so one table is simultaneously the manifest for all of them.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 760 300" role="img" aria-label="Before: five disconnected config files feed nothing consistently. After: one project table fans out to every packaging tool.">
+        <style>
+          .lbl{font:500 13px var(--sans,sans-serif);fill:#1f2227}
+          .sub{font:500 11px var(--sans,sans-serif);fill:#5d636e}
+          .ttl{font:700 12px var(--sans,sans-serif);fill:#5d636e;letter-spacing:.06em}
+          .src{fill:#f6ecdd;stroke:#e7d6bb}
+          .hub{fill:#2f6f57;stroke:#1f5340}
+          .hubt{font:700 14px var(--sans,sans-serif);fill:#fff}
+          .tool{fill:#e6f1ec;stroke:#cfe3d9}
+          .ln{stroke:#d2cec1;stroke-width:1.4;fill:none}
+          .ln2{stroke:#2f6f57;stroke-width:1.6;fill:none}
+          .halo{paint-order:stroke;stroke:#fbfaf6;stroke-width:3px}
+        </style>
+        <text x="20" y="24" class="ttl">BEFORE — 5 sources, none authoritative</text>
+        <rect x="20" y="40" width="150" height="30" rx="6" class="src"/><text x="34" y="60" class="lbl halo">pyproject (poetry)</text>
+        <rect x="20" y="80" width="150" height="30" rx="6" class="src"/><text x="34" y="100" class="lbl halo">setup.py</text>
+        <rect x="20" y="120" width="150" height="30" rx="6" class="src"/><text x="34" y="140" class="lbl halo">setup.cfg</text>
+        <rect x="20" y="160" width="150" height="30" rx="6" class="src"/><text x="34" y="180" class="lbl halo">Pipfile</text>
+        <rect x="20" y="200" width="150" height="30" rx="6" class="src"/><text x="34" y="220" class="lbl halo">requirements.txt</text>
+        <text x="120" y="262" class="sub">↯ drift &amp; contradiction</text>
+
+        <text x="430" y="24" class="ttl">AFTER — one manifest, every tool</text>
+        <rect x="410" y="118" width="150" height="44" rx="8" class="hub"/>
+        <text x="485" y="138" class="hubt" text-anchor="middle">[project]</text>
+        <text x="485" y="154" style="font:500 10px var(--sans,sans-serif);fill:#cfe3d9" text-anchor="middle">pyproject.toml</text>
+
+        <path class="ln2" d="M560 128 C 620 100, 660 70, 700 58"/>
+        <path class="ln2" d="M560 134 C 620 120, 660 110, 700 104"/>
+        <path class="ln2" d="M560 140 C 620 150, 660 158, 700 150"/>
+        <path class="ln2" d="M560 150 C 620 180, 660 200, 700 196"/>
+        <path class="ln2" d="M560 156 C 620 210, 660 236, 700 242"/>
+        <rect x="700" y="44" width="52" height="26" rx="6" class="tool"/><text x="726" y="61" class="sub" text-anchor="middle">uv</text>
+        <rect x="700" y="92" width="52" height="26" rx="6" class="tool"/><text x="726" y="109" class="sub" text-anchor="middle">poetry</text>
+        <rect x="700" y="138" width="52" height="26" rx="6" class="tool"/><text x="726" y="155" class="sub" text-anchor="middle">pip</text>
+        <rect x="700" y="184" width="52" height="26" rx="6" class="tool"/><text x="726" y="201" class="sub" text-anchor="middle">pdm</text>
+        <rect x="700" y="230" width="52" height="26" rx="6" class="tool"/><text x="726" y="247" class="sub" text-anchor="middle">conda+pip</text>
+      </svg>
+      <figcaption>Today five files disagree and the authoritative one (Pipfile) is tool-specific. PEP&nbsp;621 makes <code>pyproject.toml</code> the one manifest every tool reads natively.</figcaption>
+    </figure>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">direct:</span> <code>pyproject.toml</code> sets <code>build-backend = "setuptools.build_meta"</code> yet lists deps under <code>[tool.poetry.dependencies]</code> (setuptools ignores them). Version appears as <code>0.3.0</code> in pyproject, <code>attr: iacecil._version.__version__</code> in setup.cfg, and a git-tag→<code>_version.py</code>→<code>'0.0.0'</code> cascade in <code>src/iacecil/__init__.py</code>. PEP&nbsp;621 is the documented standard that supersedes all of these.</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>This is the keystone every other idea hangs from. The operator's actual requirement — "tool-agnostic" — <em>is</em> PEP&nbsp;621: tool-agnosticism is not achieved by supporting many config formats but by adopting the one format the PEPs made universal. Once the <code>[project]</code> table exists, a single edit propagates to uv, poetry, pip, and conda alike, and the version stops being able to disagree with itself.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>Touching the live install path for a running multi-bot deployment — needs a verified <code>pip install -e .</code> + import smoke test before the old files are deleted. Dynamic-version wiring depends on backend choice (Idea&nbsp;5), so the two are best sequenced together.</p>
+    </div>
+  </article>
+
+  <!-- IDEA 2 -->
+  <article class="idea" id="i2">
+    <div class="head"><div class="rank">2</div><h3>Connectors as optional-dependency extras</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Dependencies &amp; extras</span>
+      <span class="chip conf">Confidence · High (84%)</span>
+      <span class="chip cx">Complexity · Medium</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>Split the dependency list into a lean core plus <code>[project.optional-dependencies]</code> extras that mirror the connector architecture: <code>telegram</code>, <code>discord</code>, <code>mastodon</code>, <code>matrix</code>, <code>xmpp</code>, <code>furhat</code>, plus convenience groups like <code>web</code> and <code>all</code>. An operator running only Telegram installs <code>iacecil[telegram]</code> and skips Matrix's crypto stack, Discord's gateway library, and Furhat's robot SDK. The install surface becomes self-documenting.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 760 250" role="img" aria-label="A small core package surrounded by per-connector extras that each pull only their own dependencies.">
+        <style>
+          .ct{fill:#2f6f57;stroke:#1f5340}.ctt{font:700 13px var(--sans,sans-serif);fill:#fff}
+          .ex{fill:#e6eef6;stroke:#cfdded}.ext{font:600 12px var(--sans,sans-serif);fill:#234b70}
+          .exs{font:400 10px var(--sans,sans-serif);fill:#5d636e}
+          .spoke{stroke:#cfdded;stroke-width:1.5}
+        </style>
+        <line class="spoke" x1="380" y1="125" x2="170" y2="55"/>
+        <line class="spoke" x1="380" y1="125" x2="150" y2="170"/>
+        <line class="spoke" x1="380" y1="125" x2="380" y2="40"/>
+        <line class="spoke" x1="380" y1="125" x2="380" y2="210"/>
+        <line class="spoke" x1="380" y1="125" x2="610" y2="55"/>
+        <line class="spoke" x1="380" y1="125" x2="630" y2="170"/>
+        <circle cx="380" cy="125" r="52" class="ct"/>
+        <text x="380" y="121" class="ctt" text-anchor="middle">iacecil</text>
+        <text x="380" y="139" style="font:500 10px var(--sans,sans-serif);fill:#cfe3d9" text-anchor="middle">core</text>
+        <g>
+          <rect x="92" y="36" width="120" height="40" rx="8" class="ex"/><text x="152" y="54" class="ext" text-anchor="middle">[telegram]</text><text x="152" y="69" class="exs" text-anchor="middle">aiogram, ptb</text>
+          <rect x="78" y="150" width="124" height="40" rx="8" class="ex"/><text x="140" y="168" class="ext" text-anchor="middle">[xmpp]</text><text x="140" y="183" class="exs" text-anchor="middle">slixmpp</text>
+          <rect x="320" y="2" width="120" height="36" rx="8" class="ex"/><text x="380" y="25" class="ext" text-anchor="middle">[discord]</text>
+          <rect x="320" y="212" width="120" height="36" rx="8" class="ex"/><text x="380" y="235" class="ext" text-anchor="middle">[mastodon]</text>
+          <rect x="556" y="36" width="124" height="40" rx="8" class="ex"/><text x="618" y="54" class="ext" text-anchor="middle">[matrix]</text><text x="618" y="69" class="exs" text-anchor="middle">matrix-nio</text>
+          <rect x="566" y="150" width="124" height="40" rx="8" class="ex"/><text x="628" y="168" class="ext" text-anchor="middle">[furhat]</text><text x="628" y="183" class="exs" text-anchor="middle">furhat-api</text>
+        </g>
+      </svg>
+      <figcaption>Each connector becomes an installable extra pulling only its own dependencies — the dependency graph reflects the connector architecture instead of installing all platforms for everyone.</figcaption>
+    </figure>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">reasoned:</span> the codebase already treats connectors as independently loaded, config-gated modules (<code>ConnectorManager</code> loads by credentials; a connector failure marks itself down without killing siblings). Their dependencies are therefore already optional at runtime — making them optional at <em>install</em> time only aligns the package metadata with an architecture that exists. <span class="tag">external:</span> PEP&nbsp;621 <code>optional-dependencies</code> is the standard mechanism, used widely (e.g. <code>pandas[all]</code>, <code>uvicorn[standard]</code>).</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>It compounds with the connector design: every new connector becomes one new extra, and the supported-platform list is legible straight from <code>pyproject.toml</code>. It also slims a bare <code>pip install iacecil</code> down to a core that can actually resolve quickly, which matters for the heavy Matrix/web3/ML dependencies currently forced on every install.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>Requires deciding what truly belongs in core vs an extra (some shared HTTP/async libs are genuinely cross-cutting). Mis-bucketing produces import errors at runtime instead of install time — needs a per-extra import smoke test in CI.</p>
+    </div>
+  </article>
+
+  <!-- IDEA 3 -->
+  <article class="idea" id="i3">
+    <div class="head"><div class="rank">3</div><h3>Generated-not-authored locking — commit exactly one lock</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Locking &amp; reproducibility</span>
+      <span class="chip conf">Confidence · High (88%)</span>
+      <span class="chip cx">Complexity · Low–Medium</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>Adopt a clean manifest/lock split: <code>pyproject.toml</code> holds abstract version ranges (the only thing humans edit); exactly one committed lockfile holds the resolved pins; and any other pin format consumers need (a <code>requirements.txt</code> for plain-pip or Docker) is <em>exported</em> from that lock by a command, never hand-maintained. Delete <code>parse_lock.py</code>, <code>Pipfile.lock</code>, and the hand-edited <code>requirements.txt</code> as authoritative artifacts. Pick one lock tool to own resolution; everyone else consumes its export.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 760 170" role="img" aria-label="Manifest with ranges resolves to one lockfile, which exports a requirements file. Humans edit only the manifest.">
+        <style>
+          .bx{fill:#fffefb;stroke:#d2cec1}.bxa{fill:#e6f1ec;stroke:#cfe3d9}
+          .t{font:600 13px var(--sans,sans-serif);fill:#1f2227}.s{font:400 11px var(--sans,sans-serif);fill:#5d636e}
+          .fl{stroke:#2f6f57;stroke-width:1.8;fill:none;marker-end:url(#ah)}
+          .hand{font:600 11px var(--sans,sans-serif);fill:#1f5340}
+        </style>
+        <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#2f6f57"/></marker></defs>
+        <rect x="20" y="58" width="170" height="56" rx="8" class="bxa"/>
+        <text x="105" y="82" class="t" text-anchor="middle">pyproject.toml</text>
+        <text x="105" y="100" class="s" text-anchor="middle">ranges (human-edited)</text>
+        <text x="105" y="40" class="hand" text-anchor="middle">✎ the only file you edit</text>
+        <path class="fl" d="M192 86 L 290 86"/>
+        <text x="241" y="78" class="s" text-anchor="middle">resolve</text>
+        <rect x="292" y="58" width="170" height="56" rx="8" class="bx"/>
+        <text x="377" y="82" class="t" text-anchor="middle">one lockfile</text>
+        <text x="377" y="100" class="s" text-anchor="middle">pins (generated)</text>
+        <path class="fl" d="M464 86 L 562 86"/>
+        <text x="513" y="78" class="s" text-anchor="middle">export</text>
+        <rect x="564" y="58" width="176" height="56" rx="8" class="bx"/>
+        <text x="652" y="82" class="t" text-anchor="middle">requirements.txt</text>
+        <text x="652" y="100" class="s" text-anchor="middle">for pip / Docker (generated)</text>
+      </svg>
+      <figcaption>One human-edited manifest, one generated lock, generated downstream exports. <code>parse_lock.py</code> — the hand-sync script — disappears entirely.</figcaption>
+    </figure>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">direct:</span> <code>parse_lock.py</code> exists solely to transcribe <code>Pipfile.lock</code> into pin syntax by hand; <code>requirements.txt</code> has already drifted from the Pipfile (<code>boto3==1.36.10</code> vs <code>1.40.76</code>); <code>uv.lock</code> is an empty stub. <span class="tag">external:</span> the manifest/lock split is the settled norm across ecosystems (npm <code>package.json</code> + lockfile, Cargo, Bundler); <code>uv export</code> / <code>pip-compile</code> produce a <code>requirements.txt</code> from a lock as a build artifact.</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>The current pain is two-directional hand-syncing between formats that inevitably drift — three lockfiles that already disagree. Designating one as generated truth and treating the rest as exports removes the entire class of "which pin file is right?" questions and lets a CI step (not a human) keep pip-users' file current.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>Picking the resolving tool brushes against the tool-agnostic goal — mitigated because the <em>output</em> (an exported <code>requirements.txt</code>) is universally consumable even if the resolver is one specific tool. The committed lock is only as reproducible as the operator's willingness to install <em>from</em> it.</p>
+    </div>
+  </article>
+
+  <!-- IDEA 4 -->
+  <article class="idea" id="i4">
+    <div class="head"><div class="rank">4</div><h3>Portable entry points + a tool-agnostic dev task runner</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Run-ways &amp; entry points</span>
+      <span class="chip conf">Confidence · High (86%)</span>
+      <span class="chip cx">Complexity · Low</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>Deliver the four run-ways from one config. Add a <code>[project.scripts]</code> console entry point (<code>iacecil = "iacecil.__main__:main"</code>) so the installed package exposes a real <code>iacecil</code> command — the "installed package" way — while <code>python -m iacecil</code> (module way), <code>pip install -e .</code> (local-package way), and the uvicorn import target <code>src.iacecil...:app</code> (script/ASGI way) all keep working from the same metadata. Then migrate the pipenv-only <code>[scripts]</code> shortcuts (<code>test</code>, <code>dev</code>, <code>prod</code>, <code>paola</code>) into a tool-neutral task runner — a <code>Makefile</code> or <code>justfile</code> — that any venv can invoke regardless of whether the operator chose uv, poetry, or plain pip.</p>
+    </div>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">direct:</span> run commands currently live in the Pipfile's <code>[scripts]</code> (e.g. <code>dev = 'uvicorn src.iacecil.controllers._iacecil.development:app --reload'</code>), which only <code>pipenv run</code> understands; there is no <code>[project.scripts]</code> entry point, so no <code>iacecil</code> command exists after a plain install. <span class="tag">reasoned:</span> PEP&nbsp;621 console-scripts + a Makefile are both tool-agnostic; the four run-ways are properties of import paths and entry points, not of any one workflow tool.</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>This is the idea that directly satisfies the operator's stated personal preference — all four invocation styles, none coupled to pipenv. It removes the last hard dependency on pipenv-specific tooling and makes the developer commands runnable under any environment manager.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>A <code>Makefile</code> is weaker on native Windows (mitigated by <code>justfile</code> or documented one-line equivalents). Console-script entry points require the package to actually be installed, so the smoke test must cover the installed path, not just <code>-m</code>.</p>
+    </div>
+  </article>
+
+  <!-- IDEA 5 -->
+  <article class="idea" id="i5">
+    <div class="head"><div class="rank">5</div><h3>Pick one PEP&nbsp;517 backend; treat it as an implementation detail</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Build backend &amp; discovery</span>
+      <span class="chip conf">Confidence · High (82%)</span>
+      <span class="chip cx">Complexity · Low</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>Resolve the setuptools-vs-poetry contradiction by choosing exactly one PEP&nbsp;517 build backend in <code>[build-system]</code> and configuring src-layout discovery for it. The contenders — setuptools (already declared; native src-layout + <code>find</code>), or hatchling (clean PEP&nbsp;621-first, simple dynamic-version plugin) — are both fully tool-agnostic: the backend is what <code>python -m build</code> / <code>pip</code> invoke under the hood, invisible to whether the operator drives with uv, poetry, or conda. The point is to declare one and delete the half-configured alternatives.</p>
+    </div>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">direct:</span> <code>[build-system].build-backend = "setuptools.build_meta"</code> coexists with poetry dependency tables and a dephell-generated <code>setup.py</code> — three backends' worth of config, no single owner. <span class="tag">reasoned:</span> the build backend is the one packaging choice that genuinely <em>is</em> singular (you cannot build a wheel with two backends), and it is also the choice most invisible to operators, so it is the safe place to commit to one tool without violating the agnostic goal.</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>Idea&nbsp;1's dynamic-version wiring needs a definite backend to hang from, so this unblocks the keystone. It also reframes the operator's worry: "tool-agnostic" applies to the <em>workflow</em> layer (uv/poetry/pip), not the build backend — separating those two layers dissolves the apparent tension.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>Switching away from setuptools (if hatchling is chosen) is a small migration of the <code>package_dir</code>/<code>packages</code> discovery for the dual <code>iacecil</code>+<code>plugins</code> layout. Staying on setuptools is lower-churn but keeps a slightly more verbose discovery config.</p>
+    </div>
+  </article>
+
+  <!-- IDEA 6 -->
+  <article class="idea" id="i6">
+    <div class="head"><div class="rank">6</div><h3>Manifest &amp; environment hygiene sweep</h3></div>
+    <div class="idchips">
+      <span class="chip axis">Axis · Dependencies / Run-ways</span>
+      <span class="chip conf">Confidence · High (90%)</span>
+      <span class="chip cx">Complexity · Low</span>
+    </div>
+    <div class="field"><div class="lab">Description</div>
+      <p>A correctness-and-consistency pass that ships alongside the structural moves: (a) remove the bogus <code>install-requires</code> dependency from all three files it appears in; (b) pin Python once in <code>requires-python</code> and reference it from the Dockerfile and any CI matrix — and fix the <code>Dockfile</code> name and its wrong <code>python:3.10</code> base; (c) sweep the stray root-level scripts (<code>parse_lock.py</code>, <code>update_personas*.py</code>, <code>test_sanitizer.py</code>, <code>ce-adversarial-reviewer.json</code>) into a <code>tests/</code>, <code>scripts/</code>, or deletion as appropriate so the repo root is just packaging + docs.</p>
+    </div>
+    <div class="field"><div class="lab">Basis</div>
+      <p class="basis"><span class="tag">direct:</span> <code>install-requires = "==0.3.0"</code> appears in the Pipfile and as <code>'install-requires'</code> in setup.py/pyproject — a real but junk PyPI package, a supply-chain smell. <code>Dockfile</code> reads <code>FROM python:3.10</code> while <code>requires-python &gt;= 3.11</code> everywhere else. Loose root scripts (<code>test_sanitizer.py</code>, <code>update_personas2.py</code>) sit outside any package or <code>tests/</code> dir.</p>
+    </div>
+    <div class="field"><div class="lab">Rationale</div>
+      <p>These are low-effort, high-certainty fixes that remove an outright install of a wrong package, a Docker build that runs the wrong interpreter, and root-level clutter that obscures which files are actually the packaging config. Bundled here so the structural ideas land on a clean surface rather than re-touching the same files twice.</p>
+    </div>
+    <div class="field"><div class="lab">Downsides</div>
+      <p>Mostly mechanical, but the stray scripts may be referenced by undocumented workflows — each move needs a quick grep for callers before relocating or deleting. Genuinely tactical: it warrants discussion only as the cleanup rider on the larger consolidation, not on its own.</p>
+    </div>
+  </article>
+</section>
+
+<section>
+  <h2>Rejection Summary</h2>
+  <table>
+    <thead><tr><th>#</th><th>Idea considered</th><th>Reason cut</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>Adopt poetry fully</b> (poetry as the canonical tool, <code>poetry.lock</code> as truth)</td><td>Violates the explicit tool-agnostic constraint — re-couples the project to one workflow tool, the exact problem with the current pipenv coupling.</td></tr>
+      <tr><td>2</td><td><b>Adopt uv fully</b> (uv-only manifest + workflow)</td><td>Same constraint violation. uv is a fine <em>resolver</em> (Idea&nbsp;3) but mandating it as the operator's tool contradicts "works under poetry/pipenv/venv/conda too."</td></tr>
+      <tr><td>3</td><td><b>Commit zero lockfiles</b> — rely on ranges + fresh resolution everywhere</td><td>Too loose for a production multi-bot deployment; reproducibility matters. Informed Idea&nbsp;3's "commit exactly one" instead.</td></tr>
+      <tr><td>4</td><td><b>12-factor / distro-packaging analogies</b> as standalone direction</td><td>Useful framing, not separately actionable — the principle (abstract manifest, resolved lock, run-time env) is absorbed into Idea&nbsp;3.</td></tr>
+      <tr><td>5</td><td><b>Task runner only</b> (move <code>[scripts]</code> to a Makefile, nothing else)</td><td>Duplicates a stronger idea — merged into Idea&nbsp;4, which pairs it with the missing console-script entry point.</td></tr>
+      <tr><td>6</td><td><b>Vendor a per-tool config for each manager</b> (ship Pipfile + poetry + uv configs side by side)</td><td>Directly re-creates the multi-source-of-truth problem this whole effort exists to kill; PEP&nbsp;621 makes per-tool configs unnecessary.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="composition-signal">
+  Composed 2026-06-13 by ce-ideate from the repository's packaging configuration
+  (<code>pyproject.toml</code>, <code>setup.cfg</code>, <code>setup.py</code>, <code>Pipfile</code>, <code>requirements.txt</code>, <code>uv.lock</code>, <code>src/iacecil/__init__.py</code>).
+</footer>
+
+</div>
+</body>
+</html>
