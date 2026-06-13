@@ -32,9 +32,16 @@ def mock_plugins(monkeypatch):
     p5.add_handlers_xmpp = AsyncMock()
     sys.modules["plugins.plugin_both"] = p5
 
+    # Fake plugin with both the generic loader and the legacy aiogram
+    # loader (the echo/deepseek shape).
+    p6 = types.ModuleType("plugins.plugin_both_legacy")
+    p6.add_envelope_handlers = AsyncMock()
+    p6.add_handlers = AsyncMock()
+    sys.modules["plugins.plugin_both_legacy"] = p6
+
     yield
     for name in ("plugin_legacy", "plugin_xmpp", "plugin_empty",
-            "plugin_generic", "plugin_both"):
+            "plugin_generic", "plugin_both", "plugin_both_legacy"):
         del sys.modules[f"plugins.{name}"]
 
 @pytest.mark.asyncio
@@ -101,3 +108,28 @@ async def test_plugin_both_per_connector_wins():
 
     await load_plugin('discord', 'plugin_both', target)
     mod.add_envelope_handlers.assert_called_once_with(target)
+
+
+@pytest.mark.asyncio
+async def test_plugin_both_legacy_telegram_uses_legacy(caplog):
+    """A plugin exposing both the generic loader and the legacy aiogram
+    add_handlers must bind the legacy loader on telegram — the generic
+    loader must not preempt it (R14 precedence / strangler-fig)."""
+    target = object()
+    mod = sys.modules["plugins.plugin_both_legacy"]
+    with caplog.at_level(logging.INFO):
+        await load_plugin('telegram', 'plugin_both_legacy', target)
+    mod.add_handlers.assert_called_once_with(target)
+    mod.add_envelope_handlers.assert_not_called()
+    assert "Activated plugin plugin_both_legacy for telegram (legacy)" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_plugin_both_legacy_non_telegram_uses_generic():
+    """The same plugin still binds the generic loader on non-telegram
+    connectors that have no per-connector override."""
+    target = object()
+    mod = sys.modules["plugins.plugin_both_legacy"]
+    await load_plugin('discord', 'plugin_both_legacy', target)
+    mod.add_envelope_handlers.assert_called_once_with(target)
+    mod.add_handlers.assert_not_called()

@@ -93,10 +93,6 @@ class ConnectorLogHandler(logging.Handler):
         except Exception:
             self.handleError(record)
 
-    def _connector_ready(self, platform) -> bool:
-        connector = self.manager.connectors.get(platform)
-        return connector is not None and getattr(connector, 'running', False)
-
     async def flush_ready(self):
         """Deliver queued records whose sink's connector is connected;
         records for present-but-not-yet-connected platforms stay queued
@@ -140,5 +136,10 @@ class ConnectorLogHandler(logging.Handler):
                 await self.flush_ready()
                 await asyncio.sleep(DRAIN_INTERVAL)
         except asyncio.CancelledError:
-            await self.flush_ready()
+            ## Bounded final flush: a hung connector send at shutdown must
+            ## not make the drain task hang forever.
+            try:
+                await asyncio.wait_for(self.flush_ready(), timeout=5.0)
+            except asyncio.TimeoutError:
+                sys.stderr.write("log sink final flush timed out\n")
             raise

@@ -93,6 +93,13 @@ class Connector(BaseConnector):
             if not getattr(response, 'access_token', None):
                 raise ConnectionError(f"Matrix login failed: {response!r}")
             self.user_id = getattr(response, 'user_id', self.user_id)
+        if not self.user_id:
+            ## Without our own mxid the self-message guard in _on_event
+            ## cannot fire, so the bot would echo its own messages in a
+            ## loop. Fail closed instead of starting in that state.
+            raise ConnectionError(
+                "Matrix own user_id unknown after login; refusing to start"
+                " (self-message guard would fail and cause an echo loop).")
         self.next_batch = self._load_token()
         self.running = True
 
@@ -144,10 +151,21 @@ class Connector(BaseConnector):
                 events = (getattr(getattr(room_info, 'timeline', None),
                     'events', None) or [])
                 for event in events:
-                    await self._on_event(room_id, event)
+                    try:
+                        await self._on_event(room_id, event)
+                    except Exception as e:
+                        ## One malformed event must not kill the sync loop
+                        ## and take the whole connector down with it.
+                        logger.error(
+                            "Matrix: error dispatching event"
+                            f" {getattr(event, 'event_id', None)!r} in"
+                            f" {room_id}: {e}")
 
     async def send(self, envelope: Envelope):
         if not self.client:
+            ## Silent return would let manager.send report success and the
+            ## dispatch path persist a dropped reply as delivered.
+            logger.warning("Matrix send dropped: client not initialized.")
             return
         text = envelope.text or ""
         for i in range(0, len(text), self.MAX_TEXT):

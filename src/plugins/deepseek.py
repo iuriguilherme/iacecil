@@ -49,7 +49,7 @@ from iacecil.controllers.util import (
     dice_low,
 )
 
-async def get_ollama_generation(ollama_model: str = 'smollm:latest', prompt: str) -> tuple[str, str]:
+async def get_ollama_generation(prompt: list, ollama_model: str = 'smollm:latest') -> tuple[str, str]:
     """Returns ollama inference output"""
     think: bool = False
     think_buffer: list = []
@@ -146,7 +146,8 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
 async def deepseek_envelope(envelope) -> str:
     """Deepseek handler for connector platforms (testing)"""
     think_buffer, answer_buffer = await get_ollama_generation(
-        ollama_model = "smollm:latest", prompt = envelope.text)
+        ollama_model = "smollm:latest",
+        prompt = [{'role': 'user', 'content': envelope.text}])
     return ''.join(answer_buffer)
 
 async def add_envelope_handlers(manager) -> None:
