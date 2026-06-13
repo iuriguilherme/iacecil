@@ -31,6 +31,17 @@ class Connector(BaseConnector):
 
         self.running = True
 
+    def _addressed_to_bot(self, message, text) -> bool:
+        ## In a guild the bot sees every channel message; replying to all
+        ## of them would spam the server. Only engage when the message is
+        ## actually directed at the bot. DMs (no guild) always count.
+        if getattr(message, 'guild', None) is None:
+            return True
+        if text.lstrip().startswith('/'):
+            return True
+        me = getattr(self.client, 'user', None) if self.client else None
+        return me is not None and me in (getattr(message, 'mentions', None) or [])
+
     async def _on_message(self, message):
         author = getattr(message, 'author', None)
         ## Skip self and every other bot: discord bots see each other's
@@ -39,6 +50,9 @@ class Connector(BaseConnector):
         if author is None or getattr(author, 'bot', False):
             return
         text = message.content or ''
+        ## Guild firehose gate: ignore messages not addressed to the bot.
+        if not self._addressed_to_bot(message, text):
+            return
         if not text and not self._warned_empty_content:
             self._warned_empty_content = True
             logger.warning(
@@ -81,6 +95,7 @@ class Connector(BaseConnector):
 
     async def send(self, envelope: Envelope):
         if not self.client:
+            logger.warning("Discord send dropped: client not initialized.")
             return
         channel_id = int(envelope.conversation_ref)
         channel = self.client.get_channel(channel_id)
@@ -98,4 +113,9 @@ class Connector(BaseConnector):
     async def disconnect(self):
         self.running = False
         if self.client:
-            await self.client.close()
+            try:
+                await self.client.close()
+            except Exception:
+                ## A close failure during shutdown must not mask the
+                ## original error that triggered teardown.
+                pass

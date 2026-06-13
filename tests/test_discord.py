@@ -20,13 +20,17 @@ class FakeChannel:
 
 
 class FakeMessage:
-    def __init__(self, content="hello", author=None, message_id=333):
+    def __init__(self, content="hello", author=None, message_id=333,
+            guild=None, mentions=None):
         self.content = content
         self.author = author or FakeAuthor()
         self.channel = FakeChannel()
         self.id = message_id
         self.reference = None
         self.created_at = None
+        ## guild=None ⇒ DM (always addressed to the bot).
+        self.guild = guild
+        self.mentions = mentions or []
 
 
 def make_connector():
@@ -56,6 +60,41 @@ async def test_bot_authors_skipped():
     conn, manager = make_connector()
     await conn._on_message(FakeMessage(author=FakeAuthor(bot=True)))
     manager.dispatch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_guild_message_not_addressed_skipped():
+    """Plain guild message, no mention and no command: not dispatched
+    (firehose gate -- the bot must not answer every channel line)."""
+    conn, manager = make_connector()
+    await conn._on_message(FakeMessage(content="just chatting", guild=object()))
+    manager.dispatch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_guild_command_dispatched():
+    conn, manager = make_connector()
+    await conn._on_message(FakeMessage(content="/start", guild=object()))
+    manager.dispatch.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_guild_mention_dispatched():
+    conn, manager = make_connector()
+    me = object()
+    conn.client = MagicMock()
+    conn.client.user = me
+    await conn._on_message(
+        FakeMessage(content="hey bot", guild=object(), mentions=[me]))
+    manager.dispatch.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_dm_dispatched():
+    """No guild ⇒ DM ⇒ always addressed."""
+    conn, manager = make_connector()
+    await conn._on_message(FakeMessage(content="hi in dm", guild=None))
+    manager.dispatch.assert_called_once()
 
 
 @pytest.mark.asyncio
