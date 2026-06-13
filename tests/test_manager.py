@@ -176,7 +176,15 @@ async def test_dispatch_routing():
 
     env1 = Envelope("xmpp", "s", "c", "/start args")
     await manager.dispatch(env1)
-    start_handler.assert_called_once_with(env1)
+    start_handler.assert_called_once()
+    ## dispatch() enriches the envelope with the resolved person_id
+    ## before handing it to the handler, so compare stable fields
+    ## rather than the original (person_id=None) instance.
+    handled1 = start_handler.call_args[0][0]
+    assert (handled1.platform, handled1.sender_ref,
+        handled1.conversation_ref, handled1.text) == (
+        env1.platform, env1.sender_ref, env1.conversation_ref, env1.text)
+    assert handled1.person_id is not None
     default_handler.assert_not_called()
     manager.connectors['xmpp'].send.assert_called_once()
 
@@ -186,7 +194,12 @@ async def test_dispatch_routing():
     env2 = Envelope("xmpp", "s", "c", "normal text")
     await manager.dispatch(env2)
     start_handler.assert_not_called()
-    default_handler.assert_called_once_with(env2)
+    default_handler.assert_called_once()
+    handled2 = default_handler.call_args[0][0]
+    assert (handled2.platform, handled2.sender_ref,
+        handled2.conversation_ref, handled2.text) == (
+        env2.platform, env2.sender_ref, env2.conversation_ref, env2.text)
+    assert handled2.person_id is not None
     manager.connectors['xmpp'].send.assert_called_once()
 
 

@@ -96,6 +96,7 @@ async def persist_envelope(envelope, direction: str = 'in'):
             'tags': list(envelope.tags),
             'direction': direction,
             'native_message_id': getattr(envelope, 'native_message_id', None),
+            'person_id': getattr(envelope, 'person_id', None),
             ## UTC epoch seconds; platform time when supplied, else now.
             ## Old records lack these keys — readers use .get().
             'timestamp': getattr(envelope, 'timestamp', None) or time.time(),

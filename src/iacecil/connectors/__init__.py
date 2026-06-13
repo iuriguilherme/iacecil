@@ -111,14 +111,17 @@ class ConnectorManager:
             return False
 
     async def dispatch(self, envelope):
-        from iacecil.controllers.persistence.neutral import persist_envelope, resolve_person
+        from iacecil.controllers.persistence.neutral import resolve_person, persist_envelope
         from iacecil.controllers.persistence.chat_store import store_message
+        from dataclasses import replace
         try:
-            await resolve_person(envelope.platform, envelope.sender_ref)
+            person_id = await resolve_person(envelope.platform, envelope.sender_ref)
+            envelope = replace(envelope, person_id=person_id)
             await persist_envelope(envelope, direction="in")
             await store_message(self.bot_id, envelope, direction="in")
         except Exception as e:
             logger.error(f"Failed to persist envelope: {e}")
+
 
         if envelope.platform == 'telegram':
             ## Legacy aiogram handlers own command replies on Telegram;

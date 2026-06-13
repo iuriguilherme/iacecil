@@ -17,3 +17,6 @@ class Envelope:
     ## Unix epoch seconds (UTC). Persistence fills in "now" when the
     ## platform supplied none.
     timestamp: Optional[float] = None
+    ## Canonical Person id from persistence/neutral.py. Resolved
+    ## during dispatch.
+    person_id: Optional[str] = None

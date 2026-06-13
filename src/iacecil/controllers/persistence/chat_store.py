@@ -115,6 +115,7 @@ async def store_message(bot_id: str, envelope, direction: str = 'in'):
             'tags': list(envelope.tags),
             'direction': direction,
             'native_message_id': native_id,
+            'person_id': getattr(envelope, 'person_id', None),
             'timestamp': getattr(envelope, 'timestamp', None) or time.time(),
         }
         msg_id = str(uuid.uuid4())
