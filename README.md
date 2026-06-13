@@ -1,7 +1,7 @@
 ia.cecil
 ===
 
-[![95% Organic Code](https://img.shields.io/badge/code-95%25%20organic%20🧑‍🌾-green?style=for-the-badge)](https://github.com/zwbao/certified-organic-code)
+[![Transitional Organic Code](https://img.shields.io/badge/code-transitional%20organic%20🧑‍🌾-yellow?style=for-the-badge)](https://github.com/zwbao/certified-organic-code)
 
 Why is everything in Spanish?
 ---
