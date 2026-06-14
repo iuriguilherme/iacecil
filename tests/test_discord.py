@@ -158,3 +158,29 @@ def test_activation_rule():
     assert Connector.is_active({'token': 'x'}) is True
     assert Connector.is_active({'token': ''}) is False
     assert Connector.is_active({}) is False
+
+
+@pytest.mark.asyncio
+async def test_send_times_out_and_drops(caplog):
+    """A hung Discord API call must not block the event loop forever; the
+    send times out, logs, and drops the reply."""
+    import asyncio
+    import logging
+    from iacecil.connectors.discord import Connector
+
+    conn = Connector(MagicMock(), {'token': 'x'})
+    conn.SEND_TIMEOUT = 0.01
+
+    channel = MagicMock()
+
+    async def slow_send(*a, **k):
+        await asyncio.sleep(1)
+
+    channel.send = slow_send
+    conn.client = MagicMock()
+    conn.client.get_channel.return_value = channel
+    conn.running = True
+
+    with caplog.at_level(logging.ERROR):
+        await conn.send(Envelope('discord', 'u', '123', 'hi'))
+    assert any('timed out' in r.getMessage() for r in caplog.records)

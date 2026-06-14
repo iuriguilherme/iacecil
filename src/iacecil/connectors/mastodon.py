@@ -32,6 +32,9 @@ class Connector(BaseConnector):
     ## How often listen() wakes to check the streaming thread is alive
     ## (overridable in tests).
     POLL_INTERVAL = 1
+    ## Per-request timeout for the blocking Mastodon client so a slow
+    ## instance cannot tie up to_thread workers indefinitely.
+    REQUEST_TIMEOUT = 10
 
     def __init__(self, manager, config):
         super().__init__(manager, config)
@@ -47,6 +50,7 @@ class Connector(BaseConnector):
         self.client = mastodon.Mastodon(
             access_token=self.config.get('access_token'),
             api_base_url=self.config.get('api_base_url'),
+            request_timeout=self.REQUEST_TIMEOUT,
         )
         try:
             ## Resolve own account id for the self-message guard.
@@ -94,8 +98,19 @@ class Connector(BaseConnector):
                     return
                 ## This callback runs on the streaming worker thread;
                 ## marshal the async dispatch back onto the event loop.
-                asyncio.run_coroutine_threadsafe(
+                future = asyncio.run_coroutine_threadsafe(
                     connector._handle_status(status), loop)
+
+                def _log_dispatch_error(fut):
+                    ## The future is otherwise fire-and-forget; surface
+                    ## dispatch/persistence failures instead of swallowing.
+                    if fut.cancelled():
+                        return
+                    exc = fut.exception()
+                    if exc is not None:
+                        logger.error(f"Mastodon dispatch error: {exc!r}")
+
+                future.add_done_callback(_log_dispatch_error)
 
         return _Listener()
 

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from .base import BaseConnector
 from iacecil.models.envelope import Envelope
@@ -7,6 +8,9 @@ logger = logging.getLogger(__name__)
 class Connector(BaseConnector):
     required_keys = ('token',)
     MAX_TEXT = 2000
+    ## Cap on a single Discord API call so a slow/hung gateway cannot
+    ## block the event loop indefinitely (overridable in tests).
+    SEND_TIMEOUT = 10.0
 
     def __init__(self, manager, config):
         super().__init__(manager, config)
@@ -100,7 +104,14 @@ class Connector(BaseConnector):
         channel_id = int(envelope.conversation_ref)
         channel = self.client.get_channel(channel_id)
         if channel is None:
-            channel = await self.client.fetch_channel(channel_id)
+            try:
+                channel = await asyncio.wait_for(
+                    self.client.fetch_channel(channel_id), self.SEND_TIMEOUT)
+            except asyncio.TimeoutError:
+                logger.error(
+                    f"Discord fetch_channel timed out for {channel_id};"
+                    " dropping reply.")
+                return
         text = envelope.text or ""
         for i in range(0, len(text), self.MAX_TEXT):
             kwargs = {}
@@ -108,7 +119,15 @@ class Connector(BaseConnector):
                 reference = self._reference(channel, envelope.reply_ref)
                 if reference is not None:
                     kwargs['reference'] = reference
-            await channel.send(text[i:i + self.MAX_TEXT], **kwargs)
+            try:
+                await asyncio.wait_for(
+                    channel.send(text[i:i + self.MAX_TEXT], **kwargs),
+                    self.SEND_TIMEOUT)
+            except asyncio.TimeoutError:
+                logger.error(
+                    "Discord channel.send timed out; dropping remaining"
+                    " message chunks.")
+                return
 
     async def disconnect(self):
         self.running = False
