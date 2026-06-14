@@ -202,6 +202,15 @@ async def test_unknown_pos_discards_token_and_resyncs():
         assert f.read() == 'fresh1'
 
 
+def test_token_file_is_private():
+    """The persisted sync token must not be world-readable."""
+    import stat
+    conn, _ = make_connector()
+    conn._save_token('secret-cursor')
+    mode = stat.S_IMODE(os.stat(conn._token_path()).st_mode)
+    assert mode == 0o600
+
+
 def test_corrupt_token_warns_and_fresh_syncs(caplog):
     conn, _ = make_connector()
     path = conn._token_path()

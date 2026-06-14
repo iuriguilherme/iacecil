@@ -82,11 +82,14 @@ class Connector(BaseConnector):
 
     def _save_token(self, token: str) -> None:
         path = self._token_path()
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        os.makedirs(os.path.dirname(path), mode=0o700, exist_ok=True)
         ## Atomic on every target filesystem: a crash mid-write leaves
-        ## the previous good token in place.
+        ## the previous good token in place. 0600 is defense-in-depth —
+        ## next_batch is a sync cursor, not a credential, but there is no
+        ## reason for it to be world-readable.
         tmp_path = path + '.tmp'
-        with open(tmp_path, 'w') as f:
+        fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w') as f:
             f.write(token)
         os.replace(tmp_path, path)
 

@@ -22,6 +22,8 @@ from collections import deque
 
 from iacecil.models.envelope import Envelope
 
+logger = logging.getLogger(__name__)
+
 ## Records from this module's own namespace never re-enter the handler
 _OWN_PREFIX = __name__
 
@@ -41,6 +43,19 @@ class ConnectorLogHandler(logging.Handler):
         self.manager = manager
         self.sinks = [dict(sink) for sink in (sinks or [])]
         self.queue = deque(maxlen=MAX_QUEUE)
+        ## Sinks forward records off-host to chat platforms. The default
+        ## formatter excludes in-flight message content, but a sink set
+        ## below WARNING will forward whatever other modules log at DEBUG/
+        ## INFO — which may include user message text or model output
+        ## (e.g. the deepseek plugin). Warn so the exposure is a choice.
+        for sink in self.sinks:
+            if self._sink_level(sink) < logging.WARNING:
+                logger.warning(
+                    "Log sink for %s/%s is below WARNING (%s): it will"
+                    " forward DEBUG/INFO records — which may contain user"
+                    " message content — off-host to that chat.",
+                    sink.get('platform'), sink.get('conversation_ref'),
+                    sink.get('level'))
 
     @staticmethod
     def _sink_level(sink) -> int:

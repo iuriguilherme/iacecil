@@ -282,3 +282,25 @@ async def test_drain_cancel_flushes(cleanup_loggers):
     with pytest.raises(asyncio.CancelledError):
         await task
     manager.send.assert_called_once()
+
+
+def test_sub_warning_sink_warns_on_construction(caplog):
+    """A sink configured below WARNING forwards DEBUG/INFO records (which
+    may carry user content) off-host; construction must warn."""
+    manager = make_manager()
+    with caplog.at_level(logging.WARNING):
+        ConnectorLogHandler(manager, [
+            {'platform': 'matrix', 'conversation_ref': '!ops:x',
+             'level': 'DEBUG'},
+        ])
+    assert any('below WARNING' in r.getMessage() for r in caplog.records)
+
+
+def test_warning_level_sink_does_not_warn(caplog):
+    manager = make_manager()
+    with caplog.at_level(logging.WARNING):
+        ConnectorLogHandler(manager, [
+            {'platform': 'matrix', 'conversation_ref': '!ops:x',
+             'level': 'ERROR'},
+        ])
+    assert not any('below WARNING' in r.getMessage() for r in caplog.records)
