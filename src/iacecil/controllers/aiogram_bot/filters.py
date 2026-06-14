@@ -22,28 +22,29 @@ MA 02110-1301, USA.
 import logging
 logger = logging.getLogger(__name__)
 
-from aiogram import (
-    filters,
-    types,
-)
+from aiogram.filters import BaseFilter
+from aiogram import types
 
-class IsReplyToIdFilter(filters.BoundFilter):
-    key = 'is_reply_to_id'
-    def __init__(self, is_reply_to_id):
+class IsReplyToIdFilter(BaseFilter):
+    def __init__(self, is_reply_to_id: int):
         self.is_reply_to_id = is_reply_to_id
-    async def check(self, msg: types.Message):
-        if msg.reply_to_message and (
-            msg.reply_to_message.from_user.id == self.is_reply_to_id
-        ):
-            return True
 
-class WhoJoinedFilter(filters.BoundFilter):
-    key = 'unwanted'
-    def __init__(self, unwanted):
-        self.unwanted = unwanted
-    async def check(self, msg: types.Message):
-        if 'new_chat_member' in msg and str(
-            msg['new_chat_member'].get('first_name', ''
-            ).lower() in self.unwanted
+    async def __call__(self, message: types.Message) -> bool:
+        if message.reply_to_message and (
+            message.reply_to_message.from_user.id == self.is_reply_to_id
         ):
             return True
+        return False
+
+class WhoJoinedFilter(BaseFilter):
+    def __init__(self, unwanted: list[str]):
+        self.unwanted = unwanted
+
+    async def __call__(self, message: types.Message) -> bool:
+        ## NOTE: In aiogram 3, new_chat_members is a list on the Message object
+        if message.new_chat_members:
+            for member in message.new_chat_members:
+                if member.first_name and \
+                   member.first_name.lower() in self.unwanted:
+                    return True
+        return False

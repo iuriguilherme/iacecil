@@ -93,9 +93,18 @@ async def add_jobs(dispatcher: Dispatcher) -> None:
         await add_job(job, dispatcher.scheduler, dispatcher)
 
 async def add_filters(dispatcher: Dispatcher) -> None:
-    """Add filters to dispatcher"""
-    dispatcher.filters_factory.bind(IsReplyToIdFilter)
-    dispatcher.filters_factory.bind(WhoJoinedFilter)
+    """
+    Add filters to dispatcher
+    FIXME: dispatcher.filters_factory.bind is removed in aiogram 3.
+    Custom filters must now be passed directly to the handler decorators.
+    """
+    logger.warning(
+        "Global filter binding via filters_factory is removed in aiogram 3. "
+        "Update handlers to use explicit filter instances."
+    )
+    # dispatcher.filters_factory.bind(IsReplyToIdFilter)
+    # dispatcher.filters_factory.bind(WhoJoinedFilter)
+    pass
 
 async def add_plugin(dispatcher: Dispatcher, plugin: str) -> None:
     """Imports plugin and register handlers to dispatcher"""
