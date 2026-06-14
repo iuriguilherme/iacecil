@@ -63,7 +63,7 @@ Bot configuration files typically inherit from `DefaultBotConfig` and define ena
 - **Language**: Core documentation is in **Brazilian Portuguese**, though code symbols are in English.
 - **Modularity**: New features should be implemented as independent scripts in `src/plugins/`.
 - **Async First**: Many components use `asyncio` (via Aiogram and Quart).
-- **Environment Management**: `pipenv` is the preferred tool for dependency and virtualenv management.
+- **Environment Management**: `pipenv` is the preferred tool for dependency and virtualenv management. **Note**: In this sandbox, always use `PIPENV_DONT_LOAD_ENV=1` when running `pipenv` commands to avoid permission errors with the `.env` file.
 - **Persistence**: Prefer `ZODB` for persistent object storage.
 - **Architecture**: Stick to the MVC pattern in `src/iacecil/` for core changes.
 
