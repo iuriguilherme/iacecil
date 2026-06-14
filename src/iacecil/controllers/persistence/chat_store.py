@@ -151,6 +151,10 @@ def _write_record(db, envelope, direction: str):
                 return None
             root.native_ids.add(native_id)
 
+        ## NOTE: per-chat schema uses 'connector' for envelope.platform
+        ## (the store is keyed by connector in its path). The global
+        ## messages.fs store in neutral.py records the same value under
+        ## 'platform' — deliberately distinct schemas; see the note there.
         record = {
             'connector': envelope.platform,
             'sender_ref': envelope.sender_ref,

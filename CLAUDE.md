@@ -36,6 +36,7 @@ ia.cecil is a multi-platform chatbot (primarily Telegram via aiogram, also Disco
 `python -m iacecil [mode]` dispatches to controller modules:
 - no arg → `controllers/_iacecil/testing.py` (loopback REPL dev runner — type `/start` on stdin)
 - `production` or `ENV=production` → `controllers/_iacecil/production.py`
+- `connectors` → `controllers/_iacecil/connectors_runner.py` (connector-native runner: builds one `ConnectorManager` per bot and runs all connectors — matrix/discord/mastodon/xmpp/loopback — concurrently under asyncio, no Quart/aiogram wrapper)
 - `fpersonas` → `controllers/_iacecil/fpersonas.py` (Furhat robot personas)
 - `furhatgpt` / `chatgpt` / `furhat` → `controllers/_iacecil/furhatgpt.py`
 
@@ -47,7 +48,7 @@ ia.cecil is a multi-platform chatbot (primarily Telegram via aiogram, also Disco
 
 **Neutral persistence** (`src/iacecil/controllers/persistence/neutral.py`): Person registry (`people.fs`, `(platform, native_id)` → person id, auto-create + merge) and normalized message records (`messages.fs`). Only normalized envelope fields are stored — never platform objects.
 
-**Plugins** (`src/plugins/`): Independent modules that register aiogram message handlers. The legacy entry `async def add_handlers(dispatcher)` binds only under the Telegram connector; other connectors resolve `add_handlers_<connector>` and no-op with a logged warning when absent. Plugins are loaded dynamically by name from `config.plugins['enable']`, skipping any in `config.plugins['disable']`. Handler registration order follows the `enable` list.
+**Plugins** (`src/plugins/`): Independent modules that register message handlers. Importing a plugin has no side effects — registration happens only through loader functions, resolved per connector in this precedence (`load_plugin` in `connectors/__init__.py`): (1) a per-connector `add_handlers_<connector>`; (2) for Telegram only, the legacy aiogram `add_handlers(dispatcher)` (the generic loader never binds Telegram — strangler-fig arbitration); (3) the generic `add_envelope_handlers(manager)` for any non-Telegram connector. A connector with no matching loader no-ops with a logged warning. Plugins are loaded dynamically by name from `config.plugins['enable']`, skipping any in `config.plugins['disable']`. Handler registration order follows the `enable` list.
 
 **Personalidades** (`src/iacecil/controllers/personalidades/`): Personality modules that control *what text* the bot generates for commands. Each personality exposes async functions like `start(message)`, `help(message)`, `add_handlers(dispatcher)` (aiogram path), and a `commands` dict mapping command name → envelope-safe async text function (connector path). Personalidade handlers are registered *after* all plugin handlers. Available personalities: `default`, `iacecil`, `cryptoforex`, `matebot`, `metarec`, `pave`, `pacume`, `pasoca`, `gamboa`, `paola`, `custom`.
 

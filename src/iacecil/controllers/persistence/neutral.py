@@ -127,6 +127,11 @@ def _persist_envelope_sync(db, envelope, direction: str = 'in'):
         if not hasattr(root, 'messages'):
             root.messages = BTrees.OOBTree.OOBTree()
 
+        ## NOTE: this is the global messages.fs schema and uses 'platform'
+        ## (the Envelope field name). The per-chat chat_store uses
+        ## 'connector' for the same value — deliberately distinct schemas
+        ## for distinct stores; do not "unify" the key without migrating
+        ## both stores and their readers.
         record = {
             'platform': envelope.platform,
             'sender_ref': envelope.sender_ref,
