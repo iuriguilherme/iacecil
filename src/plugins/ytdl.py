@@ -29,7 +29,7 @@ import uuid
 import validators
 import youtube_dl
 import yt_dlp
-from aiogram.utils.markdown import escape_md, pre
+from aiogram.utils.formatting import Text, Pre
 from contextlib import redirect_stdout
 from tempfile import gettempdir
 from iacecil.controllers.aiogram_bot.callbacks import (
@@ -112,8 +112,8 @@ eo em pedaços, uma das robôs vai avisar no canal: {}""".format(
                     ['ytdl'],
                 )
                 command = await message.reply(
-                    escape_md(u"""Não consegui extrair a mídia. Olha o \
-que o servidor me disse: """) + pre("{}".format(str(exception))),
+                    Text(u"""Não consegui extrair a mídia. Olha o \
+que o servidor me disse: """).as_markdown() + Pre("{}".format(str(exception))).as_markdown(),
                     parse_mode = "MarkdownV2",
                     disable_notification = True,
                 )
@@ -149,16 +149,16 @@ que o servidor me disse: """) + pre("{}".format(str(exception))),
                     logging.warning(u"probably path doesn't exist")
                     logging.warning(repr(exception))
         else:
-            command = await message.reply(escape_md(u"""\nO comando \
+            command = await message.reply(Text(u"""\nO comando \
 {comando} serve pra extrair um vídeo ou áudio de algum site com suporte\
 . Este comando usa o youtube-dl. Digite "{comando} url" para usar (dê u\
 m espaço entre o comando e o link). Por exemplo, para baixar o vídeo do\
- rick roll:\n\n""".format(comando = message.get_command())) + \
-pre(u"""{comando} https://youtube.com/watch?v=dQw4w9WgXcQ""".format(
-    comando = message.get_command())) + escape_md(u"""\n\nOu então resp\
+ rick roll:\n\n""".format(comando = message.get_command())).as_markdown() + \
+Pre(u"""{comando} https://youtube.com/watch?v=dQw4w9WgXcQ""".format(
+    comando = message.get_command())).as_markdown() + Text(u"""\n\nOu então resp\
 onda uma mensagem que tem um link com {comando} na resposta.""".format(
                     comando = message.get_command()
-                )),
+                )).as_markdown(),
                 parse_mode = "MarkdownV2",
             )
         await command_callback(command, ['ytdl', message.chat.type])
