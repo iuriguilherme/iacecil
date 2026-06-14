@@ -37,6 +37,10 @@ Output columns (tab-separated, with a header row):
     COLLISION-needs-review   -- distinct commits folded to the same SemVer key
     label-keep               -- non-version label tag, left untouched
     already-semver           -- already a valid v-prefixed SemVer tag, kept as-is
+    alias                    -- legacy tag sharing a commit with another mapped
+                                tag; kept for coverage but creates no new tag
+                                (leave the candidate column blank). apply skips
+                                it; validate counts it as covered.
 
 Two strategies are supported:
 
@@ -52,9 +56,14 @@ Two strategies are supported:
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from collections import defaultdict
+
+# A valid v-prefixed SemVer release tag (vMAJOR.MINOR.PATCH). Used to exempt
+# going-forward tags from the legacy-coverage check in validate().
+SEMVER_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 
 # Tags that are channel labels, not releases. They must not be remapped to
 # SemVer (see SEMVER.md "Label tags"). The bare "0.2" is included because it
@@ -202,9 +211,12 @@ def validate(path):
         if len(legacies) > 1:
             problems.append(
                 f"duplicate target {candidate} <- {', '.join(legacies)}")
-    missing = set(live) - seen_legacy
+    # Coverage polices only legacy-format tags. New v-prefixed SemVer tags
+    # created directly (going-forward releases) are not legacy mappings and are
+    # exempt -- otherwise every new release would show up as a "missing" row.
+    missing = {t for t in (set(live) - seen_legacy) if not SEMVER_RE.match(t)}
     if missing:
-        problems.append(f"missing {len(missing)} live tags: "
+        problems.append(f"missing {len(missing)} legacy tags: "
                         f"{', '.join(sorted(missing))}")
     return problems
 
