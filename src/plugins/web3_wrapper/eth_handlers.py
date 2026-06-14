@@ -23,11 +23,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 import web3
-from aiogram.utils.markdown import (
-    escape_md,
-    bold,
-    code,
-    spoiler,
+from aiogram.utils.formatting import (
+    Bold,
+    Code,
+    Spoiler,
+    Text
 )
 from eth_account import Account
 from iacecil.controllers.aiogram_bot.callbacks import (
@@ -138,15 +138,15 @@ async def add_handlers(dispatcher, get_web3, get_async_web3):
                 account = Account.create()
                 command = await message.reply(
                     ''.join([
-                        escape_md('New ETH account created.\n\n'),
-                        bold("""WARNING: This is not a safe way to hand\
+                        Text('New ETH account created.\n\n').as_markdown(),
+                        Bold("""WARNING: This is not a safe way to hand\
 le private keys. This account shall be used for learning and testing pu\
 rposes. Don't trust too much funds for too much time with addresses gen\
-erated in such a way."""),
-                        escape_md('\n\nAddress: '),
-                        '{}'.format(code(str(account.address))),
-                        escape_md('\n\nPrivate Key: '),
-                        '{}'.format(spoiler(account.key.hex())),
+erated in such a way.""").as_markdown(),
+                        Text('\n\nAddress: ').as_markdown(),
+                        Code(str(account.address)).as_markdown(),
+                        Text('\n\nPrivate Key: ').as_markdown(),
+                        Spoiler(account.key.hex()).as_markdown(),
                     ]),
                         parse_mode = 'MarkdownV2',
                 )
