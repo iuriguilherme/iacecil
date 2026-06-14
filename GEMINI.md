@@ -1,7 +1,7 @@
 # ia.cecil - Gemini Project Context
 
 ## Project Overview
-ia.cecil is a multi-platform chatbot framework written in **Python 3.10**. It evolved from several previous bot projects (Paloma, MateBot) into a modular system capable of running on **Telegram, Discord**, and integrating with specialized hardware like **Furhat Robotics** and AI models like **OpenAI (ChatGPT)** and **Deepseek**.
+ia.cecil is a multi-platform chatbot framework written in **Python 3.11**. It evolved from several previous bot projects (Paloma, MateBot) into a modular system capable of running on **Telegram, Discord**, and integrating with specialized hardware like **Furhat Robotics** and AI models like **OpenAI (ChatGPT)** and **Deepseek**.
 
 The project uses a hybrid architecture:
 - **MVC (Model-View-Controller)** for the core system.
@@ -22,19 +22,26 @@ The project uses a hybrid architecture:
 ## Building and Running
 
 ### Prerequisites
-- Python 3.10
-- `pipenv` (recommended) or `pip`
+- Python 3.11
+- Virtual environment (`venv`)
 - System-level `ffmpeg` (for some plugins)
 
 ### Installation
-Using `pipenv`:
+The project uses PEP 621 (`pyproject.toml`) as the single source of truth.
+
+Using vanilla Python:
 ```bash
-pipenv install
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[all]
 ```
-Using `pip`:
+
+Using the lockfile (for reproducibility):
 ```bash
 pip install -r requirements.txt
 ```
+
+Secondary support is maintained for `uv`, `poetry`, and `pipenv` as they all read the standard `pyproject.toml`.
 
 ### Execution
 Run the app in production mode:
@@ -46,9 +53,11 @@ Or specifically for Furhat integration:
 python -m iacecil fpersonas
 ```
 
+The `iacecil` console script is also available after installation.
+
 ### Testing
 ```bash
-pipenv run test
+pytest
 ```
 
 ## Configuration
@@ -63,13 +72,15 @@ Bot configuration files typically inherit from `DefaultBotConfig` and define ena
 - **Language**: Core documentation is in **Brazilian Portuguese**, though code symbols are in English.
 - **Modularity**: New features should be implemented as independent scripts in `src/plugins/`.
 - **Async First**: Many components use `asyncio` (via Aiogram and Quart).
-- **Environment Management**: `pipenv` is the preferred tool for dependency and virtualenv management. **Note**: In this sandbox, always use `PIPENV_DONT_LOAD_ENV=1` when running `pipenv` commands to avoid permission errors with the `.env` file.
+- **Environment Management**: Tool-agnostic. Vanilla `venv` and `pip` are the authoritative test environment. `uv` is recommended for performance.
 - **Persistence**: Prefer `ZODB` for persistent object storage.
 - **Architecture**: Stick to the MVC pattern in `src/iacecil/` for core changes.
 
 ## Key Files
 - `src/iacecil/__main__.py`: Entry point for the application.
 - `src/iacecil/controllers/_iacecil/production.py`: Core production runner (Quart + Aiogram startup).
-- `pyproject.toml` / `Pipfile`: Dependency definitions.
+- `pyproject.toml`: The single source of truth for metadata and dependencies.
+- `requirements.txt`: The pinned lockfile (generated from `pyproject.toml`).
 - `instance/_bots.py`: Main bot registry.
 - `README.md`: Primary project documentation (in Portuguese).
+- `docs/solutions/`: Searchable knowledge base of documented solutions to past problems (bugs, patterns, tooling decisions), organized by category with YAML frontmatter. Relevant when implementing or debugging in documented areas.

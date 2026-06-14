@@ -233,13 +233,14 @@ Para mexer no código agora mesmo no Linux:
 ```bash
 user@home:~$ git clone https://github.com/iuriguilherme/iacecil.git  
 user@home:~$ cd iacecil  
-user@home:~/iacecil$ pyenv exec python -m pip install --user --upgrade pip pipenv
-user@home:~/iacecil$ pipenv install -e .
-user@home:~/iacecil$ pipenv run test
+user@home:~/iacecil$ python -m venv .venv
+user@home:~/iacecil$ source .venv/bin/activate
+(.venv) user@home:~/iacecil$ pip install -e .[all]
+(.venv) user@home:~/iacecil$ python -m iacecil
 ```
 
 Se algum dos passos acima não der certo, usardes o vosso próprio método 
-pessoal (virtualenv, virtualenvwrapper, poetry, etc.)  
+pessoal (uv, poetry, pipenv, conda, etc.)  
 
 #### Grupo de usuária(o)s e desenvolvedora(e)s
 
@@ -299,27 +300,28 @@ sistema fogem do escopo deste arquivo.
 
 Ritual de instalação:  
 
-#### pipenv
+#### Python venv e pip (Recomendado)
 
-O jeito que eu faço é com [pipenv](https://pipenv.pypa.io/), inclusive 
-está incluso o Pipfile no repositório:  
+O projeto usa o padrão moderno de empacotamento Python (PEP 621) com o 
+`pyproject.toml` como única fonte de verdade.
 
 ```bash
-user@home:~/iacecil$ python3.10 -m ensurepip  
-user@home:~/iacecil$ python3.10 -m pip install --user --upgrade pip pipenv  
-user@home:~/iacecil$ pipenv install  
+user@home:~/iacecil$ python -m venv .venv
+user@home:~/iacecil$ source .venv/bin/activate
+(.venv) user@home:~/iacecil$ pip install --upgrade pip
+(.venv) user@home:~/iacecil$ pip install -e .[all]
 ```
 
 #### Outras formas
 
-Quem não quiser usar pipenv pode usar virtualenvwrapper, virtualenv, 
-poetry, ou outro método de preferência se souber o que está fazendo. Um 
-arquivo `requirements.txt` é mantido atualizado no repositório.  
+Quem não quiser usar venv puro pode usar uv, poetry, pipenv, 
+virtualenvwrapper, conda, ou outro método de preferência. O 
+`pyproject.toml` é compatível com todas essas ferramentas. Um arquivo 
+`requirements.txt` com as versões exatas (lock) é mantido atualizado no 
+repositório.  
 
 ```bash
-user@home:~/iacecil$ pyenv exec python -m venv iacecilenv  
-user@home:~/iacecil$ ./iacecilenv/bin/activate  
-(iacecilenv) pip install -r requirements.txt  
+(.venv) user@home:~/iacecil$ pip install -r requirements.txt
 ```
 
 ...ou coisa parecida.  
