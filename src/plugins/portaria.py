@@ -28,7 +28,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from aiogram import types
-from aiogram.utils.markdown import escape_md
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
     error_callback,

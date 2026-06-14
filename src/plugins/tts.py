@@ -30,7 +30,6 @@ from aiogram import (
     filters,
     types,
 )
-from aiogram.utils.markdown import escape_md
 from typing import Union
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
