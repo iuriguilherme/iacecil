@@ -43,6 +43,30 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         logger.exception(e)
         raise
 
+from typing import Any
+
+async def add_handlers_v3(router: Any) -> None:
+    """Register Aiogram 3 Handlers to Router"""
+    try:
+        from aiogram import F
+        from iacecil.controllers.aiogram_v3.callbacks import message_callback
+        
+        @router.message(F.text == "/echo_v3")
+        async def echo_v3(message: types.Message):
+            await message_callback(message, ['echo', message.chat.type])
+            await message.answer(message.text)
+            
+        @router.message()
+        async def echo_all_v3(message: types.Message):
+            """Catch-all for echo testing in V3"""
+            logger.debug(f"Echo V3 catching message: {message.text}")
+            await message_callback(message, ['echo', message.chat.type])
+            await message.answer(message.text)
+
+    except Exception as e:
+        logger.exception(e)
+        raise
+
 async def echo_envelope(envelope) -> str:
     """Echo handler for connector platforms (testing)"""
     return envelope.text
