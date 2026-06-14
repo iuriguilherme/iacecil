@@ -123,7 +123,6 @@ def cmd_ajuda(args):
 ## Aiogram
 async def add_handlers(dispatcher):
     try:
-        from aiogram.utils.markdown import escape_md
         from iacecil.controllers.aiogram_bot.callbacks import (
             command_callback,
             message_callback,

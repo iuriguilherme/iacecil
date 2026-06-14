@@ -38,7 +38,7 @@ from aiogram import (
     filters,
     types,
 )
-from aiogram.utils.markdown import code, pre
+from aiogram.utils.formatting import Code, Pre
 from iacecil import (
     commit,
     name,
@@ -177,8 +177,8 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
         async def tz_callback(message):
             await message_callback(message, ['tz', message.chat.type])
             ## lol
-            command = await message.reply(code(u"{}".format(cmd_tz(
-                {'command_type': None})['response'])),
+            command = await message.reply(Code(u"{}".format(cmd_tz(
+                {'command_type': None})['response'])).as_markdown(),
                 parse_mode = "MarkdownV2",
             )
             await command_callback(command, ['tz', message.chat.type])
@@ -254,10 +254,10 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                 db, pms = await get_messages_admin(message.chat.id)
                 try:
                     await message.reply('\n'.join([
-                        pre(json.dumps({k:v for (k,v) in pm.items()},
+                        Pre(json.dumps({k:v for (k,v) in pm.items()},
                         indent = 2,
                         ensure_ascii = False,
-                        )) for pm in pms.values()
+                        )).as_markdown() for pm in pms.values()
                     ]), parse_mode = "MarkdownV2")
                 except Exception as e3:
                     await error_callback(
@@ -402,10 +402,10 @@ dos para dev/admin:\n{lista}""".format(lista = "\n".join(lista)))
                     db, pms = await get_messages(message.chat.id)
                 try:
                     await message.reply('\n'.join([
-                        pre(json.dumps({k:v for (k,v) in pm.items()},
+                        Pre(json.dumps({k:v for (k,v) in pm.items()},
                         indent = 2,
                         ensure_ascii = False,
-                        )) for pm in pms.values()
+                        )).as_markdown() for pm in pms.values()
                     ]), parse_mode = "MarkdownV2")
                 except Exception as e3:
                     await error_callback(
