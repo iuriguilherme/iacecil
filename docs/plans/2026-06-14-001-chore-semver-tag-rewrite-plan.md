@@ -62,20 +62,26 @@ The second segment is the project's true, monotonic minor across the whole histo
 (`0.0.*` → `0.1.*` → `0.2.*` → `0.3.*`). That suggests folding 4-segment `0.MINOR.B.C`
 into a 3-segment patch under `0.3.0`. A candidate heuristic — `0.MINOR.(B*100 + C)`,
 treating 3-segment `0.MINOR.B` as `B.0` — was generated and collision-checked against the
-real tag set. It produces **7 collisions**, all in the `0.2` lineage, e.g.:
+real tag set. It produces **7 duplicate-target situations**, all in the `0.2` lineage:
 
 | Tag A | commit | Tag B | commit | naive key | result |
 |-------|--------|-------|--------|-----------|--------|
 | `0.2.8`  | `c212422f` | `0.2.8.0`  | `b14a03ab` | `v0.2.800`  | **distinct commits collide** |
 | `0.2.9`  | `eefa15df` | `0.2.9.0`  | `a6bc920c` | `v0.2.900`  | **distinct commits collide** |
 | `0.2.10` | `b1dacaba` | `0.2.10.0` | `2cb3c870` | `v0.2.1000` | **distinct commits collide** |
+| `0.2.12` | (distinct) | `0.2.12.0` | (distinct) | `v0.2.1200` | **distinct commits collide** |
 | `0.2.13` | `6194615b` | `0.2.13.0` | `7a9747ef` | `v0.2.1300` | **distinct commits collide** |
+| `0.2.14` | (distinct) | `0.2.14.0` | (distinct) | `v0.2.1400` | **distinct commits collide** |
+| `0.2.11` | `e025dddc` | `0.2.11.0` | `e025dddc` | `v0.2.1100` | **same commit (alias)** |
 
-(`0.2.11`, `0.2.12`, `0.2.14` collide the same way.) These pairs are **genuinely different
-releases**. No pure folding rule can separate them, because the legacy scheme reused the
-same `MINOR.B` coordinates for both a 3-segment and a 4-segment release. **Conclusion: the
-mapping cannot be fully algorithmic. It must be machine-generated then human-reviewed, with
-the ~7 ambiguous `0.2` pairs resolved by hand.**
+Six pairs are **genuinely different releases** that fold to one key; the seventh
+(`0.2.11`/`0.2.11.0`) is two names for **one** commit, so it is harmless data-wise but still
+needs a canonical name chosen. No pure folding rule resolves either class, because the
+legacy scheme reused the same `MINOR.B` coordinates for both a 3-segment and a 4-segment
+release. **Conclusion: the mapping cannot be fully algorithmic. It must be machine-generated
+then human-reviewed, with all 7 ambiguous `0.2` pairs resolved by hand.** The generator
+flags both classes (any candidate claimed by more than one legacy name) as
+`COLLISION-needs-review`; the validator additionally rejects any duplicate target.
 
 ### Scope of the deliverable
 

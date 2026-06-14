@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
-"""
-ia.cecil
-
-Copyleft 2012-2026 Iuri Guilherme <https://iuri.neocities.org/>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-"""
+#
+# ia.cecil
+#
+# Copyleft 2012-2026 Iuri Guilherme <https://iuri.neocities.org/>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
 
 """Generate a candidate legacy-tag -> SemVer mapping for ia.cecil.
 
@@ -52,6 +51,7 @@ Two strategies are supported:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from collections import defaultdict
@@ -104,9 +104,15 @@ def classify(tag):
 
 
 def fold_candidate(parts):
-    """fold strategy: 0.MINOR.B[.C] -> v0.MINOR.(B*100 + C)."""
+    """fold strategy: 0.MINOR.B[.C] -> v0.MINOR.(B*100 + C).
+
+    The B*100 + C packing is only collision-free while C < 100 for every tag
+    sharing a MINOR.B; the project's max C is 17, but assert it so a future tag
+    that breaks the invariant fails loudly instead of silently colliding.
+    """
     major, minor, b = parts[0], parts[1], int(parts[2])
     c = int(parts[3]) if len(parts) == 4 else 0
+    assert c < 100, f"C={c} >= 100 in {parts}: fold packing would collide"
     return f"v{major}.{minor}.{b * 100 + c}"
 
 
@@ -134,14 +140,20 @@ def build_mapping(rows, strategy):
 
 
 def flag_collisions(mapping):
-    """Mark rows whose candidate maps distinct commits to one SemVer key."""
+    """Mark rows whose candidate is claimed by more than one legacy tag.
+
+    Two distinct legacy tags cannot both become one annotated SemVer tag, so the
+    test is on distinct legacy *names*, not distinct commits: an alias pair that
+    shares a commit (e.g. 0.2.11 / 0.2.11.0) still needs a human to pick which
+    name keeps the base number. This keeps the generator's own output passing
+    validate() instead of leaving a duplicate-target row marked ``ok``.
+    """
     by_candidate = defaultdict(list)
     for row in mapping:
-        if row["candidate"] and row["status"] in ("ok",):
+        if row["candidate"] and row["status"] == "ok":
             by_candidate[row["candidate"]].append(row)
     for candidate, group in by_candidate.items():
-        commits = {r["commit"] for r in group}
-        if len(commits) > 1:
+        if len({r["legacy"] for r in group}) > 1:
             for r in group:
                 r["status"] = "COLLISION-needs-review"
     return mapping
@@ -155,20 +167,23 @@ def write_tsv(mapping, stream):
 
 
 def validate(path):
-    """Validate a reviewed mapping: no collisions, unique targets, full cover."""
-    live = {t for t, _, _ in git_tags()}
+    """Validate a reviewed mapping: no collisions, unique targets, full cover,
+    and that each row's commit still matches the live legacy tag."""
+    live = {t: c for t, c, _ in git_tags()}
     seen_legacy = set()
     targets = defaultdict(list)
     problems = []
     with open(path) as fh:
-        header = fh.readline()
-        if header.strip().split("\t")[:5] != \
+        # rstrip("\r\n") so a CRLF file does not leave "\r" on the status field,
+        # which would let a COLLISION-needs-review row silently pass this gate.
+        header = fh.readline().rstrip("\r\n")
+        if header.split("\t")[:5] != \
                 ["legacy", "candidate", "commit", "creatordate", "status"]:
             problems.append("bad or missing header row")
         for n, line in enumerate(fh, start=2):
             if not line.strip():
                 continue
-            cols = line.rstrip("\n").split("\t")
+            cols = line.rstrip("\r\n").split("\t")
             if len(cols) != 5:
                 problems.append(f"line {n}: expected 5 columns, got {len(cols)}")
                 continue
@@ -178,11 +193,16 @@ def validate(path):
                 problems.append(f"line {n}: unresolved collision for {legacy}")
             if candidate and status in ("ok", "already-semver"):
                 targets[candidate].append(legacy)
+            # A hand-edited commit SHA that no longer matches the live legacy
+            # tag would make apply_tag_mapping.sh tag the wrong commit.
+            if legacy in live and live[legacy] != commit:
+                problems.append(f"line {n}: {legacy} commit {commit[:12]} != "
+                                f"live {live[legacy][:12]}")
     for candidate, legacies in targets.items():
         if len(legacies) > 1:
             problems.append(
                 f"duplicate target {candidate} <- {', '.join(legacies)}")
-    missing = live - seen_legacy
+    missing = set(live) - seen_legacy
     if missing:
         problems.append(f"missing {len(missing)} live tags: "
                         f"{', '.join(sorted(missing))}")
@@ -200,6 +220,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     if args.validate:
+        if not os.path.exists(args.validate):
+            print(f"error: file not found: {args.validate}", file=sys.stderr)
+            return 1
         problems = validate(args.validate)
         if problems:
             print("INVALID mapping:", file=sys.stderr)

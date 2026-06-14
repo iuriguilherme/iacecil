@@ -42,25 +42,40 @@ fi
 created=0
 skipped=0
 planned=0
+mismatches=0
+
+TAB=$(printf '\t')
+CR=$(printf '\r')
 
 # Read from the file (not a pipe) so the loop runs in this shell and the
-# counters survive; skip the header with an initial read.
+# counters survive; skip the header with an initial read. Split fields by hand
+# (IFS= read -r line) rather than letting read split on tabs: tab is IFS
+# whitespace, so consecutive tabs would collapse and empty fields (e.g. the
+# blank candidate on label rows) would shift every later column.
 {
     read -r _header
-    while IFS="$(printf '\t')" read -r legacy candidate commit date status; do
-        [ -z "$candidate" ] && continue
+    while IFS= read -r line || [ -n "$line" ]; do
+        line=${line%"$CR"}          # tolerate CRLF line endings
+        [ -z "$line" ] && continue
+        legacy=${line%%"$TAB"*};    rest=${line#*"$TAB"}
+        candidate=${rest%%"$TAB"*}; rest=${rest#*"$TAB"}
+        commit=${rest%%"$TAB"*};    rest=${rest#*"$TAB"}
+        date=${rest%%"$TAB"*}
+        status=${rest##*"$TAB"}
         case "$status" in
             ok|already-semver) : ;;
             *) continue ;;
         esac
-        # Don't recreate a tag that already points where we want it.
-        if existing="$(git rev-list -n1 "$candidate" 2>/dev/null)"; then
+        [ -z "$candidate" ] && continue
+        # Resolve the candidate as a TAG only (not any object of that name) to
+        # its commit; skip when it already points where we want it.
+        if existing="$(git rev-parse -q --verify "refs/tags/$candidate^{commit}" 2>/dev/null)"; then
             if [ "$existing" = "$commit" ]; then
                 skipped=$((skipped + 1))
                 continue
             fi
             echo "WARN: $candidate exists at $existing, want $commit -- skipping" >&2
-            skipped=$((skipped + 1))
+            mismatches=$((mismatches + 1))
             continue
         fi
         planned=$((planned + 1))
@@ -78,7 +93,13 @@ planned=0
 } < "$MAPPING"
 
 if [ "$APPLY" -eq 0 ]; then
-    echo "done (dry run). planned new=$planned, skipped existing=$skipped"
+    echo "done (dry run). planned new=$planned, skipped existing=$skipped, mismatches=$mismatches"
 else
-    echo "done. created=$created, skipped existing=$skipped"
+    echo "done. created=$created, skipped existing=$skipped, mismatches=$mismatches"
+fi
+
+# A tag already at the WRONG commit is a mapping error, not an idempotent skip.
+if [ "$mismatches" -gt 0 ]; then
+    echo "error: $mismatches candidate tag(s) exist at a different commit than the mapping specifies" >&2
+    exit 1
 fi
