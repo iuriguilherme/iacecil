@@ -33,7 +33,15 @@ from ..... import (
 from .....controllers.furhat_bot.tests import run_tests
 
 async def tests(active_tab = {}):
-    furhat = await run_tests(Dispatcher.get_current().config.furhat)
+    from .....controllers.aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    config = ctx.get('config')
+    if not config:
+        logger.error("Furhat tests: No config found in context")
+        ## Fallback if context retrieval failed but we really need it
+        return "Config not found", 500
+        
+    furhat = await run_tests(config.furhat)
     return await render_template(
         "furhat/tests.html",
         active = {

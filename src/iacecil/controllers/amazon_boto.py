@@ -40,12 +40,18 @@ from typing import Union
 
 async def get_session(region: str = 'us-east-1') -> Union[Session, None]:
     """Returns boto3 Session with configured credentials"""
-    dispatcher = Dispatcher.get_current()
+    from .aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    config = ctx.get('config')
+    if not config:
+        logger.error("get_session (amazon_boto): No config found in context")
+        return None
+        
     try:
         return boto3.Session(
-            aws_access_key_id = dispatcher.config.furhat['synthesizer'][
+            aws_access_key_id = config.furhat['synthesizer'][
                 'amazon']['key'],
-            aws_secret_access_key = dispatcher.config.furhat['synthesizer'][
+            aws_secret_access_key = config.furhat['synthesizer'][
                 'amazon']['secret'],
             region_name = region,
         )
@@ -67,13 +73,16 @@ async def get_audio(
     output: Union[str, None] = None
     speech: Union[dict, None] = None
     stream: Union[object, None] = None
-    dispatcher: Union[Dispatcher, None] = Dispatcher.get_current()
-    if dispatcher is not None:
+    from .aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    config = ctx.get('config')
+    
+    if config is not None:
         if Engine is None:
-            Engine: str = dispatcher.config.furhat.get('synthesizer').get(
+            Engine: str = config.furhat.get('synthesizer').get(
                 'amazon').get('engine')
-        VoiceId: str = dispatcher.config.furhat.get('voice')
-        LanguageCode: str = dispatcher.config.furhat.get('language')
+        VoiceId: str = config.furhat.get('voice')
+        LanguageCode: str = config.furhat.get('language')
     Extension: str = kwargs.get('Extension', 'ogg')
     try:
         speech: dict = ((await get_session()).client('polly')

@@ -52,15 +52,21 @@ async def varre_link(message: str) -> Union[types.Message, None]:
     envia para o grupo de garimpo de links
     """
     try:
-        dispatcher = Dispatcher.get_current()
-        if dispatcher.config.personalidade in [
+        from iacecil.controllers.aiogram_v3.util import get_aiogram_context
+        ctx = get_aiogram_context()
+        config = ctx.get('config')
+        if not config:
+            logger.error("varre_link (garimpo): No config found in context")
+            return None
+            
+        if config.personalidade in [
             'default',
             'metarec',
             'matebot',
             'iacecil',
         ]:
             url = None
-            garimpo_id = dispatcher.config.telegram.get('users').get('special'
+            garimpo_id = config.telegram.get('users').get('special'
                 ).get('garimpo')
             if message.entities is not None:
                 for entity in message.entities:

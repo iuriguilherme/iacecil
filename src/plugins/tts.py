@@ -56,7 +56,8 @@ async def fala_callback(
 ) -> None:
     """Converte para audio o texto de audio_text"""
     await message_callback(message, ['fala', message.chat.type])
-    dispatcher: Dispatcher = Dispatcher.get_current()
+    from iacecil.controllers.aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
     command: Union[types.Message, None] = None
     opus_file: Union[str, None] = None
     try:
@@ -119,13 +120,19 @@ async def fala_nl_wrapper(message: types.Message) -> None:
 
 async def ssml_wrapper(message: types.Message, *args, **kwargs) -> None:
     """Tenta reproduzir um arquivo SSML"""
-    dispatcher: Dispatcher = Dispatcher.get_current()
+    from iacecil.controllers.aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("ssml_wrapper (tts): No bot found in context")
+        return
+        
     audio_text: Union[io.StringIO, None] = io.StringIO()
     try:
-        _file: types.File = await dispatcher.bot.get_file(
+        _file: types.File = await bot.get_file(
             message.document.file_id)
         audio_text: Union[io.StringIO, None] = \
-            await dispatcher.bot.download_file(_file.file_path)
+            await bot.download_file(_file.file_path)
         await fala_callback(message, audio_text.read().decode(), 'ssml',
             'standard')
     except Exception as e:

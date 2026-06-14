@@ -77,11 +77,16 @@ async def get_db(path_string):
 async def get_messages(chat_id):
     if not await assertIsNotNone([chat_id]):
         return False, False
-    dispatcher = Dispatcher.get_current()
+    from ..aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("get_messages: No bot found in context")
+        return False, False
     try:
         db = await get_db('{}/bots/{}/chats/{}.fs'.format(
             zodb_path,
-            dispatcher.bot.id,
+            bot.id,
             chat_id,
         ))
         if not db:
@@ -107,11 +112,16 @@ async def get_messages(chat_id):
 async def get_messages_garimpo(chat_id):
     if not await assertIsNotNone([chat_id]):
         return False, False
-    dispatcher = Dispatcher.get_current()
+    from ..aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("get_messages_garimpo: No bot found in context")
+        return False, False
     try:
         db = await get_db('{}/bots/{}/garimpo/{}.fs'.format(
             zodb_path,
-            dispatcher.bot.id,
+            bot.id,
             chat_id,
         ))
         if not db:
@@ -137,11 +147,16 @@ async def get_messages_garimpo(chat_id):
 async def get_messages_admin(chat_id):
     if not await assertIsNotNone([chat_id]):
         return False, False
-    dispatcher = Dispatcher.get_current()
+    from ..aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("get_messages_admin: No bot found in context")
+        return False, False
     try:
         db = await get_db('{}/bots/{}/admin/{}.fs'.format(
             zodb_path,
-            dispatcher.bot.id,
+            bot.id,
             chat_id,
         ))
         if not db:
@@ -483,11 +498,16 @@ async def set_file(bot_id, file_unique_id, file_id, reference):
 async def log_message(message):
     if not await assertIsNotNone([message]):
         return False
-    dispatcher = Dispatcher.get_current()
+    from ..aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("log_message: No bot found in context")
+        return False
     try:
         db = await get_db('{}/bots/{}/chats/{}.fs'.format(
             zodb_path,
-            dispatcher.bot.id,
+            bot.id,
             message.chat.id,
         ))
         if not db:

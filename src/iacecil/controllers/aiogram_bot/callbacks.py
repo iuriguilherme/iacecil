@@ -46,9 +46,12 @@ async def message_callback(
         setattr(message, 'tags', descriptions)
         try:
             from ...models.envelope import Envelope
-            from aiogram import Dispatcher
-            dispatcher = Dispatcher.get_current()
-            if hasattr(dispatcher, 'manager'):
+            from ..aiogram_v3.util import get_aiogram_context
+            
+            ctx = get_aiogram_context()
+            manager = ctx.get('manager')
+            
+            if manager:
                 message_id = getattr(message, 'message_id', None)
                 message_date = getattr(message, 'date', None)
                 env = Envelope(
@@ -66,7 +69,7 @@ async def message_callback(
                     native_message_id=str(message_id) if message_id is not None else None,
                     timestamp=message_date.timestamp() if message_date is not None else None,
                 )
-                await dispatcher.manager.dispatch(env)
+                await manager.dispatch(env)
         except Exception as e:
             logger.error(f"Failed to emit envelope in message_callback: {e}")
         try:

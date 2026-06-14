@@ -48,18 +48,24 @@ async def storify_callback(
     s: str = '15',
     **kwargs,
 ):
-    dispatcher = Dispatcher.get_current()
+    from iacecil.controllers.aiogram_v3.util import get_aiogram_context
+    ctx = get_aiogram_context()
+    bot = ctx.get('bot')
+    if not bot:
+        logger.error("storify_callback: No bot found in context")
+        return
+        
     videos = []
     input_file = None
     try:
         file_id = message.video.file_id
         await message.reply(f"""Peraí que eu vou cortar o vídeo em pedaços \
 de {':'.join([h, m, s])} e já te mando...""")
-        file_object = await dispatcher.bot.get_file(file_id)
+        file_object = await bot.get_file(file_id)
         file_path = file_object.file_path
         input_file = os.path.join(gettempdir(), "ic.{}.mp4".format(
             uuid.uuid4()))
-        await dispatcher.bot.download_file(file_path, input_file)
+        await bot.download_file(file_path, input_file)
         videos = await storify(input_file, h, m, s)
         if videos is not None:
             for index, video in enumerate(sorted(videos)):

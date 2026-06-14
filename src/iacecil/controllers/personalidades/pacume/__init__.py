@@ -76,7 +76,11 @@ async def start(message: types.Message, ctx=None):
 
 async def welcome(message: types.Message, ctx=None):
     """Answer new members"""
-    bot: Bot = Dispatcher.get_current().bot
+    from ...aiogram_v3.util import get_aiogram_context
+    bot: Bot = get_aiogram_context().get('bot')
+    if not bot:
+        logger.error("welcome (pacume): No bot found in context")
+        return ""
     admin: str = "@admin"
     count: str = getattr(message, 'extra', {}).get('count', '0') if not hasattr(message, 'chat') else await bot.get_chat_members_count(message.chat.id)
     ## FIXME move this to handlers with filters for groups
@@ -96,7 +100,11 @@ async def portaria(message: types.Message, ctx=None):
 
 async def bye(message: types.Message, ctx=None):
     """Answer member lefts"""
-    bot: Bot = Dispatcher.get_current().bot
+    from ...aiogram_v3.util import get_aiogram_context
+    bot: Bot = get_aiogram_context().get('bot')
+    if not bot:
+        logger.error("bye (pacume): No bot found in context")
+        return ""
     admin: str = "admin"
     ## FIXME: Move this to handler with filter for groups
     if message.chat.type in ['group', 'supergroup']:

@@ -58,7 +58,11 @@ async def start(message, ctx=None):
     return random_texts.start(message)
 
 async def welcome(message, ctx=None):
-    bot = Dispatcher.get_current().bot
+    from ...aiogram_v3.util import get_aiogram_context
+    bot = get_aiogram_context().get('bot')
+    if not bot:
+        logger.error("welcome (pave): No bot found in context")
+        return ""
     admin = u"@admin"
     count = getattr(message, 'extra', {}).get('count', 0) if not hasattr(message, 'chat') else await bot.get_chat_members_count(message.chat.id)
     if hasattr(message, 'chat') and message.chat.type in ['group', 'supergroup']:
@@ -86,7 +90,11 @@ async def portaria(message, ctx=None):
 ## Pegadinha
 ### FIXME armazenar file_id, porque muda conforme o grupo
 async def pegadinha4(message, ctx=None):
-    bot = Dispatcher.get_current().bot
+    from ...aiogram_v3.util import get_aiogram_context
+    bot = get_aiogram_context().get('bot')
+    if not bot:
+        logger.error("pegadinha4 (pave): No bot found in context")
+        return
     return await message.reply(
         u"é {}, pa pa pa".format(
             await bot.get_chat_members_count(message.chat.id)),
@@ -145,7 +153,11 @@ async def pegadinha3(message, ctx=None):
             )
             return await pegadinha4(message)
 async def pegadinha5(message, ctx=None):
-    bot = Dispatcher.get_current().bot
+    from ...aiogram_v3.util import get_aiogram_context
+    bot = get_aiogram_context().get('bot')
+    if not bot:
+        logger.error("pegadinha5 (pave): No bot found in context")
+        return
     try:
         ## esprimente a linguiça
         return await message.reply_sticker('''AAMCAQADHQJZYjDuAAEDM-ViJ\
