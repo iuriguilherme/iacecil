@@ -10,7 +10,7 @@ pytest-asyncio = "*"
 
 [packages]
 aiodns = "*"
-aiogram = "==2.25.1"
+aiogram = ">=2.25.1"
 aiohttp = {extras = ["speedups"],version = ">=3.10"} # matrix-nio direction; aiogram 2.25.1 pin overridden at lock time (see plan KTD)
 apscheduler = "==3.11.1"
 beautifulsoup4 = "==4.14.2"

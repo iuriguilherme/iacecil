@@ -12,7 +12,7 @@ except ImportError:
 
 setup(
     install_requires=[
-        'aiodns', 'aiogram==2.25.1', 'aiohttp[speedups]', 'apscheduler',
+        'aiodns', 'aiogram>=2.25.1', 'aiohttp[speedups]', 'apscheduler',
         'beautifulsoup4', 'boto3', 'brotlipy', 'colorama', 'ffmpeg-python',
         'flask-sqlalchemy', 'flask-wtf', 'furhat-remote-api',
         'google-search-results', 'graphviz', 'install-requires', 'lxml',

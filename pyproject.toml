@@ -10,7 +10,7 @@ description = "ia.cecil"
 [tool.poetry.dependencies]
 python = "==3.11"
 aiodns = "*"
-aiogram = "==2.25.1"
+aiogram = ">=2.25.1"
 aiohttp = {extras = ["speedups"], version = ">=3.10"}
 apscheduler = "*"
 beautifulsoup4 = "*"
