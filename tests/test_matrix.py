@@ -143,6 +143,36 @@ async def test_restart_with_token_dispatches_immediately():
     assert manager.dispatch.call_count == 1
 
 
+@pytest.mark.asyncio
+async def test_token_saved_after_dispatch_on_normal_sync():
+    """On a non-first sync the token must be persisted only after the
+    batch's events were dispatched, so a crash mid-batch re-syncs from the
+    previous token (replay deduped) instead of dropping messages."""
+    conn, manager = make_connector()
+    conn.next_batch = 'old'  # not a first sync
+    order = []
+
+    async def rec_dispatch(env):
+        order.append('dispatch')
+
+    manager.dispatch = AsyncMock(side_effect=rec_dispatch)
+    saved = []
+    conn._save_token = lambda t: (order.append('save'), saved.append(t))
+
+    responses = [sync_response('new', [message_event(body='hi')])]
+
+    async def fake_sync(timeout, since):
+        conn.running = False
+        return responses.pop(0)
+
+    conn.client = SimpleNamespace(sync=fake_sync)
+    conn.running = True
+    await conn.listen()
+
+    assert order == ['dispatch', 'save']
+    assert saved == ['new']
+
+
 def test_corrupt_token_warns_and_fresh_syncs(caplog):
     conn, _ = make_connector()
     path = conn._token_path()

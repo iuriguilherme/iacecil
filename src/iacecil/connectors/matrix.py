@@ -180,11 +180,12 @@ class Connector(BaseConnector):
             backoff = self.SYNC_BACKOFF_BASE
             first_sync = self.next_batch is None
             self.next_batch = next_batch
-            ## File write is blocking; keep it off the event loop.
-            await asyncio.to_thread(self._save_token, next_batch)
             if first_sync:
                 ## Token acquisition only: dispatching the initial sync
-                ## would reply to every joined room's backlog.
+                ## would reply to every joined room's backlog. Persist now
+                ## (nothing to dispatch) so the backlog is never replayed.
+                ## File write is blocking; keep it off the event loop.
+                await asyncio.to_thread(self._save_token, next_batch)
                 continue
             rooms = getattr(getattr(response, 'rooms', None), 'join', None) or {}
             for room_id, room_info in rooms.items():
@@ -200,6 +201,13 @@ class Connector(BaseConnector):
                             "Matrix: error dispatching event"
                             f" {getattr(event, 'event_id', None)!r} in"
                             f" {room_id}: {e}")
+            ## Persist the token only after this batch's events were
+            ## dispatched. A crash mid-batch re-syncs from the previous
+            ## token next boot; native-id dedupe in the chat store makes
+            ## the replay idempotent (effectively-once) rather than
+            ## silently dropping the messages between save and dispatch.
+            ## File write is blocking; keep it off the event loop.
+            await asyncio.to_thread(self._save_token, next_batch)
 
     async def send(self, envelope: Envelope):
         if not self.client:
