@@ -27,6 +27,7 @@ import os
 import uuid
 from aiogram import (
     Dispatcher,
+    F,
     filters,
     types,
 )
@@ -116,7 +117,7 @@ async def add_handlers(dispatcher):
             await storify_callback(message, h, m, s)
         
         @dispatcher.message_handler(
-            is_reply = True,
+            F.reply_to_message,
             commands = ['storify', 'cut', 'instagram', 'ig'],
         )
         async def reply_storify_callback(message: types.Message):

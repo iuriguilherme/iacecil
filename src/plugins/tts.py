@@ -26,6 +26,7 @@ import io
 import os
 from aiogram import (
     Dispatcher,
+    F,
     exceptions,
     filters,
     types,
@@ -36,6 +37,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     message_callback,
     error_callback,
 )
+from iacecil.controllers.aiogram_bot.filters import IsReplyToIdFilter
 from iacecil.controllers.amazon_boto import get_audio
 from iacecil.controllers.ffmpeg_wrapper import telegram_voice
 from iacecil.controllers.personalidades import pave
@@ -156,13 +158,13 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         dispatcher.register_message_handler(
             fala_nl_wrapper,
             filters.Text(startswith = triggers, ignore_case = True),
-            is_reply_to_id = dispatcher.bot.id,
+            IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id),
             content_types = types.ContentTypes.TEXT,
         )
         ## Uses the text from a replied message with /fala
         dispatcher.register_message_handler(
             fala_reply_wrapper,
-            is_reply = True,
+            F.reply_to_message,
             commands = triggers,
             content_types = types.ContentTypes.TEXT,
         )
