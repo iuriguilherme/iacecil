@@ -57,9 +57,8 @@ for name, conf in config_dict.items():
     ...
     try:
         module = import_module('.' + name, 'iacecil.connectors')
-        connector_class = getattr(module, 'Connector')
-        if issubclass(connector_class, BaseConnector) and connector_class.is_active(conf):
-            active_platforms.add(name)
+        ...
+        active_platforms.add(name)
     except (ModuleNotFoundError, AttributeError):  # plain ImportError NOT caught
         continue
 suppress = {'telegram'} if 'telegram_v3' in active_platforms else set()
@@ -73,8 +72,8 @@ for name, conf in config_dict.items():
     try:
         module = import_module('.' + name, 'iacecil.connectors')
         connector_class = getattr(module, 'Connector')
-        if issubclass(connector_class, BaseConnector) and connector_class.is_active(conf):
-            self.connectors[name] = connector_class(self, conf)
+        ...
+        self.connectors[name] = connector_class(self, conf)
     except ModuleNotFoundError as e:
         if e.name in (f'iacecil.connectors.{name}', name):
             logger.debug(f"Skipping non-connector section {name}")   # not a connector
