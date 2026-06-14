@@ -96,12 +96,14 @@ try:
     from pydantic import (
         BaseModel,
         Field,
+        model_validator,
     )
     from pydantic_settings import BaseSettings
     from pytz import timezone
     from pytz.tzinfo import DstTzInfo
     from secrets import token_hex
     from typing import (
+        Any,
         Dict,
         Type,
         Union,
@@ -157,22 +159,28 @@ try:
     
     class BotConfig(BaseSettings):
         """Configuration template class for each bot"""
-        coinmarketcap: dict[str, str]
-        deepseek: dict[str, str]
-        discord: dict[str, str]
-        donate: dict[str, str]
-        furhat: dict[str, str]
-        info: dict[str, str]
-        openai: dict[str, str]
+        coinmarketcap: dict[str, Any]
+        deepseek: dict[str, Any]
+        discord: dict[str, Any]
+        donate: dict[str, Any]
+        furhat: dict[str, Any]
+        info: dict[str, Any]
+        loopback: dict[str, Any]
+        mastodon: dict[str, Any]
+        matrix: dict[str, Any]
+        openai: dict[str, Any]
         jobs: list[str]
         personalidade: str
         plugins: dict[str, list]
-        serpapi: dict[str, str]
+        serpapi: dict[str, Any]
         tecido: dict[str, Union[str, int]]
-        telegram: dict[str, str]
+        telegram: dict[str, Any]
+        telegram_v3: dict[str, Any]
         timezone: str
-        tropixel: dict[str, str]
-        web3: dict[str, str]
+        tropixel: dict[str, Any]
+        web3: dict[str, Any]
+        xmpp: dict[str, Any]
+        
         # ~ tz_str: str
         # ~ timezone: Union[DstTzInfo, tzinfo, None]
         # ~ def set_tz(self):
@@ -416,6 +424,74 @@ f0123456789abcdef""",
                 }, # special
             }, # users
         } # telegram
+        telegram_v3: dict = {
+            'token': "",
+            'info': {
+                'group': "https://t.me/joinchat/CwFUFkf-dKW34FPBjEJs9Q",
+                'channel': "@matebotnews",
+                'admin': "@desobedientecivil",
+                'dev': "@desobedientecivil",
+            },
+            'webhook': {
+                'host': "https://iacecil.iuri.xyz/webhook/",
+                'path': "/iacecil",
+                'webapp': "https://iacecil.iuri.xyz/webhook/iacecil/",
+                'port': 8443,
+            }, # webhook
+            ## Plugin portaria
+            'unwanted': [
+                "HV Cursos",
+                "MateBot (test)",
+            ], # unwanted
+            'users': {
+                'alpha': [
+                    -1001233916997, # pub4 test
+                ],
+                'beta': [
+                    -1001233916997, # pub4 test
+                    -1001123697262, # MateBot News
+                ],
+                'gamma': [
+                    -1001286967165, # pub1 G
+                    -296878012, # pub2 C
+                    -1001207858341, # pub3 M
+                    -1001233916997, # pub4 test
+                    -481703172, # pub5 test
+                ],
+                'delta': [
+                ],
+                'epsilon': [
+                    777000, # services
+                    -1001286967165, # pub1 G
+                    -296878012, # pub2 C
+                    -1001207858341, # pub3 M
+                    -1001233916997, # pub4 test
+                    -481703172, # pub5 test
+                    -1001123697262, # MateBot News
+                    # @mate_obot
+                ], # epsilon
+                'tropixel': [
+                    -1001233916997, # pub4 test
+                ], # tropixel
+                'pegadinha': [
+                    -1001233916997, # pub4 test
+                ], # pegadinha
+                'garimpo': [
+                    -1001233916997, # pub4 test
+                ],
+                'special': {
+                    'services': 777000,
+                    'nouser': 1,
+                    'nogroup': -1,
+                    'debug': -1001233916997, # pub4 test
+                    'feedback': -1001233916997, # pub4 test
+                    'info': -1001233916997, # pub4 test
+                    'test': -1001233916997, # pub4 test
+                    'log_test': -1001233916997, # pub4 test
+                    'garimpo': -1001233916997, # pub4 test
+                }, # special
+            }, # users
+        } # telegram_v3
         discord: dict = {
             'token': "",
         } # discord
@@ -429,6 +505,13 @@ f0123456789abcdef""",
             'api_base_url': "",
             'access_token': "",
         } # mastodon
+        xmpp: dict = {
+            'jid': "",
+            'password': "",
+        } # xmpp
+        loopback: dict = {
+            'enabled': False,
+        } # loopback
         ## Operator log sinks: route logging records to chat
         ## conversations on any active connector. Entries:
         ## {'platform': 'matrix', 'conversation_ref': '!room:server',

@@ -42,6 +42,9 @@ args: {sys.argv[1:]}""")
         elif (sys.argv[1] in ['connectors']):
             from .controllers._iacecil.connectors_runner import run_app
             run_app(*sys.argv)
+        elif (sys.argv[1] in ['connectors_v3']):
+            from .controllers._iacecil.connectors_v3_runner import run_app
+            run_app(*sys.argv)
         elif (sys.argv[1] in [
         'chatgpt',
         'furhat',
