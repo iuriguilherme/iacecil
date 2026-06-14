@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from .base import BaseConnector
@@ -141,7 +142,8 @@ class Connector(BaseConnector):
                 raise ConnectionError(f"Matrix sync failed: {response!r}")
             first_sync = self.next_batch is None
             self.next_batch = next_batch
-            self._save_token(next_batch)
+            ## File write is blocking; keep it off the event loop.
+            await asyncio.to_thread(self._save_token, next_batch)
             if first_sync:
                 ## Token acquisition only: dispatching the initial sync
                 ## would reply to every joined room's backlog.

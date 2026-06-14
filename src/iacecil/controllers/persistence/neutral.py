@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import time
@@ -7,11 +8,15 @@ import transaction
 import zc.zlibstorage
 import ZODB
 import ZODB.FileStorage
+from ZODB.POSException import ConflictError
 import persistent
 
 logger = logging.getLogger(__name__)
 
 zodb_path = 'instance/zodb'
+## Concurrent writers race on lazy root-structure init; messages.fs and
+## people.fs are shared across all chats, so retry the standard ZODB way.
+_MAX_COMMIT_RETRIES = 5
 _people_db = None
 _messages_db = None
 
@@ -29,6 +34,15 @@ async def get_people_db():
     if _people_db is None:
         db_path = f"{zodb_path}/people.fs"
         _people_db = _get_shared_db(db_path)
+        ## Pre-create roots once (on the single-threaded loop) so the
+        ## concurrent to_thread writers below never race to replace a
+        ## root attribute (unresolvable conflict).
+        with _people_db.transaction() as connection:
+            root = connection.root
+            if not hasattr(root, 'people'):
+                root.people = BTrees.OOBTree.OOBTree()
+            if not hasattr(root, 'mappings'):
+                root.mappings = BTrees.OOBTree.OOBTree()
     return _people_db
 
 async def get_messages_db():
@@ -36,7 +50,21 @@ async def get_messages_db():
     if _messages_db is None:
         db_path = f"{zodb_path}/messages.fs"
         _messages_db = _get_shared_db(db_path)
+        with _messages_db.transaction() as connection:
+            root = connection.root
+            if not hasattr(root, 'messages'):
+                root.messages = BTrees.OOBTree.OOBTree()
     return _messages_db
+
+def _commit_with_retry(fn, *args):
+    """Re-run a transaction function on ConflictError (concurrent writers
+    racing on shared ZODB roots). Runs inside asyncio.to_thread."""
+    for attempt in range(_MAX_COMMIT_RETRIES):
+        try:
+            return fn(*args)
+        except ConflictError:
+            if attempt == _MAX_COMMIT_RETRIES - 1:
+                raise
 
 class Person(persistent.Persistent):
     def __init__(self, person_id=None):
@@ -45,6 +73,11 @@ class Person(persistent.Persistent):
 
 async def resolve_person(platform: str, native_id: str) -> str:
     db = await get_people_db()
+    ## ZODB commit (fsync) is blocking; keep it off the event loop.
+    return await asyncio.to_thread(
+        _commit_with_retry, _resolve_person_sync, db, platform, native_id)
+
+def _resolve_person_sync(db, platform: str, native_id: str) -> str:
     with db.transaction() as connection:
         root = connection.root
         if not hasattr(root, 'people'):
@@ -66,6 +99,9 @@ async def resolve_person(platform: str, native_id: str) -> str:
 
 async def merge_persons(id1: str, id2: str) -> str:
     db = await get_people_db()
+    return await asyncio.to_thread(_merge_persons_sync, db, id1, id2)
+
+def _merge_persons_sync(db, id1: str, id2: str) -> str:
     with db.transaction() as connection:
         root = connection.root
         p1 = root.people.get(id1)
@@ -82,6 +118,10 @@ async def merge_persons(id1: str, id2: str) -> str:
 
 async def persist_envelope(envelope, direction: str = 'in'):
     db = await get_messages_db()
+    return await asyncio.to_thread(
+        _commit_with_retry, _persist_envelope_sync, db, envelope, direction)
+
+def _persist_envelope_sync(db, envelope, direction: str = 'in'):
     with db.transaction() as connection:
         root = connection.root
         if not hasattr(root, 'messages'):

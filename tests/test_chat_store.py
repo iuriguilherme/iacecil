@@ -68,6 +68,28 @@ async def test_records_without_native_ids_never_collide():
     assert len(await _records('mybot', env())) == 2
 
 
+@pytest.mark.asyncio
+async def test_concurrent_same_chat_writes_no_collision():
+    """store_message runs its body via asyncio.to_thread, so concurrent
+    writes to the same (new) chat reach _get_db from multiple worker
+    threads at once. The LRU lock must keep them from double-opening the
+    same .fs (FileStorage .lock collision), root pre-init avoids the
+    unresolvable root-attribute race, and conflict-retry lets the parallel
+    inserts all land in one file."""
+    import asyncio
+    results = await asyncio.gather(*[
+        store_message('mybot', env(text=f'm{i}', native_id=f'c{i}'))
+        for i in range(3)
+    ])
+    assert all(r is not None for r in results)
+    assert len(await _records('mybot', env())) == 3
+
+    chats_dir = os.path.dirname(
+        _chat_db_path('mybot', 'loopback', 'local_chat'))
+    fs_files = [f for f in os.listdir(chats_dir) if f.endswith('.fs')]
+    assert len(fs_files) == 1
+
+
 def test_traversal_components_stay_under_base():
     base = os.path.abspath(chat_store.zodb_path)
     path = _chat_db_path('mybot', '../../../etc', '../../escape')
