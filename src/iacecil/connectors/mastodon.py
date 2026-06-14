@@ -29,6 +29,9 @@ class Connector(BaseConnector):
     ## raise it, but 500 is the safe floor (cf. matrix's conservative
     ## MAX_TEXT pin).
     MAX_TEXT = 500
+    ## How often listen() wakes to check the streaming thread is alive
+    ## (overridable in tests).
+    POLL_INTERVAL = 1
 
     def __init__(self, manager, config):
         super().__init__(manager, config)
@@ -107,7 +110,16 @@ class Connector(BaseConnector):
         self._stream_handle = await asyncio.to_thread(
             self.client.stream_user, listener, run_async=True)
         while self.running:
-            await asyncio.sleep(1)
+            await asyncio.sleep(self.POLL_INTERVAL)
+            ## The stream runs on its own thread; if it dies silently
+            ## (network drop, instance down) this loop would otherwise spin
+            ## forever with the connector wrongly considered up. Surface it
+            ## so _run_connector marks the connector down.
+            handle = self._stream_handle
+            is_alive = getattr(handle, 'is_alive', None)
+            if is_alive is not None and not is_alive():
+                raise ConnectionError(
+                    "Mastodon streaming thread exited unexpectedly")
 
     async def send(self, envelope: Envelope):
         if not self.client:

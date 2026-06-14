@@ -122,6 +122,41 @@ async def test_send_threads_on_conversation_ref_when_no_reply_ref():
 
 
 @pytest.mark.asyncio
+async def test_listen_raises_when_stream_thread_dies():
+    """A dead streaming thread must mark the connector down, not spin
+    forever pretending to be connected."""
+    conn, _ = make_connector()
+    conn.POLL_INTERVAL = 0
+    handle = MagicMock()
+    handle.is_alive.return_value = False
+    conn.client = MagicMock()
+    conn.client.stream_user.return_value = handle
+    conn.running = True
+    with pytest.raises(ConnectionError):
+        await conn.listen()
+
+
+@pytest.mark.asyncio
+async def test_listen_exits_cleanly_while_thread_alive():
+    """While the stream thread is alive, listen() keeps running and exits
+    cleanly when disconnect flips running."""
+    conn, _ = make_connector()
+    conn.POLL_INTERVAL = 0
+    handle = MagicMock()
+
+    def alive():
+        conn.running = False  # simulate disconnect after one poll
+        return True
+
+    handle.is_alive.side_effect = alive
+    conn.client = MagicMock()
+    conn.client.stream_user.return_value = handle
+    conn.running = True
+    await conn.listen()  # no raise
+    assert handle.is_alive.called
+
+
+@pytest.mark.asyncio
 async def test_send_without_client_warns(caplog):
     import logging
     conn, _ = make_connector()
