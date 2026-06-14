@@ -35,6 +35,7 @@ from ...aiogram_bot.callbacks import (
     error_callback,
     message_callback,
 )
+from ...aiogram_bot.filters import IsReplyToIdFilter
 from .furhat_handlers import (
     furhat_contains_iterations,
     furhat_endswith_iterations,
@@ -173,7 +174,7 @@ async def add_handlers(dispatcher):
     try:
         ## Responde mensagens que são respostas a mensagens deste bot
         ## Reponde com patada
-        @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+        @dispatcher.message_handler(IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id))
         async def resposta_ignorante_callback(message):
             descriptions: list = ['resposta', 'ignorante',
                 dispatcher.config.personalidade, message.chat.type]
