@@ -12,13 +12,18 @@ async def load_plugin(connector_name: str, plugin: str, target) -> None:
         
         ## R14 preference order:
         ##   1. per-connector loader  add_handlers_<connector>
-        ##   2. telegram only: legacy aiogram add_handlers — the generic
+        ##   2. modern aiogram 3: add_handlers_v3
+        ##   3. telegram only: legacy aiogram add_handlers — the generic
         ##      add_envelope_handlers must NOT preempt it (strangler-fig
         ##      arbitration), so telegram is resolved before the generic tier.
-        ##   3. generic add_envelope_handlers (non-telegram connectors only)
+        ##   4. generic add_envelope_handlers (non-telegram connectors only)
         if hasattr(module, f'add_handlers_{connector_name}'):
             await getattr(module, f'add_handlers_{connector_name}')(target)
             logger.info(f"Activated plugin {plugin} for {connector_name} (per-connector)")
+        elif hasattr(module, 'add_handlers_v3') and hasattr(target, 'include_router'):
+            ## If target is a Router/Dispatcher, use modern entry point
+            await getattr(module, 'add_handlers_v3')(target)
+            logger.info(f"Activated plugin {plugin} for {connector_name} (modern V3)")
         elif connector_name == 'telegram':
             if hasattr(module, 'add_handlers'):
                 await getattr(module, 'add_handlers')(target)
@@ -75,8 +80,28 @@ class ConnectorManager:
     def _load_connectors(self):
         config_dict = self._config_as_dict()
 
+        ## Strangler Fig arbitration: if telegram_v3 is active, suppress legacy telegram
+        active_platforms = set()
         for name, conf in config_dict.items():
             if not isinstance(conf, dict):
+                continue
+            try:
+                module = import_module('.' + name, 'iacecil.connectors')
+                connector_class = getattr(module, 'Connector')
+                if issubclass(connector_class, BaseConnector):
+                    if connector_class.is_active(conf):
+                        active_platforms.add(name)
+            except (ModuleNotFoundError, AttributeError):
+                continue
+
+        suppress = set()
+        if 'telegram_v3' in active_platforms:
+            suppress.add('telegram')
+
+        for name, conf in config_dict.items():
+            if not isinstance(conf, dict) or name in suppress:
+                if name in suppress:
+                    logger.debug(f"Suppressing legacy connector {name} in favor of telegram_v3")
                 continue
             
             try:
@@ -160,7 +185,7 @@ class ConnectorManager:
 
         if envelope.platform == 'telegram':
             ## Legacy aiogram handlers own command replies on Telegram;
-            ## dispatching here too would answer every command twice (R6).
+            ## dispatching here too would answer every command twice.
             return
 
         text = envelope.text or ""
@@ -228,9 +253,6 @@ class ConnectorManager:
 
     async def run_all(self):
         await self._load_plugins()
-        tasks = []
-        for name, connector in self.connectors.items():
-            tasks.append(asyncio.create_task(self._run_connector(name, connector)))
         
         ## Drain runs forever; keep it separate so it can be cancelled once
         ## the connectors exit — gathering it inline would hang run_all.
@@ -238,12 +260,15 @@ class ConnectorManager:
         if self.log_handler is not None:
             drain_task = asyncio.create_task(self.log_handler.drain())
 
-        if not tasks:
+        if not self.connectors:
             return
         try:
             ## return_exceptions so one connector's failure cannot cancel
             ## its siblings (per-connector isolation, R2).
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(
+                *[self._run_connector(name, conn) for name, conn in self.connectors.items()],
+                return_exceptions=True
+            )
         finally:
             if drain_task is not None:
                 drain_task.cancel()
