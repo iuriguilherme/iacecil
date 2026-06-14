@@ -21,24 +21,26 @@ class FakeMessage:
         self.from_user = FakeUser()
         self.chat = FakeChat()
         self.reply_to_message = None
+        self.message_id = 789
 
 @pytest.mark.asyncio
 async def test_telegram_envelope_emission(monkeypatch):
-    # Mock Dispatcher.get_current()
-    dispatcher = MagicMock()
+    # message_callback resolves the manager from the aiogram v3 context helper
     manager = AsyncMock()
-    dispatcher.manager = manager
-    monkeypatch.setattr("aiogram.Dispatcher.get_current", lambda: dispatcher)
-    
-    # Mock furhat_logger and zodb_logger to avoid side effects
+    monkeypatch.setattr(
+        "iacecil.controllers.aiogram_v3.util.get_aiogram_context",
+        lambda: {'manager': manager},
+    )
+
+    # Mock zodb_logger to avoid side effects
     monkeypatch.setattr("iacecil.controllers.aiogram_bot.callbacks.zodb_logger", AsyncMock())
-    
+
     msg = FakeMessage("hello")
     await message_callback(msg)
-    
+
     manager.dispatch.assert_called_once()
     env = manager.dispatch.call_args[0][0]
-    
+
     assert env.platform == 'telegram'
     assert env.sender_ref == '123'
     assert env.conversation_ref == '456'
@@ -46,6 +48,8 @@ async def test_telegram_envelope_emission(monkeypatch):
     assert env.extra['first_name'] == 'First'
     assert env.extra['last_name'] == 'Last'
     assert env.raw == msg
+    ## U5: callbacks chokepoint threads the native message id
+    assert env.native_message_id == '789'
 
 @pytest.mark.asyncio
 async def test_connector_send():
