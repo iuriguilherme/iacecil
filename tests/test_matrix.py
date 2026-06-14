@@ -180,15 +180,66 @@ async def test_send_chunks_under_event_bound():
 
 
 @pytest.mark.asyncio
-async def test_sync_error_raises_for_manager():
-    """A sync response without next_batch marks the connector down via
-    the manager's failure handling."""
+async def test_sync_error_raises_after_max_failures():
+    """Repeated transient sync errors (no next_batch) eventually mark the
+    connector down — but only after SYNC_MAX_FAILURES retries, not on the
+    first blip."""
     conn, _ = make_connector()
+    conn.SYNC_BACKOFF_BASE = 0  # no real sleeping in the test
+    conn.SYNC_MAX_FAILURES = 3
+    attempts = 0
 
     async def failing_sync(timeout, since):
-        return SimpleNamespace(message='M_UNKNOWN_TOKEN')
+        nonlocal attempts
+        attempts += 1
+        return SimpleNamespace(message='boom')  # transient: no status_code
 
     conn.client = SimpleNamespace(sync=failing_sync)
     conn.running = True
     with pytest.raises(ConnectionError):
         await conn.listen()
+    assert attempts == 3  # retried, not raised on the first error
+
+
+@pytest.mark.asyncio
+async def test_permanent_sync_error_raises_immediately():
+    """A permanent error (e.g. unknown access token) cannot be retried
+    away — mark down at once without burning retries."""
+    conn, _ = make_connector()
+    conn.SYNC_BACKOFF_BASE = 0
+    attempts = 0
+
+    async def failing_sync(timeout, since):
+        nonlocal attempts
+        attempts += 1
+        return SimpleNamespace(status_code='M_UNKNOWN_TOKEN')
+
+    conn.client = SimpleNamespace(sync=failing_sync)
+    conn.running = True
+    with pytest.raises(ConnectionError):
+        await conn.listen()
+    assert attempts == 1  # no retry on a permanent error
+
+
+@pytest.mark.asyncio
+async def test_transient_sync_error_recovers():
+    """A transient sync error is retried; once sync succeeds the connector
+    keeps running and dispatches normally."""
+    conn, manager = make_connector()
+    conn.SYNC_BACKOFF_BASE = 0
+    conn.next_batch = 'have_token'  # not a first sync; dispatch immediately
+    responses = [
+        SimpleNamespace(message='temporary glitch'),  # transient error
+        sync_response('batch2', [message_event(body='hello')]),
+    ]
+
+    async def fake_sync(timeout, since):
+        r = responses.pop(0)
+        if not responses:
+            conn.running = False  # stop after the successful sync
+        return r
+
+    conn.client = SimpleNamespace(sync=fake_sync)
+    conn.running = True
+    await conn.listen()
+    assert manager.dispatch.await_count == 1

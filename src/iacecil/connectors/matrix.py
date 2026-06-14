@@ -14,6 +14,16 @@ class Connector(BaseConnector):
     ## envelope/JSON overhead.
     MAX_TEXT = 16000
 
+    ## Sync retry policy (overridable in tests). Transient sync errors
+    ## back off exponentially; the connector is only marked down after
+    ## SYNC_MAX_FAILURES consecutive failures, or immediately on a
+    ## permanent error that no retry can fix.
+    SYNC_BACKOFF_BASE = 2.0
+    SYNC_BACKOFF_CAP = 60.0
+    SYNC_MAX_FAILURES = 10
+    PERMANENT_SYNC_ERRORS = frozenset({
+        'M_UNKNOWN_TOKEN', 'M_MISSING_TOKEN', 'M_FORBIDDEN'})
+
     def __init__(self, manager, config):
         super().__init__(manager, config)
         self.client = None
@@ -134,12 +144,40 @@ class Connector(BaseConnector):
     async def listen(self):
         if not self.client:
             raise ValueError("Matrix client not initialized")
+        failures = 0
+        backoff = self.SYNC_BACKOFF_BASE
         while self.running:
-            response = await self.client.sync(timeout=30000,
-                since=self.next_batch)
+            try:
+                response = await self.client.sync(timeout=30000,
+                    since=self.next_batch)
+            except Exception as e:
+                response = None
+                exc = e
+            else:
+                exc = None
             next_batch = getattr(response, 'next_batch', None)
             if not next_batch:
-                raise ConnectionError(f"Matrix sync failed: {response!r}")
+                ## Error response (or raised exception). A permanent error
+                ## cannot be retried away — mark down at once. Otherwise
+                ## back off and retry; only give up after SYNC_MAX_FAILURES.
+                status = getattr(response, 'status_code', None)
+                if status in self.PERMANENT_SYNC_ERRORS:
+                    raise ConnectionError(
+                        f"Matrix sync permanent error {status}: {response!r}")
+                failures += 1
+                detail = exc if exc is not None else repr(response)
+                if failures >= self.SYNC_MAX_FAILURES:
+                    raise ConnectionError(
+                        f"Matrix sync failed {failures} times: {detail}")
+                logger.warning(
+                    f"Matrix sync error (attempt {failures}), retrying in"
+                    f" {backoff}s: {detail}")
+                await asyncio.sleep(backoff)
+                backoff = min(backoff * 2, self.SYNC_BACKOFF_CAP)
+                continue
+            ## Success: reset the retry state.
+            failures = 0
+            backoff = self.SYNC_BACKOFF_BASE
             first_sync = self.next_batch is None
             self.next_batch = next_batch
             ## File write is blocking; keep it off the event loop.
