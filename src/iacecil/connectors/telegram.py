@@ -45,15 +45,14 @@ class Connector(BaseConnector):
             return
 
         chat_id = envelope.conversation_ref
-        text = envelope.text or ""
 
         ## Telegram rejects messages over 4096 chars; chunk, replying
         ## only on the first chunk.
-        for i in range(0, len(text), self.MAX_TEXT):
+        for index, chunk in enumerate(self._chunks(envelope.text)):
             await self.bot.send_message(
                 chat_id=chat_id,
-                text=text[i:i + self.MAX_TEXT],
-                reply_to_message_id=envelope.reply_ref if i == 0 else None,
+                text=chunk,
+                reply_to_message_id=envelope.reply_ref if index == 0 else None,
             )
 
     async def disconnect(self):

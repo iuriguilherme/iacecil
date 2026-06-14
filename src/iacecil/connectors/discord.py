@@ -87,10 +87,9 @@ class Connector(BaseConnector):
         await self.client.start(self.config.get('token'))
 
     def _reference(self, channel, reply_ref):
-        try:
-            import discord
-        except ImportError:
-            return None
+        ## Reached only from send(), after connect() imported discord and
+        ## set self.client — the library is guaranteed available here.
+        import discord
         return discord.MessageReference(
             message_id=int(reply_ref),
             channel_id=channel.id,
@@ -112,16 +111,15 @@ class Connector(BaseConnector):
                     f"Discord fetch_channel timed out for {channel_id};"
                     " dropping reply.")
                 return
-        text = envelope.text or ""
-        for i in range(0, len(text), self.MAX_TEXT):
+        for index, chunk in enumerate(self._chunks(envelope.text)):
             kwargs = {}
-            if i == 0 and envelope.reply_ref:
+            if index == 0 and envelope.reply_ref:
                 reference = self._reference(channel, envelope.reply_ref)
                 if reference is not None:
                     kwargs['reference'] = reference
             try:
                 await asyncio.wait_for(
-                    channel.send(text[i:i + self.MAX_TEXT], **kwargs),
+                    channel.send(chunk, **kwargs),
                     self.SEND_TIMEOUT)
             except asyncio.TimeoutError:
                 logger.error(

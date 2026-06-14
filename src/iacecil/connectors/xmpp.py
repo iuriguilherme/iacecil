@@ -79,9 +79,7 @@ class Connector(BaseConnector):
         if not self.bot:
             return
 
-        text = envelope.text or ""
-        for i in range(0, len(text), self.MAX_TEXT):
-            chunk = text[i:i + self.MAX_TEXT]
+        for chunk in self._chunks(envelope.text):
             self.bot.send_message(mto=envelope.conversation_ref, mbody=chunk, mtype='chat')
 
     async def disconnect(self):

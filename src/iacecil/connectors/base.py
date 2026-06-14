@@ -25,6 +25,18 @@ class BaseConnector(ABC):
             return False
         return all(conf.get(key) for key in cls.required_keys)
 
+    def _chunks(self, text: str):
+        """Yield text in MAX_TEXT-sized pieces (one piece when MAX_TEXT is
+        falsy / no platform limit). Centralizes the chunking arithmetic
+        every connector's send() shares; each connector keeps its own
+        per-chunk delivery (reply refs, content envelopes, etc.)."""
+        text = text or ""
+        if not self.MAX_TEXT:
+            yield text
+            return
+        for i in range(0, len(text), self.MAX_TEXT):
+            yield text[i:i + self.MAX_TEXT]
+
     @abstractmethod
     async def connect(self):
         pass

@@ -242,13 +242,11 @@ class Connector(BaseConnector):
             ## dispatch path persist a dropped reply as delivered.
             logger.warning("Matrix send dropped: client not initialized.")
             return
-        text = envelope.text or ""
-        for i in range(0, len(text), self.MAX_TEXT):
+        for chunk in self._chunks(envelope.text):
             await self.client.room_send(
                 room_id=envelope.conversation_ref,
                 message_type="m.room.message",
-                content={"msgtype": "m.text",
-                    "body": text[i:i + self.MAX_TEXT]},
+                content={"msgtype": "m.text", "body": chunk},
             )
 
     async def disconnect(self):

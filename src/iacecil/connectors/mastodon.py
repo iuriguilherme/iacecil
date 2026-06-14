@@ -140,16 +140,15 @@ class Connector(BaseConnector):
         if not self.client:
             logger.warning("Mastodon send dropped: client not initialized.")
             return
-        text = envelope.text or ""
         ## Thread the answer onto the source status. Echo replies built by
         ## dispatch() carry no reply_ref, so fall back to conversation_ref
         ## (which, for mastodon, *is* the status id to reply to); without
         ## this the reply posts as an orphan top-level status.
         in_reply_to = envelope.reply_ref or envelope.conversation_ref
-        for i in range(0, len(text), self.MAX_TEXT):
+        for chunk in self._chunks(envelope.text):
             await asyncio.to_thread(
                 self.client.status_post,
-                text[i:i + self.MAX_TEXT],
+                chunk,
                 in_reply_to_id=in_reply_to,
             )
             ## Only the first chunk threads onto the original status; the
