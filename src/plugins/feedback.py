@@ -27,7 +27,7 @@ from aiogram import (
     Dispatcher,
     exceptions,
 )
-from aiogram.utils.markdown import escape_md
+from aiogram.utils.formatting import Text
 from typing import Union
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
@@ -149,9 +149,9 @@ lo feedback, vós sois muito gentil! Infelizmente ninguém vai ler porque\
  eu tive um problema técnico. Mas o erro que aconteceu enquanto eu tent\
 ava enviar feedback, vão ler! Desculpe por isto \U0001f61e""")
             else:
-                command = await message.reply(escape_md(u"""Obrigado pe\
+                command = await message.reply(Text(u"""Obrigado pe\
 la tentativa, mas se for pra mandar feedback tem que escrever alguma co\
-isa! Exemplo:\n""") + u"`{} Muito obrigado pelo bot!`".format(
+isa! Exemplo:\n""").as_markdown() + u"`{} Muito obrigado pelo bot!`".format(
                     message.get_command()), parse_mode = "MarkdownV2")
             await command_callback(command, ['feedback',
                 message.chat.type])
