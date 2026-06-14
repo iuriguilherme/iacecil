@@ -34,10 +34,9 @@ from aiogram import (
     Dispatcher,
     types,
 )
-from aiogram.utils.markdown import (
-    # ~ escape_md,
-    italic,
-    spoiler,
+from aiogram.utils.formatting import (
+    Italic,
+    Spoiler,
 )
 
 from iacecil.controllers.aiogram_bot.callbacks import (
@@ -45,6 +44,7 @@ from iacecil.controllers.aiogram_bot.callbacks import (
     error_callback,
     message_callback,
 )
+from iacecil.controllers.aiogram_bot.filters import IsReplyToIdFilter
 from iacecil.controllers.util import (
     dice_low,
 )
@@ -98,7 +98,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     ollama_model = ollama_model, prompt = ollama_prompt)
                 if len(think_buffer) > 0:
                     command = await message.reply(
-                        spoiler(italic(''.join(think_buffer))),
+                        Spoiler(Italic(''.join(think_buffer))).as_markdown(),
                         parse_mode = 'MarkdownV2')
                     await command_callback(command, descriptions)
                 command = await message.reply(''.join(answer_buffer))
@@ -111,7 +111,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                     e,
                     ['exception'] + descriptions,
                 )
-        @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+        @dispatcher.message_handler(IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id))
         async def resposta_deepseek_callback(message: types.Message) -> None:
             """Reply all replies to this bot"""
             descriptions: list[str] = ['resposta', 'deepseek',

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 import os
 import pyqrcode
-from aiogram.utils.markdown import pre
+from aiogram.utils.formatting import Pre
 from io import BytesIO
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
@@ -68,13 +68,13 @@ r qr code, avisei o pessoal do desenvolvimento...""")
                     if photo is not None:
                         photo.close()
             else:
-                command = await message.reply(pre(u"""\nO comando \
+                command = await message.reply(Pre(u"""\nO comando \
 {comando} serve pra gerar um qr code a partir de um texto. Digite "\
 {comando} texto" para usar (dê um espaço entre o comando e o texto). Po\
 r exemplo, para gerar o qr code de um rick roll:\n\n{comando} https://y\
 outube.com/watch?v=dQw4w9WgXcQ""".format(
                         comando = message.get_command(),
-                    )),
+                    )).as_markdown(),
                     parse_mode = "MarkdownV2",
                 )
             await command_callback(command, ['qr', message.chat.type])
