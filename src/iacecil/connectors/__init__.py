@@ -86,8 +86,20 @@ class ConnectorManager:
                     if connector_class.is_active(conf):
                         self.connectors[name] = connector_class(self, conf)
                         logger.info(f"Loaded connector {name}")
-            except (ModuleNotFoundError, AttributeError):
-                ## Not a connector section or module not found
+            except ModuleNotFoundError as e:
+                if e.name in (f'iacecil.connectors.{name}', name):
+                    ## No such connector module: this is just a normal
+                    ## (non-connector) config section — quiet skip.
+                    logger.debug(f"Skipping non-connector section {name}")
+                else:
+                    ## The connector module exists but a platform
+                    ## dependency is missing (e.g. matrix-nio); surface it
+                    ## instead of silently dropping the connector.
+                    logger.error(
+                        f"Failed to load connector {name}:"
+                        f" missing dependency {e.name!r}")
+            except AttributeError:
+                ## Module exists but has no Connector class: not a connector.
                 logger.debug(f"Skipping non-connector section {name}")
             except Exception as e:
                 logger.error(f"Failed to load connector {name}: {e}")
@@ -96,6 +108,15 @@ class ConnectorManager:
         self.command_registry[command] = handler
 
     def set_default_handler(self, handler):
+        if self.default_handler is not None:
+            ## Last-write-wins is silent otherwise: two plugins each
+            ## registering add_envelope_handlers would clobber one another
+            ## with no trace. Warn so the conflict is visible.
+            prev = getattr(self.default_handler, '__name__', self.default_handler)
+            new = getattr(handler, '__name__', handler)
+            logger.warning(
+                f"Default handler {prev!r} overwritten by {new!r}; only one"
+                " plugin's add_envelope_handlers can be the default handler.")
         self.default_handler = handler
 
     async def send(self, envelope):
@@ -119,13 +140,22 @@ class ConnectorManager:
         from iacecil.controllers.persistence.neutral import resolve_person, persist_envelope
         from iacecil.controllers.persistence.chat_store import store_message
         from dataclasses import replace
+        ## Independent persistence steps: a failure in one must not skip the
+        ## others (e.g. a chat-store error should not drop the neutral
+        ## record, and neither should block command dispatch below).
         try:
             person_id = await resolve_person(envelope.platform, envelope.sender_ref)
             envelope = replace(envelope, person_id=person_id)
+        except Exception as e:
+            logger.error(f"Failed to resolve person: {e}")
+        try:
             await persist_envelope(envelope, direction="in")
+        except Exception as e:
+            logger.error(f"Failed to persist neutral record: {e}")
+        try:
             await store_message(self.bot_id, envelope, direction="in")
         except Exception as e:
-            logger.error(f"Failed to persist envelope: {e}")
+            logger.error(f"Failed to store chat message: {e}")
 
 
         if envelope.platform == 'telegram':

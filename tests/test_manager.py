@@ -221,3 +221,52 @@ async def test_dispatch_skips_telegram_registry():
     start_handler.assert_not_called()
     default_handler.assert_not_called()
     manager.connectors['telegram'].send.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_set_default_handler_warns_on_overwrite(caplog):
+    """Two plugins registering add_envelope_handlers would silently clobber
+    each other; the second registration must warn."""
+    manager = ConnectorManager({'xmpp': {'jid': 'u@h', 'password': 'pw'}})
+    h1 = AsyncMock()
+    h1.__name__ = 'first'
+    h2 = AsyncMock()
+    h2.__name__ = 'second'
+    manager.set_default_handler(h1)
+    with caplog.at_level(logging.WARNING):
+        manager.set_default_handler(h2)
+    assert manager.default_handler is h2
+    assert any('overwritten' in r.getMessage() for r in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_missing_platform_dependency_logs_error(caplog, monkeypatch):
+    """A connector module present but missing its platform library (a
+    ModuleNotFoundError whose name is NOT the connector module itself) is
+    an error, not a silent debug skip."""
+    import iacecil.connectors as connectors_pkg
+    real_import = connectors_pkg.import_module
+
+    def fake_import(name, package=None):
+        if name == '.matrix' and package == 'iacecil.connectors':
+            raise ModuleNotFoundError("No module named 'nio'", name='nio')
+        return real_import(name, package)
+
+    monkeypatch.setattr(connectors_pkg, 'import_module', fake_import)
+    with caplog.at_level(logging.DEBUG):
+        manager = ConnectorManager(
+            {'matrix': {'homeserver': 'h', 'token': 't'}})
+    assert 'matrix' not in manager.connectors
+    assert "missing dependency 'nio'" in caplog.text
+    assert "Skipping non-connector section matrix" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_absent_connector_module_is_quiet_skip(caplog):
+    """A config section with no connector module at all is a quiet skip,
+    not an error."""
+    with caplog.at_level(logging.DEBUG):
+        manager = ConnectorManager({'totally_not_a_connector': {'k': 'v'}})
+    assert 'totally_not_a_connector' not in manager.connectors
+    assert not [r for r in caplog.records if r.levelname == 'ERROR'
+        and 'totally_not_a_connector' in r.getMessage()]

@@ -23,6 +23,9 @@ class Connector(BaseConnector):
     SYNC_MAX_FAILURES = 10
     PERMANENT_SYNC_ERRORS = frozenset({
         'M_UNKNOWN_TOKEN', 'M_MISSING_TOKEN', 'M_FORBIDDEN'})
+    ## A sync position the server no longer recognises (corrupt/expired
+    ## next_batch): not fatal — discard it and re-sync from scratch.
+    RECOVERABLE_SYNC_ERRORS = frozenset({'M_UNKNOWN_POS'})
 
     def __init__(self, manager, config):
         super().__init__(manager, config)
@@ -67,6 +70,15 @@ class Connector(BaseConnector):
                 " (not re-echoed; first sync never dispatches).")
             return None
         return token
+
+    def _discard_token(self) -> None:
+        """Remove a rejected sync token so the next boot syncs fresh."""
+        try:
+            os.remove(self._token_path())
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            logger.warning(f"Matrix could not discard sync token: {e}")
 
     def _save_token(self, token: str) -> None:
         path = self._token_path()
@@ -164,6 +176,18 @@ class Connector(BaseConnector):
                 if status in self.PERMANENT_SYNC_ERRORS:
                     raise ConnectionError(
                         f"Matrix sync permanent error {status}: {response!r}")
+                if status in self.RECOVERABLE_SYNC_ERRORS:
+                    ## Stale/corrupt sync position: drop it and re-sync from
+                    ## scratch instead of bricking on a token the server
+                    ## will reject forever. (first sync never dispatches.)
+                    logger.warning(
+                        f"Matrix sync position rejected ({status}); discarding"
+                        " token and re-syncing fresh.")
+                    self.next_batch = None
+                    await asyncio.to_thread(self._discard_token)
+                    failures = 0
+                    backoff = self.SYNC_BACKOFF_BASE
+                    continue
                 failures += 1
                 detail = exc if exc is not None else repr(response)
                 if failures >= self.SYNC_MAX_FAILURES:

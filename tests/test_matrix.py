@@ -173,6 +173,35 @@ async def test_token_saved_after_dispatch_on_normal_sync():
     assert saved == ['new']
 
 
+@pytest.mark.asyncio
+async def test_unknown_pos_discards_token_and_resyncs():
+    """A server-rejected sync position (M_UNKNOWN_POS) must self-heal:
+    discard the stale token and re-sync fresh, not brick forever."""
+    conn, manager = make_connector()
+    conn.SYNC_BACKOFF_BASE = 0
+    conn._save_token('stale')
+    conn.next_batch = 'stale'
+    responses = [
+        SimpleNamespace(status_code='M_UNKNOWN_POS'),
+        sync_response('fresh1', [message_event(body='hi')]),
+    ]
+
+    async def fake_sync(timeout, since):
+        r = responses.pop(0)
+        if not responses:
+            conn.running = False
+        return r
+
+    conn.client = SimpleNamespace(sync=fake_sync)
+    conn.running = True
+    await conn.listen()
+
+    ## Recovery sync is treated as a first sync: token persisted, no echo.
+    assert manager.dispatch.call_count == 0
+    with open(conn._token_path()) as f:
+        assert f.read() == 'fresh1'
+
+
 def test_corrupt_token_warns_and_fresh_syncs(caplog):
     conn, _ = make_connector()
     path = conn._token_path()
