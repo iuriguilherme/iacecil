@@ -66,7 +66,10 @@ def aiogram_startup(configs: list[BaseSettings], names: list) -> list:
                 ## TODO: config should be only in the dispatcher
                 config = configs[name],
             ))
-            dispatcher = Dispatcher(bot)
+            ## In aiogram 3, Dispatcher no longer takes a bot in the constructor
+            dispatcher = Dispatcher()
+            ## We store the bot in the dispatcher for our runner to use later
+            setattr(dispatcher, 'bot', bot)
             ## FIXME backwards compat
             setattr(dispatcher, 'name', name)
             setattr(dispatcher, 'config', configs[name])
@@ -133,53 +136,48 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
     await personalidades.add_handlers(dispatcher)
 
     ## Todas updates que não forem tratadas por handlers anteriores
-    dispatcher.register_message_handler(
+    dispatcher.message.register(
         any_message_callback,
-        # ~ content_types = types.message.ContentType.ANY,
     )
-    dispatcher.register_edited_message_handler(
+    dispatcher.edited_message.register(
         any_edited_message_callback,
-        content_types = types.message.ContentType.ANY,
     )
-    dispatcher.register_channel_post_handler(
+    dispatcher.channel_post.register(
         any_channel_post_callback,
-        content_types = types.message.ContentType.ANY,
     )
-    dispatcher.register_edited_channel_post_handler(
+    dispatcher.edited_channel_post.register(
         any_edited_channel_post_callback,
-        content_types = types.message.ContentType.ANY,
     )
     # ~ dispatcher.register_inline_handler(
-        # ~ any_inline_handler_callback,
+    # ~     any_inline_handler_callback,
     # ~ )
     # ~ dispatcher.register_chosen_inline_handler(
-        # ~ any_chosen_inline_handler_callback,
+    # ~     any_chosen_inline_handler_callback,
     # ~ )
     # ~ dispatcher.register_callback_query_handler(
-        # ~ any_callback_query_handler_callback,
+    # ~     any_callback_query_handler_callback,
     # ~ )
     # ~ dispatcher.register_shipping_query_handler(
-        # ~ any_shipping_query_handler_callback,
+    # ~     any_shipping_query_handler_callback,
     # ~ )
     # ~ dispatcher.register_pre_checkout_query_handler(
-        # ~ any_pre_checkout_query_handler_callback,
+    # ~     any_pre_checkout_query_handler_callback,
     # ~ )
     # ~ dispatcher.register_poll_handler(
-        # ~ any_poll_callback,
+    # ~     any_poll_callback,
     # ~ )
     # ~ dispatcher.register_poll_answer_handler(
-        # ~ any_poll_answer_callback,
+    # ~     any_poll_answer_callback,
     # ~ )
     # ~ dispatcher.register_my_chat_member_handler(
-        # ~ any_my_chat_member_callback,
+    # ~     any_my_chat_member_callback,
     # ~ )
     # ~ dispatcher.register_chat_member_handler(
-        # ~ any_chat_member_callback,
+    # ~     any_chat_member_callback,
     # ~ )
     # ~ dispatcher.register_chat_join_request_handler(
-        # ~ any_chat_join_request_callback,
+    # ~     any_chat_join_request_callback,
     # ~ )
-    dispatcher.register_errors_handler(
+    dispatcher.errors.register(
         any_error_callback,
-        exception = Exception,
     )

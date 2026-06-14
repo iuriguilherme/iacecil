@@ -19,7 +19,8 @@ class Connector(BaseConnector):
             from ..controllers.aiogram_bot.bot import IACecilBot
             from aiogram import Dispatcher
             self.bot = IACecilBot(token=self.config.get('token'), config=self.manager.bot_config)
-            self.dispatcher = Dispatcher(self.bot)
+            ## In aiogram 3, Dispatcher no longer takes a bot in the constructor
+            self.dispatcher = Dispatcher()
             self.dispatcher.manager = self.manager
         self.running = True
 
@@ -27,14 +28,15 @@ class Connector(BaseConnector):
         if not self.dispatcher:
             raise ValueError("Dispatcher not initialized")
 
+        ## aiogram 3 requires explicit webhook deletion to mimic reset_webhook=True
+        await self.bot.delete_webhook(drop_pending_updates=True)
+
         ## start_polling blocks until stop_polling is called or polling
         ## fails; a failure propagates so the manager marks this
         ## connector down.
         await self.dispatcher.start_polling(
-            reset_webhook=True,
-            timeout=20,
-            relax=0.1,
-            fast=True,
+            self.bot,
+            polling_timeout=20,
             allowed_updates=None,
         )
 
@@ -57,4 +59,5 @@ class Connector(BaseConnector):
     async def disconnect(self):
         self.running = False
         if self.dispatcher:
-            self.dispatcher.stop_polling()
+            ## In aiogram 3, stop_polling is an asynchronous method
+            await self.dispatcher.stop_polling()

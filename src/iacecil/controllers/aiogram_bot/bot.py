@@ -31,6 +31,16 @@ from aiogram import (
     exceptions,
     types,
 )
+## In aiogram 3, exceptions are under aiogram.exceptions
+from aiogram.exceptions import (
+    TelegramForbiddenError,
+    TelegramBadRequest,
+    TelegramConflictError,
+    TelegramEntityTooLarge,
+    TelegramRetryAfter,
+    TelegramAPIError,
+    TelegramNotFound,
+)
 from aiogram.utils import markdown
 from .callbacks import (
     error_callback,
@@ -64,9 +74,9 @@ class IACecilBot(Bot):
         try:
             self.command = await super_function(*args, **kwargs)
             return self.command
-        except exceptions.RetryAfter as exception:
+        except TelegramRetryAfter as exception:
             logger.exception(exception)
-            seconds: int = exception.timeout
+            seconds: int = exception.retry_after
             logger.debug(f"Flood control: waiting {seconds} seconds...")
             await asyncio.sleep(float(seconds) + 1e-15)
             return await self.exception_handler(
@@ -76,110 +86,133 @@ class IACecilBot(Bot):
                 *args,
                 **kwargs,
             )
-        except exceptions.BotKicked as exception:
+        except TelegramForbiddenError as exception:
             logger.exception(exception)
-            if kwargs['chat_id'] in [
-                self.config.telegram['users']['special']['debug'],
-                self.config.telegram['users']['special']['info']
-            ]:
-                ## A kick from a logger group only breaks that log sink;
-                ## the connector keeps serving every other chat.
-                logger.error("""Bot was kicked from a logger group; \
+            ## In v2, BotKicked, BotBlocked, and UserDeactivated were separate.
+            ## We use message matching to preserve the specific callbacks.
+            if "kicked" in exception.message.lower():
+                if kwargs['chat_id'] in [
+                    self.config.telegram['users']['special']['debug'],
+                    self.config.telegram['users']['special']['info']
+                ]:
+                    ## A kick from a logger group only breaks that log sink;
+                    ## the connector keeps serving every other chat.
+                    logger.error("""Bot was kicked from a logger group; \
 that log sink is unavailable but the connector keeps serving.""")
-            # ~ else:
-                # ~ try:
-                    # ~ await error_callback(
-                        # ~ u"Probably kicked from this group",
-                        # ~ str(self.command),
-                        # ~ exception,
-                        # ~ [function_name, 'BotKicked', 'exception'],
-                    # ~ )
-                # ~ except Exception as e1:
-                    # ~ try:
-                        # ~ await exception_callback(
-                            # ~ e1,
-                            # ~ [function_name, 'BotKicked'],
-                        # ~ )
-                    # ~ except Exception as e2:
-                        # ~ logger.warning(repr(e2))
-        except exceptions.BotBlocked as exception:
-            logger.exception(exception)
-            # ~ try:
-                # ~ await error_callback(
-                    # ~ u"Probably blocked by this user",
-                    # ~ self.command,
-                    # ~ exception,
-                    # ~ [function_name, 'BotBlocked', 'exception'],
-                # ~ )
-            # ~ except Exception as e1:
-                # ~ try:
-                    # ~ await exception_callback(
-                        # ~ e1,
-                        # ~ [function_name, 'BotBlocked'],
-                    # ~ )
-                # ~ except Exception as e2:
-                    # ~ logger.warning(repr(e2))
-        except exceptions.ChatNotFound as exception:
-            logger.exception(exception)
-            try:
-                exception_list = [
-                    self.config.telegram['users']['special'][
-                        'debug'],
-                    self.config.telegram['users']['special'][
-                        'feedback'],
-                    self.config.telegram['users']['special']['info'],
-                ]
-                if kwargs['chat_id'] not in exception_list:
+                else:
                     try:
                         await error_callback(
-                            u"Probably group pressed the red button",
-                            self.command,
+                            u"Probably kicked from this group",
+                            str(self.command),
                             exception,
-                            [function_name, 'ChatNotFound', 'exception'],
+                            [function_name, 'BotKicked', 'exception'],
                         )
                     except Exception as e1:
                         try:
                             await exception_callback(
                                 e1,
-                                [function_name, 'ChatNotFound'],
+                                [function_name, 'BotKicked'],
                             )
                         except Exception as e2:
-                            logger.critical(repr(e2))
-                else:
-                    logger.warning(u"""Bot is not in the logging groups\
-, add them already.""")
-            except Exception as e3:
-                logger.exception(e3)
-        except exceptions.UserDeactivated as exception:
-            logger.exception(exception)
-            try:
-                await error_callback(
-                    u"Probably the user pressed the red button",
-                    self.command,
-                    exception,
-                    [function_name, 'UserDeactivated', 'exception'],
-                )
-            except Exception as e1:
+                            logger.warning(repr(e2))
+            elif "blocked" in exception.message.lower():
                 try:
-                    await exception_callback(
-                        e1,
-                        [function_name, 'UserDeactivated'],
+                    await error_callback(
+                        u"Probably blocked by this user",
+                        self.command,
+                        exception,
+                        [function_name, 'BotBlocked', 'exception'],
                     )
-                except Exception as e2:
-                    logger.warning(repr(e2))
-        except exceptions.TerminatedByOtherGetUpdates as exception:
+                except Exception as e1:
+                    try:
+                        await exception_callback(
+                            e1,
+                            [function_name, 'BotBlocked'],
+                        )
+                    except Exception as e2:
+                        logger.warning(repr(e2))
+            elif "deactivated" in exception.message.lower():
+                try:
+                    await error_callback(
+                        u"Probably the user pressed the red button",
+                        self.command,
+                        exception,
+                        [function_name, 'UserDeactivated', 'exception'],
+                    )
+                except Exception as e1:
+                    try:
+                        await exception_callback(
+                            e1,
+                            [function_name, 'UserDeactivated'],
+                        )
+                    except Exception as e2:
+                        logger.warning(repr(e2))
+        except TelegramNotFound as exception:
+            logger.exception(exception)
+            ## In v2, ChatNotFound and MessageToReplyNotFound were caught here.
+            if "replied message not found" in exception.message.lower():
+                logger.warning(
+                    u"Attempting to resend message without reply",
+                )
+                kwargs['allow_sending_without_reply'] = True
+                self.command = await function(*args, **kwargs)
+                return self.command
+            else:
+                try:
+                    exception_list = [
+                        self.config.telegram['users']['special'][
+                            'debug'],
+                        self.config.telegram['users']['special'][
+                            'feedback'],
+                        self.config.telegram['users']['special']['info'],
+                    ]
+                    if kwargs['chat_id'] not in exception_list:
+                        try:
+                            await error_callback(
+                                u"Probably group pressed the red button",
+                                self.command,
+                                exception,
+                                [function_name, 'ChatNotFound', 'exception'],
+                            )
+                        except Exception as e1:
+                            try:
+                                await exception_callback(
+                                    e1,
+                                    [function_name, 'ChatNotFound'],
+                                )
+                            except Exception as e2:
+                                logger.critical(repr(e2))
+                    else:
+                        logger.warning(u"""Bot is not in the logging groups\
+, add them already.""")
+                except Exception as e3:
+                    logger.exception(e3)
+        except TelegramConflictError as exception:
             logger.exception(exception)
             logger.critical(u"""Trying to login with the same token el\
 sewhere!\n{}""".format(repr(exception)))
-        except exceptions.MessageToReplyNotFound as exception:
+        except TelegramEntityTooLarge as exception:
             logger.exception(exception)
-            logger.warning(
-                u"Attempting to resend message without reply",
-            )
-            kwargs['allow_sending_without_reply'] = True
-            self.command = await function(*args, **kwargs)
+            logger.debug("Message is too long, stripping...")
+            limit = 2048 # Telegram limit is 4096
+            text = kwargs.get('text', u"empty")
+            if len(text) >= limit:
+                chunks = [text[i:i+limit] for i in range(
+                    0, len(text), limit)
+                ]
+                for count, chunk in enumerate(chunks, start = 1):
+                    chunk = chunk.translate(
+                        str.maketrans('', '', '\\`')
+                    )
+                    kwargs['text'] = u"#thread ({}/{}):\n\n".format(
+                        count, 
+                        len(chunks),
+                    ) + chunk
+                    kwargs['parse_mode'] = 'None'
+                    await function(*args, **kwargs)
+            self.command['text'] = u"empty"
             return self.command
-        except exceptions.TelegramAPIError as exception:
+        except TelegramAPIError as exception:
             logger.exception(exception)
             descriptions = {
                 'too_long': "MessageIsTooLong('Message is too long')",
@@ -202,30 +235,6 @@ eactivated')""",
                 reason = u"Trying to send empty message"
             elif repr(exception) == descriptions['too_long']:
                 reason = u"Message is too long"
-                limit = 2048 # Telegram limit is 4096
-                text = kwargs.get('text', u"empty")
-                if len(text) >= limit:
-                    logger.debug("Message is too long, stripping...")
-                    chunks = [text[i:i+limit] for i in range(
-                        0, len(text), limit)
-                    ]
-                    for count, chunk in enumerate(chunks, start = 1):
-                        chunk = chunk.translate(
-                            str.maketrans('', '', '\\`')
-                        )
-                        # ~ kwargs['text'] = markdown.escape_md(
-                            # ~ u"#thread ({}/{}):\n\n".format(count, 
-                            # ~ len(chunks))
-                        # ~ ) + markdown.pre(chunk)
-                        # ~ kwargs['parse_mode'] = 'MarkdownV2'
-                        kwargs['text'] = u"#thread ({}/{}):\n\n".format(
-                            count, 
-                            len(chunks),
-                        ) + chunk
-                        kwargs['parse_mode'] = 'None'
-                        await function(*args, **kwargs)
-                self.command['text'] = u"empty"
-                return self.command
             if reason is not None:
                 logger.debug(u"{}:\n{}\n".format(reason, str(
                     self.command)))
@@ -252,13 +261,6 @@ eactivated')""",
 {str(args)}, kwargs = {str(kwargs)}""")
         except Exception as e:
             logger.exception(e)
-            # ~ try:
-                # ~ await exception_callback(
-                    # ~ exception,
-                    # ~ [function_name, 'NotTelegram'],
-                # ~ )
-            # ~ except Exception as e:
-                # ~ logger.exception(e)
         return self.command
     
     async def send_photo(self, *args, **kwargs):

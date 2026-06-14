@@ -155,35 +155,32 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         ## (pt-BR: áudio de zap)
         triggers: list[str] = ['fala', 'speak', 'say', 'diz']
         ## Natural language trigger
-        dispatcher.register_message_handler(
+        dispatcher.message.register(
             fala_nl_wrapper,
-            filters.Text(startswith = triggers, ignore_case = True),
-            IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id),
-            content_types = types.ContentTypes.TEXT,
+            F.text.lower().startswith(tuple([t.lower() for t in triggers])),
+            F.reply_to_message.from_user.id == dispatcher.bot.id,
         )
         ## Uses the text from a replied message with /fala
-        dispatcher.register_message_handler(
+        dispatcher.message.register(
             fala_reply_wrapper,
             F.reply_to_message,
-            commands = triggers,
-            content_types = types.ContentTypes.TEXT,
+            filters.Command(triggers),
         )
         ## Uses provided text in arguments or croak
-        dispatcher.register_message_handler(
+        dispatcher.message.register(
             fala_wrapper,
-            commands = triggers,
-            content_types = types.ContentTypes.TEXT,
+            filters.Command(triggers),
         )
         ## SSML
-        dispatcher.register_message_handler(
+        dispatcher.message.register(
             ssml_text_callback,
-            filters.Text(startswith = triggers, ignore_case = True),
-            content_types = types.ContentTypes.DOCUMENT,
+            F.text.lower().startswith(tuple([t.lower() for t in triggers])),
+            F.document,
         )
-        dispatcher.register_message_handler(
+        dispatcher.message.register(
             ssml_command_callback,
             filters.Command(triggers, ignore_caption = False),
-            content_types = types.ContentTypes.DOCUMENT,
+            F.document,
         )
     except Exception as e:
         logger.exception(e)
