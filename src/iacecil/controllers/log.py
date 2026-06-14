@@ -31,9 +31,9 @@ from aiogram import (
     Dispatcher,
     types,
 )
-from aiogram.utils.markdown import (
-    escape_md,
-    pre,
+from aiogram.utils.formatting import (
+    Text,
+    Pre,
 )
 from quart import current_app
 from typing import Union
@@ -121,7 +121,7 @@ async def debug_logger(
         url = message.link('link', as_html = False)
     text: list = list()
     text.append(" ".join([" ".join(
-        [escape_md("#" + d) for d in descriptions]),
+        [Text("#" + d).as_markdown() for d in descriptions]),
         url,
     ]))
     text.append('')
@@ -135,14 +135,14 @@ async def debug_logger(
                     str.maketrans('', '', '\\')
                 )
                 message['text']: str = original_text
-            text.append(pre(json.dumps(message.to_python(), indent = 2,
-                ensure_ascii = False))
+            text.append(Pre(json.dumps(message.to_python(), indent = 2,
+                ensure_ascii = False), language="").as_markdown()
             )
         except AttributeError as e:
             message = str(message).translate(
                 str.maketrans('', '', '\\'))
-            text.append(pre(json.dumps(message, indent = 2,
-                ensure_ascii = False)))
+            text.append(Pre(json.dumps(message, indent = 2,
+                ensure_ascii = False), language="").as_markdown())
             logger.exception(e)
         except Exception as e:
             logger.exception(e)
@@ -150,12 +150,12 @@ async def debug_logger(
     if exception is not None:
         tb: Union[object, None] = \
             traceback.TracebackException.from_exception(exception)
-        text.append(pre(json.dumps(repr(exception), indent = 2,
-            ensure_ascii = False)))
+        text.append(Pre(json.dumps(repr(exception), indent = 2,
+            ensure_ascii = False), language="").as_markdown())
         text.append('')
-        text.append(pre(json.dumps(str(tb), indent = 2, ensure_ascii = False)))
+        text.append(Pre(json.dumps(str(tb), indent = 2, ensure_ascii = False), language="").as_markdown())
         text.append('')
-    text.append(escape_md(error))
+    text.append(Text(error).as_markdown())
     try:
         await bot.send_message(
             chat_id = dispatcher.config.telegram.get('users').get(
@@ -180,13 +180,13 @@ async def exception_logger(
         bot: Bot = dispatcher.bot
         tb: object = traceback.TracebackException.from_exception(exception)
         text = list()
-        text.append(" ".join([" ".join([escape_md("#" + d) for d in \
+        text.append(" ".join([" ".join([Text("#" + d).as_markdown() for d in \
             descriptions])]))
         text.append('')
-        text.append(pre(json.dumps(repr(exception), indent = 2,
-            ensure_ascii = False)))
+        text.append(Pre(json.dumps(repr(exception), indent = 2,
+            ensure_ascii = False), language="").as_markdown())
         text.append('')
-        text.append(pre(json.dumps(str(tb), indent = 2, ensure_ascii = False)))
+        text.append(Pre(json.dumps(str(tb), indent = 2, ensure_ascii = False), language="").as_markdown())
         await bot.send_message(
             chat_id = dispatcher.config.telegram.get('users').get('special'
                 ).get('debug'),
@@ -213,22 +213,22 @@ async def info_logger(
         url = update.link('link', as_html = False)
     text = list()
     text.append(" ".join([
-        " ".join([escape_md("#" + d) for d in descriptions]),
+        " ".join([Text("#" + d).as_markdown() for d in descriptions]),
         url,
     ]))
     text.append('')
     if update is not None:
         if not isinstance(update, str):
             try:
-                text.append(pre(json.dumps(update.to_python(), indent = 2,
-                    ensure_ascii = False)))
+                text.append(Pre(json.dumps(update.to_python(), indent = 2,
+                    ensure_ascii = False), language="").as_markdown())
             except AttributeError as e:
-                text.append(pre(json.dumps(update, indent = 2,
-                    ensure_ascii = False)))
+                text.append(Pre(json.dumps(update, indent = 2,
+                    ensure_ascii = False), language="").as_markdown())
                 logger.exception(e)
         else:
-            text.append(pre(json.dumps(update, indent = 2,
-                ensure_ascii = False)))
+            text.append(Pre(json.dumps(update, indent = 2,
+                ensure_ascii = False), language="").as_markdown())
     try:
         ## TelegramTextoTecidoTabelas
         #await tecido_logger(getattr(update, 'text', ''))
