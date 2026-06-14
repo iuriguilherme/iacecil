@@ -270,3 +270,22 @@ async def test_absent_connector_module_is_quiet_skip(caplog):
     assert 'totally_not_a_connector' not in manager.connectors
     assert not [r for r in caplog.records if r.levelname == 'ERROR'
         and 'totally_not_a_connector' in r.getMessage()]
+
+
+@pytest.mark.asyncio
+async def test_telegram_v3_suppresses_legacy_telegram():
+    """When both telegram and telegram_v3 are active, the legacy telegram
+    connector is dropped in favor of telegram_v3 (strangler-fig)."""
+    manager = ConnectorManager({
+        'telegram': {'token': '123:abc'},
+        'telegram_v3': {'token': '123:abc'},
+    })
+    assert 'telegram_v3' in manager.connectors
+    assert 'telegram' not in manager.connectors
+
+
+@pytest.mark.asyncio
+async def test_legacy_telegram_kept_without_v3():
+    """Without telegram_v3, the legacy telegram connector loads normally."""
+    manager = ConnectorManager({'telegram': {'token': '123:abc'}})
+    assert 'telegram' in manager.connectors

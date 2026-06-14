@@ -80,30 +80,9 @@ class ConnectorManager:
     def _load_connectors(self):
         config_dict = self._config_as_dict()
 
-        ## Strangler Fig arbitration: if telegram_v3 is active, suppress legacy telegram
-        active_platforms = set()
         for name, conf in config_dict.items():
             if not isinstance(conf, dict):
                 continue
-            try:
-                module = import_module('.' + name, 'iacecil.connectors')
-                connector_class = getattr(module, 'Connector')
-                if issubclass(connector_class, BaseConnector):
-                    if connector_class.is_active(conf):
-                        active_platforms.add(name)
-            except (ModuleNotFoundError, AttributeError):
-                continue
-
-        suppress = set()
-        if 'telegram_v3' in active_platforms:
-            suppress.add('telegram')
-
-        for name, conf in config_dict.items():
-            if not isinstance(conf, dict) or name in suppress:
-                if name in suppress:
-                    logger.debug(f"Suppressing legacy connector {name} in favor of telegram_v3")
-                continue
-            
             try:
                 module = import_module('.' + name, 'iacecil.connectors')
                 connector_class = getattr(module, 'Connector')
@@ -127,7 +106,19 @@ class ConnectorManager:
                 ## Module exists but has no Connector class: not a connector.
                 logger.debug(f"Skipping non-connector section {name}")
             except Exception as e:
+                ## Any other import-time failure (e.g. a plain ImportError
+                ## from a connector's dependency): log, don't crash the
+                ## whole manager — siblings must still load.
                 logger.error(f"Failed to load connector {name}: {e}")
+
+        ## Strangler-fig arbitration: a live telegram_v3 connector
+        ## supersedes the legacy aiogram-2 telegram connector. Apply this
+        ## after loading (connector __init__ is side-effect-free) instead
+        ## of importing every module twice in a pre-scan pass.
+        if 'telegram_v3' in self.connectors and 'telegram' in self.connectors:
+            logger.debug(
+                "Suppressing legacy telegram connector in favor of telegram_v3")
+            del self.connectors['telegram']
                 
     def register_command(self, command: str, handler):
         self.command_registry[command] = handler
