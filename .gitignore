@@ -157,4 +157,5 @@ config.py
 *.local.md
 !.geminiignore
 *.lock
+!.gemini/skills
 
