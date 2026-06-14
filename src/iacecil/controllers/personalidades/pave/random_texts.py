@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 import random
 
 from aiogram import types
-from aiogram.utils.markdown import escape_md
+from aiogram.utils.formatting import Text
 
 def adjetivos():
     return set([
@@ -126,55 +126,55 @@ def respostas_quanto():
 def versiculos_md():
     return random.choice([
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Teus seios são como dois filhotes de cervo, como cr\
-ias gêmeas de uma gazela vigorosa e que repousam entre os lírios."""),
-            livro = escape_md(u"Cânticos 4:5"),
+            verso = Text(u"""Teus seios são como dois filhotes de cervo, como cr\
+ias gêmeas de uma gazela vigorosa e que repousam entre os lírios.""").as_markdown(),
+            livro = Text(u"Cânticos 4:5").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Ó amor, como são formosos os teus pés calçados com \
+            verso = Text(u"""Ó amor, como são formosos os teus pés calçados com \
 delicadas sandálias, ó filha do príncipe! As curvas das suas coxas são verdadei\
-ras pérolas; obras das mãos do mais excelente artífice."""),
-            livro = escape_md(u"Cânticos 7:1"),
+ras pérolas; obras das mãos do mais excelente artífice.""").as_markdown(),
+            livro = Text(u"Cânticos 7:1").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Teus seios são como dois filhotes gêmeos de gazela.\
-"""),
-            livro = escape_md(u"Cânticos 7:3"),
+            verso = Text(u"""Teus seios são como dois filhotes gêmeos de gazela.\
+""").as_markdown(),
+            livro = Text(u"Cânticos 7:3").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Como és linda! Quão formosa de se admirar és tu, qu\
+            verso = Text(u"""Como és linda! Quão formosa de se admirar és tu, qu\
 e amor delicioso!\nTens o porte da palmeira, e os teus seios como cachos do fru\
 to mais saboroso.\nEntão pensei: “Subirei essa palmeira e colherei os seus frut\
 os. Sejam os teus seios como os mais generosos cachos da videira, o aroma da tu\
 a respiração como o perfume dos melhores damascos, e a tua boca como o vinho ma\
-is puro e delicioso..."""),
-            livro = escape_md(u"Cânticos 7:6-9"),
+is puro e delicioso...""").as_markdown(),
+            livro = Text(u"Cânticos 7:6-9").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Ah! Que bom seria se fosses meu irmão, meu igual, a\
+            verso = Text(u"""Ah! Que bom seria se fosses meu irmão, meu igual, a\
 mamentado aos seios de minha mãe! Então, quando eu te encontrasse fora de casa,\
  eu poderia te beijar à vontade e ninguém se desconcertaria.\nEu te conduziria \
 e te traria à casa de minha mãe e tu me iniciarias. Eu te daria a beber vinho a\
-romatizado, o néctar das minhas romãs."""),
-            livro = escape_md(u"Cânticos 8:1-2"),
+romatizado, o néctar das minhas romãs.""").as_markdown(),
+            livro = Text(u"Cânticos 8:1-2").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""E a Palavra do SENHOR veio a mim de novo, dizendo: \
+            verso = Text(u"""E a Palavra do SENHOR veio a mim de novo, dizendo: \
 "Ó querido filho do homem; eis que havia duas mulheres, filhas da mesma mãe. E \
 aconteceu que elas se prostituíram no Egito, desde muito jovens se envolveram c\
 om todo tipo de perversão. Naquelas terras viram seus corpos serem tocados lasc\
-ivamente; seus seios foram afagados e desvirginados."""),
-            livro = escape_md(u"Ezequiel 23:1-3"),
+ivamente; seus seios foram afagados e desvirginados.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:1-3").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Oolá se entregou à prostituição enquanto era minha;\
+            verso = Text(u"""Oolá se entregou à prostituição enquanto era minha;\
  ela se encheu de cobiça e lascívia por seus vizinhos e amantes da Assíria:\ngu\
 erreiros vestidos de vermelho, governadores e comandantes, todos eles cavaleiro\
-s jovens e elegantes."""),
-            livro = escape_md(u"Ezequiel 23:5-6"),
+s jovens e elegantes.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:5-6").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Ela decidiu não abandonar a sua vida promíscua e li\
+            verso = Text(u"""Ela decidiu não abandonar a sua vida promíscua e li\
 bertina iniciada no Egito; desde a primeira juventude conheceu muitos homens e \
 deitou-se com todos que a seduziram; estes acariciaram seus seios virgens e a e\
 nvolveram em suas práticas idólatras, corruptas e devassas.\nPor este motivo Eu\
@@ -182,20 +182,20 @@ nvolveram em suas práticas idólatras, corruptas e devassas.\nPor este motivo E
 esejou ter prazer com tanto ardor e paixão.\nEntão, eles lhe arrancaram as roup\
 as, deixando-a nua; sequestraram seus filhos e suas filhas e, no fim, a mataram\
  ao fio da espada. O que lhe restou foi apenas má fama entre todas as mulheres \
-da terra; e um castigo severo lhe foi imposto."""),
-            livro = escape_md(u"Ezequiel 23:8-10"),
+da terra; e um castigo severo lhe foi imposto.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:8-10").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Ora, sua irmã Oolibá viu tudo isso, mas mesmo assim\
+            verso = Text(u"""Ora, sua irmã Oolibá viu tudo isso, mas mesmo assim\
 , também se deixou seduzir em sua paixão lasciva e cobiçosa; entregando-se dese\
 nfreadamente à prostituição, foi ainda mais pervertida que sua irmã.\nDo mesmo \
 modo que sua irmã, também desejou ardentemente os afagos dos assírios; dos gove\
 rnadores e magistrados, seus vizinhos e guerreiros vestidos em uniformes milita\
-res que a impressionavam; todos eles jovens e elegantes cavaleiros."""),
-            livro = escape_md(u"Ezequiel 23:11-12"),
+res que a impressionavam; todos eles jovens e elegantes cavaleiros.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:11-12").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Contudo, Oolibá afundou ainda mais em sua vida ímpi\
+            verso = Text(u"""Contudo, Oolibá afundou ainda mais em sua vida ímpi\
 a e libertina. Contemplou figuras de homens desenhados nas paredes, figuras de \
 caldeus em vermelho forte, usando cinturões e esvoaçantes turbantes na cabeça; \
 todos lhe pareciam príncipes, semelhantes aos oficiais responsáveis pelos carro\
@@ -213,11 +213,11 @@ a de prostituição no Egito.\nOolibá se apaixonou loucamente por homens volupt
 sos, cujos membros sexuais eram semelhantes aos de jumentos, e cuja ejaculação \
 era como a de cavalos.\nAssim desejaste reviver toda a luxúria da tua mocidade,\
  quando os egípcios apalpavam os teus seios e acariciavam todo o teu corpo para\
- desvirginá-la."""),
-            livro = escape_md(u"Ezequiel 23:14-21"),
+ desvirginá-la.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:14-21").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Ela decidiu não abandonar a sua vida promíscua e li\
+            verso = Text(u"""Ela decidiu não abandonar a sua vida promíscua e li\
 bertina iniciada no Egito; desde a primeira juventude conheceu muitos homens e \
 deitou-se com todos que a seduziram; estes acariciaram seus seios virgens e a e\
 nvolveram em suas práticas idólatras, corruptas e devassas.\nPor este motivo Eu\
@@ -225,44 +225,44 @@ nvolveram em suas práticas idólatras, corruptas e devassas.\nPor este motivo E
 esejou ter prazer com tanto ardor e paixão.\nEntão, eles lhe arrancaram as roup\
 as, deixando-a nua; sequestraram seus filhos e suas filhas e, no fim, a mataram\
  ao fio da espada. O que lhe restou foi apenas má fama entre todas as mulheres \
-da terra; e um castigo severo lhe foi imposto."""),
-            livro = escape_md(u"Ezequiel 23:8-10"),
+da terra; e um castigo severo lhe foi imposto.""").as_markdown(),
+            livro = Text(u"Ezequiel 23:8-10").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Viram os filhos de Deus que as filhas dos homens er\
-am formosas; e tomaram para si mulheres de todas as que escolheram."""),
-            livro = escape_md(u"Gênesis 6:2"),
+            verso = Text(u"""Viram os filhos de Deus que as filhas dos homens er\
+am formosas; e tomaram para si mulheres de todas as que escolheram.""").as_markdown(),
+            livro = Text(u"Gênesis 6:2").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""No dia seguinte a filha mais velha disse à mais nov\
+            verso = Text(u"""No dia seguinte a filha mais velha disse à mais nov\
 a: "Ontem à noite deitei-me com meu pai. Vamos dar-lhe vinho também esta noite,\
  e você se deitará com ele, para que preservemos a linhagem de nosso pai". Entã\
 o, outra vez deram vinho ao pai naquela noite, e a mais nova foi e se deitou co\
 m ele. E ele não percebeu quando ela se deitou nem quando se levantou. Assim, a\
-s duas filhas de Ló engravidaram do próprio pai."""),
-            livro = escape_md(u"Gênesis 19:34-36"),
+s duas filhas de Ló engravidaram do próprio pai.""").as_markdown(),
+            livro = Text(u"Gênesis 19:34-36").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""E vendo-a Judá, teve-a por uma prostituta, porque e\
+            verso = Text(u"""E vendo-a Judá, teve-a por uma prostituta, porque e\
 la tinha coberto o seu rosto. E dirigiu-se a ela no caminho, e disse: Vem, peço\
--te, deixa-me possuir-te."""),
-            livro = escape_md(u"Gênesis 38:15-18"),
+-te, deixa-me possuir-te.""").as_markdown(),
+            livro = Text(u"Gênesis 38:15-18").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Pois vocês irão mamar e saciar-se em seus seios rec\
-onfortantes, e beberão à vontade e se deleitarão em sua fartura."""),
-            livro = escape_md(u"Isaías 66:11"),
+            verso = Text(u"""Pois vocês irão mamar e saciar-se em seus seios rec\
+onfortantes, e beberão à vontade e se deleitarão em sua fartura.""").as_markdown(),
+            livro = Text(u"Isaías 66:11").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Por que me receberam os joelhos? E por que os peito\
-s, para que mamasse?"""),
-            livro = escape_md(u"Jó 3:12"),
+            verso = Text(u"""Por que me receberam os joelhos? E por que os peito\
+s, para que mamasse?""").as_markdown(),
+            livro = Text(u"Jó 3:12").as_markdown(),
         ),
         u"_{verso}_\n\n*{livro}*".format(
-            verso = escape_md(u"""Gazela ardorosa, corsa graciosa; que os seios da tu\
+            verso = Text(u"""Gazela ardorosa, corsa graciosa; que os seios da tu\
 a esposa sempre te fartem de prazer, e seu amor te extasie de carinhos todos os\
- dias de tua vida."""),
-            livro = escape_md(u"Provérbios 5:19"),
+ dias de tua vida.""").as_markdown(),
+            livro = Text(u"Provérbios 5:19").as_markdown(),
         ),
     ])
 
