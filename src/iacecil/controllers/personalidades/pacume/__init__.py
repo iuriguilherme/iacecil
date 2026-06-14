@@ -36,7 +36,7 @@ from aiogram import (
     filters,
     types,
 )
-from aiogram.utils.markdown import escape_md
+from ...aiogram_bot.filters import IsReplyToIdFilter
 from ...aiogram_bot.callbacks import (
     command_callback,
     error_callback,
@@ -137,7 +137,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
         @dispatcher.message_handler(
             filters.Regexp(r'\b({})\b'.format('|'.join(
             random_texts.adjetivos()))),
-            is_reply_to_id = dispatcher.bot.id,
+            IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id),
         )
         async def resposta_adjetivo_callback(message: types.Message) -> None:
             """Não deixa de graça"""
@@ -188,7 +188,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
                 if opus_file is not None:
                     os.remove(opus_file)
         
-        @dispatcher.message_handler(is_reply_to_id = dispatcher.bot.id)
+        @dispatcher.message_handler(IsReplyToIdFilter(is_reply_to_id = dispatcher.bot.id))
         async def resposta_ignorante_callback(message: types.Message) -> None:
             """
             Responde mensagens que são respostas a mensagens deste bot
