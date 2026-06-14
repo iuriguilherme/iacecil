@@ -31,7 +31,7 @@ from aiogram import (
     filters,
     types,
 )
-from aiogram.utils.markdown import escape_md
+from aiogram.utils.formatting import Text
 from typing import Union
 from iacecil import (
     commit,
@@ -180,7 +180,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
 # ~ [{message.from_user.first_name}](tg://user?id={message.from_user.id}) \
 # ~ disse: {escape_md(message.text)}""",
                                 text = f"""
-{message.from_user.first_name} disse: {escape_md(message.text)}""",
+{Text(message.from_user.first_name).as_markdown()} disse: {Text(message.text).as_markdown()}""",
                                 reply_to_message_id = pfm[
                                     'reply_to_message_id'],
                                 parse_mode = 'MarkdownV2',
