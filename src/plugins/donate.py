@@ -23,9 +23,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 from aiogram import Dispatcher
-from aiogram.utils.markdown import (
-    code,
-    escape_md
+from aiogram.utils.formatting import (
+    Code,
+    Text
 )
 from iacecil.controllers.aiogram_bot.callbacks import (
     command_callback,
@@ -43,7 +43,7 @@ async def add_handlers(dispatcher: Dispatcher) -> None:
             await message_callback(message, ['donate', message.chat.type])
             try:
                 addresses: list = [
-                    ''.join([f'{k}', escape_md(': '), code(f'{v}')]) \
+                    ''.join([f'{k}', Text(': ').as_markdown(), Code(f'{v}').as_markdown()]) \
                     for k, v in \
                     dispatcher.config.donate['crypto'].items()
                 ]
