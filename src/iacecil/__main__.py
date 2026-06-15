@@ -25,6 +25,24 @@ import sys
 
 logger = logging.getLogger(__name__)
 
+def _cwd_is_trusted(path):
+    """True when ``path`` is safe to add to ``sys.path``.
+
+    A world-writable or foreign-owned directory could contain an
+    attacker-planted ``instance`` package that would execute on import, so we
+    only trust directories owned by the current user and not writable by
+    others. On platforms without POSIX ownership (no ``os.geteuid``) we defer
+    to the OS file ACLs and trust the path.
+    """
+    try:
+        st = os.stat(path)
+    except OSError:
+        return False
+    geteuid = getattr(os, "geteuid", None)
+    if geteuid is None:
+        return True
+    return st.st_uid == geteuid() and not (st.st_mode & 0o002)
+
 def main():
     try:
         # The runtime expects to be invoked from the project root, where the
@@ -33,10 +51,24 @@ def main():
         # working directory back to keep ``import instance`` working. Append,
         # not insert(0): cwd must not shadow installed/stdlib packages (e.g.
         # the shipped ``plugins`` package) — we only need it to resolve
-        # ``instance``, which has no installed counterpart.
+        # ``instance``, which has no installed counterpart. Only do this for a
+        # trusted cwd: a world-writable or foreign-owned directory could hold a
+        # planted ``instance`` package that runs arbitrary code on import.
         cwd = os.getcwd()
-        if cwd not in sys.path:
-            sys.path.append(cwd)
+        if _cwd_is_trusted(cwd):
+            if cwd not in sys.path:
+                sys.path.append(cwd)
+        else:
+            # cwd is world-writable or foreign-owned. Python itself prepends
+            # cwd (as '' under ``python -m`` / direct script runs) to
+            # sys.path, so a planted ``instance`` module there would execute
+            # on import. Strip every cwd-equivalent entry rather than trust it.
+            for entry in ('', os.curdir, cwd):
+                while entry in sys.path:
+                    sys.path.remove(entry)
+            logger.warning(f"""Untrusted working directory {cwd!r} (world-\
+writable or not owned by the current user); removed it from sys.path. \
+'import instance' will fail here — run iacecil from your own project root.""")
         from . import __name__, __version__
         try:
             logger.critical(f"""Running {__name__} v{__version__} with \
