@@ -95,4 +95,5 @@ v0.78.0, 2023-11-06 -- Mudando esquema de versões de novo, e Furhat + GPT simpl
 v0.79.0, 2026-06-09 -- O robô não consegue mais me ajudar
 v0.80.0, 2026-06-10 -- Multi-platform connector layer (Telegram, XMPP, loopback), neutral envelope, person registry (ZODB), and first test suite; Python 3.11
 v0.81.0, 2026-06-14 -- Native connector runner (python -m iacecil connectors), Discord and Matrix connectors, log sinks for any platform, persistence v2 (native timestamp/id/direction + per-connector storage with safe paths) and the echo conformance suite; connector-declared activation and a single plugin load point
-v0.81.1, 2026-06-14 -- Yet another reversioning, changed all tags and rewrote history
+v0.82.1, 2026-06-14 -- Yet another reversioning, changed all tags and rewrote history
+v0.83.0, 2026-06-15 -- Python packaging modernization (PEP 621 pyproject.toml), console script entry point, dependencies grouped as optional extras, removal of legacy config files, and updated Dockerfile
