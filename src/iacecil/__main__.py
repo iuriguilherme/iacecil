@@ -27,6 +27,16 @@ logger = logging.getLogger(__name__)
 
 def main():
     try:
+        # The runtime expects to be invoked from the project root, where the
+        # local-only ``instance`` package and ``.git`` live. PEP 660 editable
+        # installs (and wheels) only expose ``src`` on ``sys.path``, so add the
+        # working directory back to keep ``import instance`` working. Append,
+        # not insert(0): cwd must not shadow installed/stdlib packages (e.g.
+        # the shipped ``plugins`` package) — we only need it to resolve
+        # ``instance``, which has no installed counterpart.
+        cwd = os.getcwd()
+        if cwd not in sys.path:
+            sys.path.append(cwd)
         from . import __name__, __version__
         try:
             logger.critical(f"""Running {__name__} v{__version__} with \
