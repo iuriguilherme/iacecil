@@ -4,12 +4,11 @@ WORKDIR /app
 
 COPY . .
 
-RUN python3 -m pip install -e .
+RUN pip install --no-cache-dir .[all]
 
-RUN mkdir instance 
-
-RUN cp -r doc/instance/* instance/
+RUN mkdir -p instance && \
+    cp -r docs/instance.example/* instance/
 
 EXPOSE 8000/tcp
 
-CMD python3 -m iacecil production
+CMD ["iacecil", "connectors_v3"]
