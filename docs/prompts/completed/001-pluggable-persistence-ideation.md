@@ -54,3 +54,11 @@ Let the `/compound-engineering:ce-ideate` skill drive the output format. The res
 
 Do not write production code in this pass. If the skill produces an artifact file, note its path at the end.
 </deliverable>
+
+---
+<!-- run-prompt completion metadata -->
+- **Completed:** 2026-06-16
+- **Executed by:** general-purpose sub-task via /run-prompt
+- **Skill driven:** /compound-engineering:ce-ideate
+- **Artifact:** docs/ideation/2026-06-16-pluggable-persistence-and-model-neutrality.md
+- **Status:** Success — ideation pass only, no production code
