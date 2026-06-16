@@ -150,14 +150,28 @@ class Connector(BaseConnector):
         # Use a stable device_id derived from bot_id for E2EE persistence
         device_id = bot_id.upper()[:10]
 
+        # Auto-detect if the required C-libraries (libolm) are installed
+        try:
+            from nio.crypto import ENCRYPTION_ENABLED as e2e_supported
+        except ImportError:
+            e2e_supported = False
+            
+        if not e2e_supported:
+            logger.warning(
+                "Matrix: End-to-End Encryption dependencies (libolm / python-olm) "
+                "are not installed. The connector is falling back to plaintext-only mode. "
+                "To echo in encrypted rooms, install 'libolm-dev' on your system "
+                "and re-run 'pip install -r requirements.txt'."
+            )
+
         client_config = nio.AsyncClientConfig(
-            encryption_enabled=True
+            encryption_enabled=e2e_supported
         )
 
         self.client = nio.AsyncClient(homeserver,
             user=self.config.get('user') or '',
             device_id=device_id,
-            store_path=STORE_DIR,
+            store_path=STORE_DIR if e2e_supported else "",
             config=client_config)
         token = self.config.get('token')
         if token:
