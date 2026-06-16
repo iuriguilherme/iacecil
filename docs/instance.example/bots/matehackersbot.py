@@ -19,7 +19,6 @@ default_config = DefaultBotConfig()
 class BotConfig(BaseSettings):
     coinmarketcap: dict = default_config.coinmarketcap
     deepseek: dict = default_config.deepseek
-    discord: dict = default_config.discord
     donate: dict = default_config.donate
     furhat: dict = default_config.furhat
     info: dict = default_config.info
@@ -30,10 +29,31 @@ class BotConfig(BaseSettings):
     timezone: str = default_config.timezone
     tropixel: dict = default_config.tropixel
     web3: dict = default_config.web3
-    xmpp: dict = default_config.xmpp
-    matrix: dict = default_config.matrix
-    mastodon: dict = default_config.mastodon
-    loopback: dict = default_config.loopback
+
+    discord: dict = dict(
+        token = "YOUR_DISCORD_TOKEN",
+        channels = [
+            "123456789012345678",
+        ],
+    ) # discord
+    xmpp: dict = dict(
+        jid = "bot@example.com",
+        password = "your_password",
+        channels = [
+            "room@conference.example.com",
+        ],
+    ) # xmpp
+    matrix: dict = dict(
+        homeserver = "https://matrix.org",
+        token = "YOUR_ACCESS_TOKEN",
+    ) # matrix
+    mastodon: dict = dict(
+        api_base_url = "https://mastodon.social",
+        access_token = "YOUR_ACCESS_TOKEN",
+    ) # mastodon
+    loopback: dict = dict(
+        enabled = False,
+    ) # loopback
     
     personalidade: str = "matebot"
     plugins: dict = dict(
