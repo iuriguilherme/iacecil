@@ -113,6 +113,28 @@ The implementation was updated with the following surgical fixes in `src/iacecil
 ## Why This Works
 `matrix-nio`'s manual sync mode returns raw `MegolmEvent` objects which represent encrypted ciphertext. Unlike the callback-based `sync_forever`, the manual `sync()` response does not internalize decryption automatically for the returned events. Explicitly calling `decrypt_event()` with the correct `room_id` context allows the `OlmMachine` to retrieve keys from the SQLite store and transform the event into a readable `RoomMessageText` — **but only once the bot has uploaded its own keys (step 5) so a session key was ever shared with it.** `sync_forever` hides this by running `keys_upload`/`keys_query` for you; a hand-rolled loop must do it explicitly. Messages sent before the first `keys_upload` remain undecryptable forever (no key was ever shared); only messages sent afterward decrypt.
 
+## Known Limitation: bot device is unverified (deferred)
+Verified live against `matrix.org` on 2026-06-16: incoming messages decrypt,
+and outgoing replies are sent **encrypted** (nio shares a Megolm outbound
+group session before each send — confirmed by `Sharing group session` /
+`Created outbound group session` log lines). **However, other clients still
+display the bot's device / messages as "not verified"** (no shield / "unable
+to verify this device" warning).
+
+This is expected and benign for confidentiality: the messages *are* encrypted.
+What is missing is **device verification / cross-signing** — the bot never
+runs SAS (emoji) verification, publishes cross-signing keys, or gets signed by
+the user's master key. The send path papers over the unverified state with
+`ignore_unverified_devices=True` (it must, or `room_send` raises), which is why
+delivery works despite the warning.
+
+**Whether to fix is deferred to the future.** A fix would mean implementing
+cross-signing bootstrap (`client.bootstrap_cross_signing` / uploading
+self-signing + user-signing keys) and/or interactive SAS verification, plus a
+trust-on-first-use policy for the rooms the bot serves. None of that is
+required for encrypted echo to function; it only removes the "unverified"
+warning in other clients. Tracked as a follow-up, not part of this fix.
+
 ## Prevention
 - **Dependency Awareness**: Always check `nio.crypto.ENCRYPTION_ENABLED` before attempting to use E2EE features to prevent crashes in environments without `libolm`.
 - **Manual Sync Logic**: Remember that `client.sync()` requires manual event processing, including decryption of timeline events.

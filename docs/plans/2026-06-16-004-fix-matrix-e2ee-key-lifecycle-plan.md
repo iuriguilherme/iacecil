@@ -132,6 +132,12 @@ without manual device verification.
 In scope: key upload/query lifecycle + verified-device send flag.
 
 ### Deferred to Follow-Up Work
+- **Device verification / cross-signing.** Verified live 2026-06-16: replies
+  are sent encrypted, but other clients still show the bot device/messages as
+  "not verified" (no shield). `ignore_unverified_devices=True` makes delivery
+  work without it. Removing the warning needs cross-signing bootstrap and/or
+  interactive SAS verification. Not required for encrypted echo to function —
+  deferred; fix-or-not is an open future decision.
 - Interactive / emoji device verification (TOFU is sufficient for a bot).
-- Key backup / cross-signing.
+- Key backup.
 - Re-decrypting historical messages received before first key upload.
