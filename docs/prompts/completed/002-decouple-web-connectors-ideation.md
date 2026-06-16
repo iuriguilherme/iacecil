@@ -46,3 +46,8 @@ Let the `/compound-engineering:ce-ideate` skill drive the output format. The res
 
 Do not write production code in this pass. If the skill produces an artifact file, note its path at the end.
 </deliverable>
+
+---
+**Completed:** 2026-06-15
+**Artifact:** docs/ideation/decouple-quart-from-connectors-2026-06-15.md
+**Result:** Ranked, critically-evaluated ideation set. Leading idea: promote existing `connectors` runner to a connector daemon + pure web client communicating over a Unix-socket control plane (newline-delimited JSON, SO_PEERCRED + 0600 perms).
