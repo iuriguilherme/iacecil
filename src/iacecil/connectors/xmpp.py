@@ -21,6 +21,9 @@ class XMPPBot(ClientXMPP):
         logger.info(f"XMPP session started as {self.boundjid.full}")
         self.send_presence()
         self.get_roster()
+        channels = self.connector.config.get('channels') or []
+        for channel in channels:
+            self.plugin['xep_0045'].join_muc(channel, self.boundjid.user)
 
     async def on_failure(self, event):
         self.connector.failure = "XMPP authentication or connection failed"
@@ -33,10 +36,14 @@ class XMPPBot(ClientXMPP):
             self.connector.running = False
 
     async def message(self, msg):
-        if msg['from'].full == self.boundjid.full:
+        if msg['type'] == 'groupchat':
+            if msg['from'].resource == self.boundjid.user:
+                return
+        elif msg['from'].full == self.boundjid.full:
             ## Own messages echoed back by server; replying would loop
             return
-        if msg['type'] in ('chat', 'normal'):
+            
+        if msg['type'] in ('chat', 'normal', 'groupchat'):
             stanza_id = str(msg['id']) if msg['id'] else None
             env = Envelope(
                 platform='xmpp',
@@ -59,10 +66,18 @@ class Connector(BaseConnector):
         self.bot = None
         self.failure = None
 
+    def is_authorized(self, envelope: Envelope) -> bool:
+        message = envelope.raw
+        if message is not None and message.get('type') != 'groupchat':
+            return True
+        authorized_channels = self.config.get('channels') or []
+        return str(envelope.conversation_ref) in [str(c) for c in authorized_channels]
+
     async def connect(self):
         jid = self.config.get('jid')
         password = self.config.get('password')
         self.bot = XMPPBot(jid, password, self)
+        self.bot.register_plugin('xep_0045')
         self.bot.connect()
         self.running = True
 
@@ -79,8 +94,12 @@ class Connector(BaseConnector):
         if not self.bot:
             return
 
+        mtype = 'chat'
+        if envelope.raw and envelope.raw.get('type') == 'groupchat':
+            mtype = 'groupchat'
+
         for chunk in self._chunks(envelope.text):
-            self.bot.send_message(mto=envelope.conversation_ref, mbody=chunk, mtype='chat')
+            self.bot.send_message(mto=envelope.conversation_ref, mbody=chunk, mtype=mtype)
 
     async def disconnect(self):
         self.running = False
