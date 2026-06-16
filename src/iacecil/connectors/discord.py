@@ -35,16 +35,14 @@ class Connector(BaseConnector):
 
         self.running = True
 
-    def _addressed_to_bot(self, message, text) -> bool:
-        ## In a guild the bot sees every channel message; replying to all
-        ## of them would spam the server. Only engage when the message is
-        ## actually directed at the bot. DMs (no guild) always count.
-        if getattr(message, 'guild', None) is None:
+    def is_authorized(self, envelope: Envelope) -> bool:
+        """Checks if the envelope's conversation is authorized for replies.
+        DMs are always authorized. Guild channels must be in the 'channels' list."""
+        if envelope.conversation_ref == envelope.sender_ref:
+            ## It's a DM (sender == conversation)
             return True
-        if text.lstrip().startswith('/'):
-            return True
-        me = getattr(self.client, 'user', None) if self.client else None
-        return me is not None and me in (getattr(message, 'mentions', None) or [])
+        authorized_channels = self.config.get('channels') or []
+        return str(envelope.conversation_ref) in [str(c) for c in authorized_channels]
 
     async def _on_message(self, message):
         author = getattr(message, 'author', None)
@@ -54,9 +52,7 @@ class Connector(BaseConnector):
         if author is None or getattr(author, 'bot', False):
             return
         text = message.content or ''
-        ## Guild firehose gate: ignore messages not addressed to the bot.
-        if not self._addressed_to_bot(message, text):
-            return
+        
         if not text and not self._warned_empty_content:
             self._warned_empty_content = True
             logger.warning(

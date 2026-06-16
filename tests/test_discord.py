@@ -63,12 +63,32 @@ async def test_bot_authors_skipped():
 
 
 @pytest.mark.asyncio
-async def test_guild_message_not_addressed_skipped():
-    """Plain guild message, no mention and no command: not dispatched
-    (firehose gate -- the bot must not answer every channel line)."""
+async def test_guild_message_dispatched_always():
+    """All messages are dispatched for persistence (no more firehose gate
+    in the connector). gating happens at dispatch/plugin layer."""
     conn, manager = make_connector()
     await conn._on_message(FakeMessage(content="just chatting", guild=object()))
-    manager.dispatch.assert_not_called()
+    manager.dispatch.assert_called_once()
+
+
+def test_is_authorized_dm():
+    conn, _ = make_connector()
+    env = Envelope(platform='discord', sender_ref='111', conversation_ref='111', text='hi')
+    assert conn.is_authorized(env) is True
+
+
+def test_is_authorized_guild_allowed():
+    manager = AsyncMock()
+    conn = Connector(manager, {'token': 'fake', 'channels': ['222', '333']})
+    env = Envelope(platform='discord', sender_ref='111', conversation_ref='222', text='hi')
+    assert conn.is_authorized(env) is True
+
+
+def test_is_authorized_guild_denied():
+    manager = AsyncMock()
+    conn = Connector(manager, {'token': 'fake', 'channels': ['222']})
+    env = Envelope(platform='discord', sender_ref='111', conversation_ref='444', text='hi')
+    assert conn.is_authorized(env) is False
 
 
 @pytest.mark.asyncio

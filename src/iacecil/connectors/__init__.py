@@ -197,6 +197,21 @@ class ConnectorManager:
             )
         if handler:
             try:
+                ## Authorization check: some connectors (e.g. Discord)
+                ## gate replies to authorized channels/users. Observation
+                ## is always allowed (persisted above), but response is
+                ## gated.
+                authorized = True
+                if hasattr(connector, 'is_authorized'):
+                    authorized = connector.is_authorized(envelope)
+                
+                if not authorized:
+                    logger.debug(
+                        f"Skip reply for {envelope.platform} message from unauthorized"
+                        f" conversation {envelope.conversation_ref!r}"
+                    )
+                    return
+
                 reply_text = await handler(envelope)
                 if reply_text:
                     ## Carry person_id (and platform/refs) onto the reply so
