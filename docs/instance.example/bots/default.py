@@ -205,9 +205,7 @@ class DefaultBotConfig(BaseSettings):
         ## also enable the "Message Content Intent" toggle on the Bot
         ## page or every inbound message arrives with empty text.
         'token': None,
-        'channels': [
-            '123456789012345678',
-        ],
+        'channels': [],
     } # discord
     matrix: dict = {
         'homeserver': None, # e.g. "https://matrix.org"
@@ -265,4 +263,8 @@ class DefaultBotConfig(BaseSettings):
             'model': "deepseek-r1:1.5b",
         }, # ollama
     } # deepseek
-    xmpp: dict = {'jid': '', 'password': ''}
+    xmpp: dict = {
+        'jid': '',
+        'password': '',
+        'channels': [],
+    }

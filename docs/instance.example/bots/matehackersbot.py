@@ -30,6 +30,10 @@ class BotConfig(BaseSettings):
     timezone: str = default_config.timezone
     tropixel: dict = default_config.tropixel
     web3: dict = default_config.web3
+    xmpp: dict = default_config.xmpp
+    matrix: dict = default_config.matrix
+    mastodon: dict = default_config.mastodon
+    loopback: dict = default_config.loopback
     
     personalidade: str = "matebot"
     plugins: dict = dict(

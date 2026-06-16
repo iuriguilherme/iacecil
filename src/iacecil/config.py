@@ -494,6 +494,7 @@ f0123456789abcdef""",
         } # telegram_v3
         discord: dict = {
             'token': "",
+            'channels': [],
         } # discord
         matrix: dict = {
             'homeserver': "",
@@ -508,6 +509,7 @@ f0123456789abcdef""",
         xmpp: dict = {
             'jid': "",
             'password': "",
+            'channels': [],
         } # xmpp
         loopback: dict = {
             'enabled': False,
