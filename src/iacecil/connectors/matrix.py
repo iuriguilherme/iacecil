@@ -342,6 +342,15 @@ class Connector(BaseConnector):
                     'events', None) or [])
                 for event in events:
                     try:
+                        # Attempt to decrypt if it's a MegolmEvent
+                        if event.__class__.__name__ == 'MegolmEvent':
+                            try:
+                                decrypted_event = self.client.decrypt_event(event)
+                                if decrypted_event:
+                                    event = decrypted_event
+                            except Exception as decrypt_exc:
+                                logger.warning(f"Matrix: failed to decrypt event {getattr(event, 'event_id', None)}: {decrypt_exc}")
+                                
                         await self._on_event(room_id, event)
                     except Exception as e:
                         ## One malformed event must not kill the sync loop
