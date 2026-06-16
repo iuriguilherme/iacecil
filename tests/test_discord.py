@@ -73,7 +73,8 @@ async def test_guild_message_dispatched_always():
 
 def test_is_authorized_dm():
     conn, _ = make_connector()
-    env = Envelope(platform='discord', sender_ref='111', conversation_ref='111', text='hi')
+    msg = FakeMessage(guild=None)
+    env = Envelope(platform='discord', sender_ref='111', conversation_ref='444', text='hi', raw=msg)
     assert conn.is_authorized(env) is True
 
 

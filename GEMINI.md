@@ -72,7 +72,7 @@ Bot configuration files typically inherit from `DefaultBotConfig` and define ena
 - **Language**: Core documentation is in **Brazilian Portuguese**, though code symbols are in English.
 - **Modularity**: New features should be implemented as independent scripts in `src/plugins/`.
 - **Async First**: Many components use `asyncio` (via Aiogram and Quart).
-- **Environment Management**: Tool-agnostic. Vanilla `venv` and `pip` are the authoritative test environment. `uv` is recommended for performance.
+- **Environment Management**: ALWAYS use a virtual environment. NEVER run system or userspace Python or pip directly. You may use `uv`, `python -m venv`, `pipenv`, or `poetry`, but all execution must happen within the context of a virtual environment (e.g., using `uv run`, `pipenv run`, or the interpreter inside `.venv/`).
 - **Persistence**: Prefer `ZODB` for persistent object storage.
 - **Architecture**: Stick to the MVC pattern in `src/iacecil/` for core changes.
 

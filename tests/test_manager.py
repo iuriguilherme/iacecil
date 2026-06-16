@@ -285,6 +285,43 @@ async def test_telegram_v3_suppresses_legacy_telegram():
 
 
 @pytest.mark.asyncio
+async def test_dispatch_respects_connector_authorization():
+    class AuthorizedFakeConnector(FakeConnector):
+        def is_authorized(self, env):
+            return env.conversation_ref == 'authorized'
+
+    dummy_mod = types.ModuleType("iacecil.connectors.auth_dummy")
+    dummy_mod.Connector = AuthorizedFakeConnector
+    sys.modules["iacecil.connectors.auth_dummy"] = dummy_mod
+    
+    try:
+        manager = ConnectorManager({'auth_dummy': {'secret': 'x'}})
+        manager.connectors['auth_dummy'].running = True
+        manager.connectors['auth_dummy'].send = AsyncMock()
+        
+        handler = AsyncMock(return_value="Reply")
+        manager.set_default_handler(handler)
+        
+        # Authorized message
+        env_ok = Envelope("auth_dummy", "s", "authorized", "hi")
+        await manager.dispatch(env_ok)
+        handler.assert_called_once()
+        manager.connectors['auth_dummy'].send.assert_called_once()
+        
+        handler.reset_mock()
+        manager.connectors['auth_dummy'].send.reset_mock()
+        
+        # Unauthorized message
+        env_bad = Envelope("auth_dummy", "s", "unauthorized", "hi")
+        await manager.dispatch(env_bad)
+        handler.assert_not_called()
+        manager.connectors['auth_dummy'].send.assert_not_called()
+        
+    finally:
+        del sys.modules["iacecil.connectors.auth_dummy"]
+
+
+@pytest.mark.asyncio
 async def test_legacy_telegram_kept_without_v3():
     """Without telegram_v3, the legacy telegram connector loads normally."""
     manager = ConnectorManager({'telegram': {'token': '123:abc'}})

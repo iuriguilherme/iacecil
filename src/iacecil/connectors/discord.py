@@ -38,8 +38,9 @@ class Connector(BaseConnector):
     def is_authorized(self, envelope: Envelope) -> bool:
         """Checks if the envelope's conversation is authorized for replies.
         DMs are always authorized. Guild channels must be in the 'channels' list."""
-        if envelope.conversation_ref == envelope.sender_ref:
-            ## It's a DM (sender == conversation)
+        message = envelope.raw
+        if message is not None and getattr(message, 'guild', None) is None:
+            ## It's a DM (no guild)
             return True
         authorized_channels = self.config.get('channels') or []
         return str(envelope.conversation_ref) in [str(c) for c in authorized_channels]

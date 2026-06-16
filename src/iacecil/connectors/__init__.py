@@ -156,6 +156,10 @@ class ConnectorManager:
         from iacecil.controllers.persistence.neutral import resolve_person, persist_envelope
         from iacecil.controllers.persistence.chat_store import store_message
         from dataclasses import replace
+
+        platform = envelope.platform
+        connector = self.connectors.get(platform)
+
         ## Independent persistence steps: a failure in one must not skip the
         ## others (e.g. a chat-store error should not drop the neutral
         ## record, and neither should block command dispatch below).
