@@ -150,10 +150,15 @@ class Connector(BaseConnector):
         # Use a stable device_id derived from bot_id for E2EE persistence
         device_id = bot_id.upper()[:10]
 
+        client_config = nio.AsyncClientConfig(
+            encryption_enabled=True
+        )
+
         self.client = nio.AsyncClient(homeserver,
             user=self.config.get('user') or '',
             device_id=device_id,
-            store_path=STORE_DIR)
+            store_path=STORE_DIR,
+            config=client_config)
         token = self.config.get('token')
         if token:
             self.client.access_token = token
