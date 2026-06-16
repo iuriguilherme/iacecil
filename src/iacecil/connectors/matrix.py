@@ -211,10 +211,23 @@ class Connector(BaseConnector):
         # Load the encryption store if encryption is available
         if hasattr(self.client, 'load_store'):
             try:
-                await self.client.load_store()
+                self.client.load_store()
                 logger.info("Matrix: encryption store loaded.")
             except Exception as e:
                 logger.warning(f"Matrix: could not load encryption store: {e}")
+
+        ## Manual sync loops (unlike sync_forever) must drive the E2EE key
+        ## lifecycle themselves. Publish our device + one-time keys so other
+        ## members can establish an Olm session and share Megolm session keys
+        ## with us. Skip this and the bot stays invisible to key-sharing —
+        ## every encrypted event arrives as an undecryptable MegolmEvent and
+        ## the echo handler never sees any text.
+        if getattr(self.client, 'olm', None) and self.client.should_upload_keys:
+            try:
+                await self.client.keys_upload()
+                logger.info("Matrix: device keys uploaded.")
+            except Exception as e:
+                logger.warning(f"Matrix: initial key upload failed: {e}")
 
         self.next_batch = self._load_token()
         self.running = True
@@ -316,7 +329,21 @@ class Connector(BaseConnector):
             ## Success: reset the retry state.
             failures = 0
             backoff = self.SYNC_BACKOFF_BASE
-            
+
+            ## Drive the key lifecycle exactly as sync_forever would:
+            ## replenish one-time keys (so senders can keep establishing Olm
+            ## sessions with us) and refresh device lists (so we encrypt to
+            ## the right devices). Failures must not break the sync loop or
+            ## trip the backoff counter.
+            if getattr(self.client, 'olm', None):
+                try:
+                    if self.client.should_upload_keys:
+                        await self.client.keys_upload()
+                    if self.client.should_query_keys:
+                        await self.client.keys_query()
+                except Exception as e:
+                    logger.warning(f"Matrix: key maintenance failed: {e}")
+
             # 2. Handle invitations
             invited_rooms = getattr(getattr(response, 'rooms', None), 'invite', None) or {}
             for room_id in invited_rooms:
@@ -345,6 +372,10 @@ class Connector(BaseConnector):
                         # Attempt to decrypt if it's a MegolmEvent
                         if event.__class__.__name__ == 'MegolmEvent':
                             try:
+                                # Ensure room_id is present for the decryptor
+                                if not getattr(event, 'room_id', None):
+                                    event.room_id = room_id
+                                    
                                 decrypted_event = self.client.decrypt_event(event)
                                 if decrypted_event:
                                     event = decrypted_event
@@ -374,10 +405,17 @@ class Connector(BaseConnector):
             logger.warning("Matrix send dropped: client not initialized.")
             return
         for chunk in self._chunks(envelope.text):
+            ## ignore_unverified_devices: a headless bot has no UI to do
+            ## interactive device verification, so trust-on-first-use is the
+            ## only workable posture. Without this, room_send raises
+            ## OlmUnverifiedDeviceError in any encrypted room with an
+            ## unverified member and the echo reply is never delivered. The
+            ## flag is a harmless no-op in unencrypted rooms.
             await self.client.room_send(
                 room_id=envelope.conversation_ref,
                 message_type="m.room.message",
                 content={"msgtype": "m.text", "body": chunk},
+                ignore_unverified_devices=True,
             )
 
     async def disconnect(self):

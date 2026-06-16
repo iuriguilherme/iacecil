@@ -283,6 +283,87 @@ async def test_send_chunks_under_event_bound():
 
 
 @pytest.mark.asyncio
+async def test_send_ignores_unverified_devices():
+    """Replies into encrypted rooms must pass ignore_unverified_devices so a
+    headless bot (no interactive verification) can still deliver them."""
+    conn, _ = make_connector()
+    conn.client = SimpleNamespace(room_send=AsyncMock())
+    await conn.send(Envelope('matrix', 'u', '!room:example.org', 'hi'))
+    calls = conn.client.room_send.call_args_list
+    assert calls
+    for call in calls:
+        assert call.kwargs['ignore_unverified_devices'] is True
+
+
+def _keymgmt_client(sync, **flags):
+    """Fake client exposing the E2EE key-lifecycle surface."""
+    return SimpleNamespace(
+        sync=sync,
+        olm=object(),
+        should_upload_keys=flags.get('upload', False),
+        should_query_keys=flags.get('query', False),
+        keys_upload=AsyncMock(),
+        keys_query=AsyncMock(),
+    )
+
+
+@pytest.mark.asyncio
+async def test_listen_runs_key_maintenance_on_sync():
+    """A manual sync loop must drive keys_upload/keys_query like
+    sync_forever — otherwise the bot never obtains Megolm keys and every
+    encrypted message stays undecryptable, so echo never fires."""
+    conn, _ = make_connector()
+    conn.next_batch = 'old'  # not a first sync
+
+    async def fake_sync(timeout, since):
+        conn.running = False
+        return sync_response('new', [message_event(body='hi')])
+
+    client = _keymgmt_client(fake_sync, upload=True, query=True)
+    conn.client = client
+    conn.running = True
+    await conn.listen()
+
+    client.keys_upload.assert_awaited_once()
+    client.keys_query.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_key_maintenance_failure_does_not_break_loop():
+    """A failing key call is logged and swallowed; the sync loop and message
+    dispatch continue unaffected."""
+    conn, manager = make_connector()
+    conn.next_batch = 'old'
+
+    async def fake_sync(timeout, since):
+        conn.running = False
+        return sync_response('new', [message_event(body='hi')])
+
+    client = _keymgmt_client(fake_sync, upload=True)
+    client.keys_upload = AsyncMock(side_effect=RuntimeError('boom'))
+    conn.client = client
+    conn.running = True
+    await conn.listen()
+    assert manager.dispatch.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_plaintext_mode_skips_key_maintenance():
+    """No olm machine (plaintext-only) → no key calls and no AttributeError."""
+    conn, manager = make_connector()
+    conn.next_batch = 'old'
+
+    async def fake_sync(timeout, since):
+        conn.running = False
+        return sync_response('new', [message_event(body='hi')])
+
+    conn.client = SimpleNamespace(sync=fake_sync)  # no olm / should_* attrs
+    conn.running = True
+    await conn.listen()
+    assert manager.dispatch.await_count == 1
+
+
+@pytest.mark.asyncio
 async def test_sync_error_raises_after_max_failures():
     """Repeated transient sync errors (no next_batch) eventually mark the
     connector down — but only after SYNC_MAX_FAILURES retries, not on the
