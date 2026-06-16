@@ -73,7 +73,7 @@ conformance suite pins the property with a fake `dummy` connector test.
 Without the `e.name` check, removing the allowlist floods every boot with
 false errors (or silently hides real missing-dependency failures).
 
-*Note (2026-06-12): The "Echo everywhere" refactor completes this architectural transition. It unifies dispatch logic across natively supported connectors (Discord, Matrix, XMPP, Loopback) while preserving the legacy Telegram ownership boundary.*
+*Note (2026-06-16): The "Echo everywhere" refactor is now fully verified for Discord. It unifies dispatch logic across natively supported connectors (Discord, Matrix, XMPP, Loopback) while preserving the legacy Telegram ownership boundary. Discord now supports granular channel authorization and full message persistence.*
 
 ## When to Apply
 
