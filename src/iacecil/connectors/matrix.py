@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 ## Where matrix sync tokens live; tests patch this to a temp dir.
 TOKEN_DIR = 'instance/matrix'
+STORE_DIR = os.path.join(TOKEN_DIR, 'store')
 
 class Connector(BaseConnector):
     ## Safely under the 64 KiB total event bound, leaving room for
@@ -47,16 +48,43 @@ class Connector(BaseConnector):
         authorized_channels = self.config.get('channels') or []
         room_id = envelope.conversation_ref
         
+        logger.debug(f"Checking authorization for Matrix room {room_id}")
+        logger.debug(f"Authorized channels: {authorized_channels}")
+        
         # 1. Authorize explicitly configured channels
         if str(room_id) in [str(c) for c in authorized_channels]:
+            logger.debug(f"Room {room_id} authorized by ID match.")
             return True
             
-        # 2. Authorize 1:1 DMs (rooms with 2 or fewer members)
+        # 2. Check room state for aliases or member count (DMs)
         if self.client and hasattr(self.client, 'rooms'):
             room = self.client.rooms.get(room_id)
-            if room and len(getattr(room, 'users', {})) <= 2:
-                return True
+            if room:
+                # 2a. Check aliases
+                room_aliases = []
+                if hasattr(room, 'canonical_alias') and room.canonical_alias:
+                    room_aliases.append(room.canonical_alias)
+                # alt_aliases might be available in newer nio versions
+                if hasattr(room, 'alt_aliases'):
+                    room_aliases.extend(room.alt_aliases)
                 
+                logger.debug(f"Room {room_id} aliases: {room_aliases}")
+                for alias in room_aliases:
+                    if str(alias) in [str(c) for c in authorized_channels]:
+                        logger.debug(f"Room {room_id} authorized by alias match: {alias}")
+                        return True
+
+                # 2b. Authorize 1:1 DMs (rooms with 2 or fewer members)
+                # nio.MatrixRoom has member_count; fallback to users dict length
+                member_count = getattr(room, 'member_count', len(getattr(room, 'users', {})))
+                logger.debug(f"Room {room_id} member count: {member_count}")
+                if member_count > 0 and member_count <= 2:
+                    logger.debug(f"Room {room_id} authorized as DM (count={member_count}).")
+                    return True
+            else:
+                logger.debug(f"Room {room_id} not found in client.rooms")
+                
+        logger.debug(f"Room {room_id} NOT authorized.")
         return False
 
     def _token_path(self) -> str:
@@ -115,6 +143,9 @@ class Connector(BaseConnector):
         ## clear error) even when matrix-nio is not installed.
         import nio
         homeserver = self.config.get('homeserver')
+        if homeserver and not (homeserver.startswith('http://') or homeserver.startswith('https://')):
+            homeserver = f"https://{homeserver}"
+            
         self.client = nio.AsyncClient(homeserver,
             user=self.config.get('user') or '')
         token = self.config.get('token')
@@ -134,7 +165,13 @@ class Connector(BaseConnector):
                 " security.")
             response = await self.client.login(self.config.get('password'))
             if not getattr(response, 'access_token', None):
-                raise ConnectionError(f"Matrix login failed: {response!r}")
+                ## To avoid leaking credentials or sensitive object state, we 
+                ## only log the 'status_code' (e.g. M_FORBIDDEN) and 'message' 
+                ## (human-readable description), which are standard Matrix 
+                ## error fields parsed by matrix-nio.
+                status = getattr(response, 'status_code', 'M_UNKNOWN')
+                error_msg = getattr(response, 'message', 'No error message provided by server')
+                raise ConnectionError(f"Matrix login failed: {status} - {error_msg}")
             self.user_id = getattr(response, 'user_id', self.user_id)
         if not self.user_id:
             ## Without our own mxid the self-message guard in _on_event
@@ -148,9 +185,13 @@ class Connector(BaseConnector):
 
     async def _on_event(self, room_id, event):
         sender = getattr(event, 'sender', None)
+        logger.debug(f"Matrix: received event in room {room_id} from {sender}")
+        
         if sender is None or sender == self.user_id:
             ## Own messages echoed back by sync; replying would loop
+            logger.debug(f"Matrix: skipping event from self or None ({sender})")
             return
+        
         body = getattr(event, 'body', None)
         if body is None:
             ## Encrypted or non-message event; plaintext rooms only
@@ -160,7 +201,10 @@ class Connector(BaseConnector):
                 logger.warning(
                     f"Room {room_id} is encrypted; this connector handles"
                     " plaintext rooms only — ignoring its events.")
+            logger.debug(f"Matrix: skipping event without body (class={event.__class__.__name__})")
             return
+            
+        logger.debug(f"Matrix: dispatching message: {body!r}")
         timestamp = getattr(event, 'server_timestamp', None)
         env = Envelope(
             platform='matrix',
@@ -176,6 +220,17 @@ class Connector(BaseConnector):
     async def listen(self):
         if not self.client:
             raise ValueError("Matrix client not initialized")
+        
+        # 1. Join configured channels on startup
+        authorized_channels = self.config.get('channels') or []
+        for channel in authorized_channels:
+            try:
+                # nio.AsyncClient.join can take room ID or alias
+                await self.client.join(channel)
+                logger.info(f"Matrix: joined configured room {channel}")
+            except Exception as e:
+                logger.warning(f"Matrix: could not join configured room {channel}: {e}")
+
         failures = 0
         backoff = self.SYNC_BACKOFF_BASE
         while self.running:
@@ -187,6 +242,7 @@ class Connector(BaseConnector):
                 exc = e
             else:
                 exc = None
+            
             next_batch = getattr(response, 'next_batch', None)
             if not next_batch:
                 ## Error response (or raised exception). A permanent error
@@ -219,9 +275,20 @@ class Connector(BaseConnector):
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, self.SYNC_BACKOFF_CAP)
                 continue
+            
             ## Success: reset the retry state.
             failures = 0
             backoff = self.SYNC_BACKOFF_BASE
+            
+            # 2. Handle invitations
+            invited_rooms = getattr(getattr(response, 'rooms', None), 'invite', None) or {}
+            for room_id in invited_rooms:
+                logger.info(f"Matrix: accepting invitation to room {room_id}")
+                try:
+                    await self.client.join(room_id)
+                except Exception as e:
+                    logger.error(f"Matrix: failed to join invited room {room_id}: {e}")
+
             first_sync = self.next_batch is None
             self.next_batch = next_batch
             if first_sync:
@@ -231,6 +298,7 @@ class Connector(BaseConnector):
                 ## File write is blocking; keep it off the event loop.
                 await asyncio.to_thread(self._save_token, next_batch)
                 continue
+            
             rooms = getattr(getattr(response, 'rooms', None), 'join', None) or {}
             for room_id, room_info in rooms.items():
                 events = (getattr(getattr(room_info, 'timeline', None),
