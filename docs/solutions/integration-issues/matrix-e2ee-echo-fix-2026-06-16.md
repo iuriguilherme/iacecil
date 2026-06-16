@@ -142,10 +142,13 @@ required for encrypted echo to function; it only removes the "unverified"
 warning in other clients. Tracked as a follow-up, not part of this fix.
 
 ## Prevention
-- **Dependency Awareness**: Always check `nio.crypto.ENCRYPTION_ENABLED` before attempting to use E2EE features to prevent crashes in environments without `libolm`.
-- **Manual Sync Logic**: Remember that `client.sync()` requires manual event processing, including decryption of timeline events.
+- **Dependency Awareness**: Always check `nio.crypto.ENCRYPTION_ENABLED` before attempting to use E2EE features to prevent crashes in environments without `libolm`. Note `load_store()` is **synchronous** on the installed nio (0.25.x) — do not `await` it.
+- **Version Pinning**: Pull the Python crypto deps via the `matrix-nio[e2ee]` extra in `requirements.txt`, and ensure the host `libolm` C library is present (`apt-get install libolm-dev`).
+- **Path Guard**: Always `os.makedirs(STORE_DIR, exist_ok=True)` before the client opens its SQLite store — nio will not create the directory.
+- **Manual Sync Logic**: `client.sync()` requires manual event processing — decrypt timeline `MegolmEvent`s, drive the `keys_upload`/`keys_query` lifecycle, and request `full_state` on the first sync. None of this is automatic outside `sync_forever`.
 - **Store Persistence**: Use a stable `device_id` and a persistent `store_path` to avoid "Unknown Device" warnings and redundant verification requests.
 
 ## Related Issues
 - `docs/solutions/architecture-patterns/echo-everywhere-multi-connector-architecture-2026-06-12.md`
+- `docs/solutions/build-errors/aiogram-matrix-nio-dependency-conflict-2026-06-13.md`
 - `docs/solutions/design-patterns/blocking-client-asyncio-bridge.md`
