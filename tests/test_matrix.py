@@ -58,6 +58,25 @@ def test_activation_rules():
     assert Connector.is_active({}) is False
 
 
+def test_is_authorized():
+    conn, _ = make_connector()
+    conn.config['channels'] = ['!authorized:example.org']
+    conn.client = SimpleNamespace(rooms={
+        '!authorized:example.org': SimpleNamespace(users={'@a', '@b', '@c'}),
+        '!dm:example.org': SimpleNamespace(users={'@a', '@b'}),
+        '!unauthorized:example.org': SimpleNamespace(users={'@a', '@b', '@c'}),
+    })
+    
+    auth_env = Envelope('matrix', '@a', '!authorized:example.org', 'test')
+    assert conn.is_authorized(auth_env) is True
+    
+    dm_env = Envelope('matrix', '@a', '!dm:example.org', 'test')
+    assert conn.is_authorized(dm_env) is True
+    
+    unauth_env = Envelope('matrix', '@a', '!unauthorized:example.org', 'test')
+    assert conn.is_authorized(unauth_env) is False
+
+
 @pytest.mark.asyncio
 async def test_event_becomes_envelope():
     conn, manager = make_connector()

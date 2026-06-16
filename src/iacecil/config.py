@@ -501,6 +501,7 @@ f0123456789abcdef""",
             'token': "",
             'user': "",
             'password': "",
+            'channels': [],
         } # matrix
         mastodon: dict = {
             'api_base_url': "",

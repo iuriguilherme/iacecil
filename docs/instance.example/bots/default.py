@@ -215,6 +215,7 @@ class DefaultBotConfig(BaseSettings):
         'token': None,
         'user': None, # e.g. "@mybot:matrix.org" (password login only)
         'password': None,
+        'channels': [],
     } # matrix
     furhat: dict = {
         'bot': "garbage",

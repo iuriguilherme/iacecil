@@ -42,6 +42,23 @@ class Connector(BaseConnector):
         return bool(conf.get('token')
             or (conf.get('user') and conf.get('password')))
 
+    def is_authorized(self, envelope: Envelope) -> bool:
+        """Checks if the envelope's conversation is authorized for replies."""
+        authorized_channels = self.config.get('channels') or []
+        room_id = envelope.conversation_ref
+        
+        # 1. Authorize explicitly configured channels
+        if str(room_id) in [str(c) for c in authorized_channels]:
+            return True
+            
+        # 2. Authorize 1:1 DMs (rooms with 2 or fewer members)
+        if self.client and hasattr(self.client, 'rooms'):
+            room = self.client.rooms.get(room_id)
+            if room and len(getattr(room, 'users', {})) <= 2:
+                return True
+                
+        return False
+
     def _token_path(self) -> str:
         from iacecil.controllers.persistence.path_utils import (
             sanitize_component,
