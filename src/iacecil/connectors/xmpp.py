@@ -16,14 +16,38 @@ class XMPPBot(ClientXMPP):
         self.add_event_handler("failed_auth", self.on_failure)
         self.add_event_handler("connection_failed", self.on_failure)
         self.add_event_handler("disconnected", self.on_disconnected)
+        self.add_event_handler("groupchat_invite", self.on_invite)
 
     async def start(self, event):
         logger.info(f"XMPP session started as {self.boundjid.full}")
         self.send_presence()
         self.get_roster()
-        channels = self.connector.config.get('channels') or []
-        for channel in channels:
+        
+        # 1. Join explicitly configured channels
+        conf_channels = self.connector.config.get('channels') or []
+        to_join = set(conf_channels)
+        
+        # 2. Discover bookmarked rooms (if supported)
+        try:
+            # Note: get_bookmarks() can be a slow XML query; we use a timeout
+            # and ignore errors if the server doesn't support bookmarks.
+            bookmarks = await self.plugin['xep_0048'].get_bookmarks(timeout=5)
+            # Slixmpp XEP-0048 get_bookmarks returns an IQ stanza containing bookmarks
+            for conference in bookmarks['xml'].findall('{storage:bookmarks}conference'):
+                jid = conference.get('jid')
+                if jid:
+                    to_join.add(jid)
+        except Exception as e:
+            logger.debug(f"XMPP bookmark discovery failed: {e}")
+
+        for channel in to_join:
+            logger.info(f"XMPP joining MUC {channel}")
             self.plugin['xep_0045'].join_muc(channel, self.boundjid.user)
+
+    async def on_invite(self, inv):
+        room = inv['from']
+        logger.info(f"XMPP invited to MUC {room} by {inv['inviter']}")
+        self.plugin['xep_0045'].join_muc(room, self.boundjid.user)
 
     async def on_failure(self, event):
         self.connector.failure = "XMPP authentication or connection failed"

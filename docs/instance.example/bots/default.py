@@ -205,6 +205,9 @@ class DefaultBotConfig(BaseSettings):
         ## also enable the "Message Content Intent" toggle on the Bot
         ## page or every inbound message arrives with empty text.
         'token': None,
+        'channels': [
+            '123456789012345678',
+        ],
     } # discord
     matrix: dict = {
         'homeserver': None, # e.g. "https://matrix.org"

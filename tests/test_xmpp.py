@@ -80,6 +80,20 @@ async def test_xmpp_ignore_own_groupchat_message():
     await bot.message(msg)
     manager.dispatch.assert_not_called()
 
+@pytest.mark.asyncio
+async def test_xmpp_on_invite():
+    from iacecil.connectors.xmpp import XMPPBot
+    connector = MagicMock()
+    bot = XMPPBot('user@host', 'pw', connector)
+    bot.boundjid.user = 'user'
+    # Mock xep_0045 plugin
+    bot.plugin = {'xep_0045': MagicMock()}
+    
+    inv = {'from': 'room@conf.host', 'inviter': 'friend@host'}
+    await bot.on_invite(inv)
+    
+    bot.plugin['xep_0045'].join_muc.assert_called_once_with('room@conf.host', 'user')
+
 def test_xmpp_is_authorized():
     from iacecil.connectors.xmpp import Connector
     manager = MagicMock()
