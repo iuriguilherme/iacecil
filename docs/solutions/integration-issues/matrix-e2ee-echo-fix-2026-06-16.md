@@ -10,15 +10,21 @@ symptoms:
   - "Connector crash: 'unable to open database file' during SQLite store initialization"
   - "Connector crash: 'object NoneType can't be used in 'await' expression' (load_store is sync)"
   - "Bot fails to echo: 'Room <id> has an encrypted message that could not be decrypted'"
+  - "Bot echoes PLAINTEXT replies into an encrypted room (no ciphertext / shield warning)"
+  - "Bot reads and echoes channel messages but never echoes direct messages (DMs)"
+  - "Other clients show the bot device/messages as 'not verified'"
 root_cause: logic_error
 resolution_type: code_fix
 severity: high
+last_updated: 2026-06-16
 tags:
   - matrix
   - e2ee
   - nio
   - decryption
   - sqlite
+  - keys-upload
+  - full-state
 ---
 
 # Matrix Connector E2EE Decryption and Configuration Fixes
