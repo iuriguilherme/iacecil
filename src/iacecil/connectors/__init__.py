@@ -216,8 +216,10 @@ class ConnectorManager:
                     )
                     return
 
+                logger.debug(f"Handling {envelope.platform} message with {handler!r}")
                 reply_text = await handler(envelope)
                 if reply_text:
+                    logger.debug(f"Handler produced reply: {reply_text!r}")
                     ## Carry person_id (and platform/refs) onto the reply so
                     ## the outbound record links to the triggering person;
                     ## null the inbound-only fields.
@@ -230,10 +232,16 @@ class ConnectorManager:
                         timestamp=None,
                     )
                     if await self.send(reply_env):
+                        logger.debug(f"Sent reply to {envelope.platform}")
                         await persist_envelope(reply_env, direction="out")
                         await store_message(self.bot_id, reply_env, direction="out")
+                    else:
+                        logger.warning(f"Failed to send reply to {envelope.platform}")
+                else:
+                    logger.debug(f"Handler produced NO reply text")
             except Exception as e:
                 logger.error(f"Error handling envelope: {e}")
+                logger.exception(e)
 
     async def _run_connector(self, name, connector):
         try:

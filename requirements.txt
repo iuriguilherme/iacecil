@@ -34,6 +34,8 @@ anyio==4.13.0
     #   openai
 apscheduler==3.11.1
     # via iacecil (pyproject.toml)
+atomicwrites==1.4.1
+    # via matrix-nio
 attrs==26.1.0
     # via
     #   aiohttp
@@ -61,6 +63,8 @@ brotlipy==0.7.0
     # via iacecil (pyproject.toml)
 btrees==6.4
     # via zodb
+cachetools==5.5.2
+    # via matrix-nio
 certifi==2026.5.20
     # via
     #   aiogram
@@ -73,6 +77,7 @@ cffi==2.0.0
     #   brotlipy
     #   persistent
     #   pycares
+    #   python-olm
 charset-normalizer==3.4.7
     # via requests
 ckzg==2.1.7
@@ -268,6 +273,8 @@ pandas==2.3.3
     #   networkx
 parsimonious==0.10.0
     # via eth-abi
+peewee==3.19.0
+    # via matrix-nio
 persistent==6.7
     # via
     #   btrees
@@ -324,6 +331,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-dotenv==1.2.2
     # via pydantic-settings
+python-olm==3.2.16
+    # via matrix-nio
 python-socks==2.8.1
     # via aiohttp-socks
 python-telegram-bot==22.5

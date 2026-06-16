@@ -60,21 +60,37 @@ def test_activation_rules():
 
 def test_is_authorized():
     conn, _ = make_connector()
-    conn.config['channels'] = ['!authorized:example.org']
+    conn.config['channels'] = ['!authorized:example.org', '#alias:example.org']
+    
+    # Mock rooms with different attributes
+    mock_auth = SimpleNamespace(users={'@a', '@b', '@c'}, room_id='!authorized:example.org')
+    
+    mock_alias = SimpleNamespace(users={'@a', '@b', '@c'}, room_id='!other:example.org', 
+                                 canonical_alias='#alias:example.org')
+    
+    mock_dm = SimpleNamespace(users={'@a', '@b'}, room_id='!dm:example.org', member_count=2)
+    
+    mock_unauth = SimpleNamespace(users={'@a', '@b', '@c'}, room_id='!unauth:example.org',
+                                  canonical_alias='#unauth:example.org', member_count=3)
+
     conn.client = SimpleNamespace(rooms={
-        '!authorized:example.org': SimpleNamespace(users={'@a', '@b', '@c'}),
-        '!dm:example.org': SimpleNamespace(users={'@a', '@b'}),
-        '!unauthorized:example.org': SimpleNamespace(users={'@a', '@b', '@c'}),
+        '!authorized:example.org': mock_auth,
+        '!other:example.org': mock_alias,
+        '!dm:example.org': mock_dm,
+        '!unauth:example.org': mock_unauth
     })
     
-    auth_env = Envelope('matrix', '@a', '!authorized:example.org', 'test')
-    assert conn.is_authorized(auth_env) is True
+    # 1. Match by ID
+    assert conn.is_authorized(Envelope('matrix', '@a', '!authorized:example.org', 't')) is True
     
-    dm_env = Envelope('matrix', '@a', '!dm:example.org', 'test')
-    assert conn.is_authorized(dm_env) is True
+    # 2. Match by Alias
+    assert conn.is_authorized(Envelope('matrix', '@a', '!other:example.org', 't')) is True
     
-    unauth_env = Envelope('matrix', '@a', '!unauthorized:example.org', 'test')
-    assert conn.is_authorized(unauth_env) is False
+    # 3. Match DM (member_count)
+    assert conn.is_authorized(Envelope('matrix', '@a', '!dm:example.org', 't')) is True
+    
+    # 4. No match
+    assert conn.is_authorized(Envelope('matrix', '@a', '!unauth:example.org', 't')) is False
 
 
 @pytest.mark.asyncio

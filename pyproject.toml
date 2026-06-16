@@ -100,7 +100,7 @@ mastodon = [
     "Mastodon.py",
 ]
 matrix = [
-    "matrix-nio",
+    "matrix-nio[e2e]",
 ]
 xmpp = [
     "slixmpp",
