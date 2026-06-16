@@ -146,8 +146,14 @@ class Connector(BaseConnector):
         if homeserver and not (homeserver.startswith('http://') or homeserver.startswith('https://')):
             homeserver = f"https://{homeserver}"
             
+        bot_id = getattr(self.manager, 'bot_id', 'default')
+        # Use a stable device_id derived from bot_id for E2EE persistence
+        device_id = bot_id.upper()[:10]
+
         self.client = nio.AsyncClient(homeserver,
-            user=self.config.get('user') or '')
+            user=self.config.get('user') or '',
+            device_id=device_id,
+            store_path=STORE_DIR)
         token = self.config.get('token')
         if token:
             self.client.access_token = token
@@ -180,6 +186,15 @@ class Connector(BaseConnector):
             raise ConnectionError(
                 "Matrix own user_id unknown after login; refusing to start"
                 " (self-message guard would fail and cause an echo loop).")
+                
+        # Load the encryption store if encryption is available
+        if hasattr(self.client, 'load_store'):
+            try:
+                await self.client.load_store()
+                logger.info("Matrix: encryption store loaded.")
+            except Exception as e:
+                logger.warning(f"Matrix: could not load encryption store: {e}")
+
         self.next_batch = self._load_token()
         self.running = True
 
@@ -194,13 +209,14 @@ class Connector(BaseConnector):
         
         body = getattr(event, 'body', None)
         if body is None:
-            ## Encrypted or non-message event; plaintext rooms only
+            ## Encrypted or non-message event
             if (event.__class__.__name__ == 'MegolmEvent'
                     and room_id not in self._warned_encrypted):
                 self._warned_encrypted.add(room_id)
                 logger.warning(
-                    f"Room {room_id} is encrypted; this connector handles"
-                    " plaintext rooms only — ignoring its events.")
+                    f"Room {room_id} has an encrypted message that could not"
+                    " be decrypted. Check if encryption dependencies are"
+                    " installed and if the bot has been verified.")
             logger.debug(f"Matrix: skipping event without body (class={event.__class__.__name__})")
             return
             
