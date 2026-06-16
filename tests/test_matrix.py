@@ -139,7 +139,7 @@ async def test_first_sync_acquires_token_without_dispatch():
         sync_response('batch2', [message_event(body='fresh')]),
     ]
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         response = responses.pop(0)
         if not responses:
             conn.running = False
@@ -165,7 +165,7 @@ async def test_restart_with_token_dispatches_immediately():
 
     responses = [sync_response('batch9', [message_event(body='hello')])]
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         assert since == 'saved-batch'
         conn.running = False
         return responses.pop(0)
@@ -196,7 +196,7 @@ async def test_token_saved_after_dispatch_on_normal_sync():
 
     responses = [sync_response('new', [message_event(body='hi')])]
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         conn.running = False
         return responses.pop(0)
 
@@ -221,7 +221,7 @@ async def test_unknown_pos_discards_token_and_resyncs():
         sync_response('fresh1', [message_event(body='hi')]),
     ]
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         r = responses.pop(0)
         if not responses:
             conn.running = False
@@ -315,7 +315,7 @@ async def test_listen_runs_key_maintenance_on_sync():
     conn, _ = make_connector()
     conn.next_batch = 'old'  # not a first sync
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         conn.running = False
         return sync_response('new', [message_event(body='hi')])
 
@@ -335,7 +335,7 @@ async def test_key_maintenance_failure_does_not_break_loop():
     conn, manager = make_connector()
     conn.next_batch = 'old'
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         conn.running = False
         return sync_response('new', [message_event(body='hi')])
 
@@ -353,7 +353,7 @@ async def test_plaintext_mode_skips_key_maintenance():
     conn, manager = make_connector()
     conn.next_batch = 'old'
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         conn.running = False
         return sync_response('new', [message_event(body='hi')])
 
@@ -361,6 +361,35 @@ async def test_plaintext_mode_skips_key_maintenance():
     conn.running = True
     await conn.listen()
     assert manager.dispatch.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_first_sync_requests_full_state_then_incremental():
+    """On (re)start the client must request full room state exactly once.
+    Without it an incremental resume never learns a room is encrypted (sends
+    go out as plaintext) nor loads member lists (DM member-count auth fails);
+    later syncs must stay incremental."""
+    conn, _ = make_connector()
+    conn.next_batch = 'tok'  # restart resuming from a stored token
+    seen = []
+    responses = [
+        sync_response('b1', [message_event(body='one')]),
+        sync_response('b2', [message_event(body='two')]),
+    ]
+
+    async def fake_sync(timeout, since, full_state=None):
+        seen.append(full_state)
+        r = responses.pop(0)
+        if not responses:
+            conn.running = False
+        return r
+
+    conn.client = SimpleNamespace(sync=fake_sync)
+    conn.running = True
+    await conn.listen()
+
+    assert seen[0] is True
+    assert all(v is False for v in seen[1:])
 
 
 @pytest.mark.asyncio
@@ -373,7 +402,7 @@ async def test_sync_error_raises_after_max_failures():
     conn.SYNC_MAX_FAILURES = 3
     attempts = 0
 
-    async def failing_sync(timeout, since):
+    async def failing_sync(timeout, since, full_state=None):
         nonlocal attempts
         attempts += 1
         return SimpleNamespace(message='boom')  # transient: no status_code
@@ -393,7 +422,7 @@ async def test_permanent_sync_error_raises_immediately():
     conn.SYNC_BACKOFF_BASE = 0
     attempts = 0
 
-    async def failing_sync(timeout, since):
+    async def failing_sync(timeout, since, full_state=None):
         nonlocal attempts
         attempts += 1
         return SimpleNamespace(status_code='M_UNKNOWN_TOKEN')
@@ -417,7 +446,7 @@ async def test_transient_sync_error_recovers():
         sync_response('batch2', [message_event(body='hello')]),
     ]
 
-    async def fake_sync(timeout, since):
+    async def fake_sync(timeout, since, full_state=None):
         r = responses.pop(0)
         if not responses:
             conn.running = False  # stop after the successful sync

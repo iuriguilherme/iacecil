@@ -35,6 +35,12 @@ class Connector(BaseConnector):
         self.next_batch = None
         self.user_id = config.get('user')
         self._warned_encrypted = set()
+        ## First sync of each process must request full room state, even when
+        ## resuming from a stored next_batch token. An incremental sync only
+        ## carries state *deltas*, so a restart would never learn that a room
+        ## is encrypted (-> plaintext sends) or load member lists (-> DM
+        ## authorization via member_count fails). Reset per process.
+        self._state_synced = False
 
     @classmethod
     def is_active(cls, conf: dict) -> bool:
@@ -285,8 +291,14 @@ class Connector(BaseConnector):
         backoff = self.SYNC_BACKOFF_BASE
         while self.running:
             try:
+                ## full_state only on the first sync of the process: load the
+                ## complete current room state (encryption flags, members,
+                ## aliases) so encrypted rooms send ciphertext and DMs pass
+                ## member-count authorization. Cheap one-off; later syncs stay
+                ## incremental.
                 response = await self.client.sync(timeout=30000,
-                    since=self.next_batch)
+                    since=self.next_batch,
+                    full_state=not self._state_synced)
             except Exception as e:
                 response = None
                 exc = e
@@ -326,9 +338,11 @@ class Connector(BaseConnector):
                 backoff = min(backoff * 2, self.SYNC_BACKOFF_CAP)
                 continue
             
-            ## Success: reset the retry state.
+            ## Success: reset the retry state. The full current room state has
+            ## now been loaded, so subsequent syncs can stay incremental.
             failures = 0
             backoff = self.SYNC_BACKOFF_BASE
+            self._state_synced = True
 
             ## Drive the key lifecycle exactly as sync_forever would:
             ## replenish one-time keys (so senders can keep establishing Olm

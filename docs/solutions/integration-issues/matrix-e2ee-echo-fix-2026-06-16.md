@@ -93,6 +93,23 @@ The implementation was updated with the following surgical fixes in `src/iacecil
     verification), pass `ignore_unverified_devices=True` to `room_send` or it
     raises `OlmUnverifiedDeviceError`.
 
+6.  **Load full room state on (re)start**: Even with keys working, two
+    further symptoms appeared — the bot echoed **plaintext** into an encrypted
+    channel, and ignored DMs entirely. Both come from one cause: a manual
+    `sync(since=token)` defaults to `full_state=False`, so on restart the
+    client never reloads current room state. `room_send` only encrypts when
+    `self.rooms[room_id].encrypted` is `True` (a flag set from the
+    `m.room.encryption` *state* event), and the DM authorization path needs
+    `member_count` from `m.room.member` state. Neither is present on an
+    incremental resume → plaintext sends + failed DM auth. Fix: request full
+    state on the first sync of each process.
+    ```python
+    response = await self.client.sync(
+        timeout=30000, since=self.next_batch,
+        full_state=not self._state_synced)
+    # set self._state_synced = True after the first successful sync
+    ```
+
 ## Why This Works
 `matrix-nio`'s manual sync mode returns raw `MegolmEvent` objects which represent encrypted ciphertext. Unlike the callback-based `sync_forever`, the manual `sync()` response does not internalize decryption automatically for the returned events. Explicitly calling `decrypt_event()` with the correct `room_id` context allows the `OlmMachine` to retrieve keys from the SQLite store and transform the event into a readable `RoomMessageText` — **but only once the bot has uploaded its own keys (step 5) so a session key was ever shared with it.** `sync_forever` hides this by running `keys_upload`/`keys_query` for you; a hand-rolled loop must do it explicitly. Messages sent before the first `keys_upload` remain undecryptable forever (no key was ever shared); only messages sent afterward decrypt.
 
