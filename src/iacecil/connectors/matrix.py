@@ -163,6 +163,8 @@ class Connector(BaseConnector):
                 "To echo in encrypted rooms, install 'libolm-dev' on your system "
                 "and re-run 'pip install -r requirements.txt'."
             )
+        else:
+            os.makedirs(STORE_DIR, mode=0o700, exist_ok=True)
 
         client_config = nio.AsyncClientConfig(
             encryption_enabled=e2e_supported
