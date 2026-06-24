@@ -1,3 +1,14 @@
+<!--
+COMPLETED 2026-06-24 (branch feat/discord-echo-verify, commit 0a7cbcb).
+Outcome: connector code + docs were already implemented by prior commits
+9c7726c / 64ba4aa (observation ungated, is_authorized DM+channels gating,
+docs/connectors/discord.md). Added integration tests proving persistence +
+echo round-trip for DM / authorized guild / unauthorized guild, and fixed 3
+pre-existing connector-conformance failures. `pipenv run pytest` green (201
+passed). Per user preference this ran local-only: no push, no PR, no CI.
+Live smoke test against real Discord is a separate collaborative step.
+-->
+
 Start by invoking the `/lfg` skill (compound-engineering:lfg) to run this end-to-end autonomously: plan, work, code review, test, commit, push, open PR, watch CI, and fix CI failures until green. Treat everything below as the feature description for that pipeline.
 
 <objective>
