@@ -8,7 +8,12 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 One configured assembly of a Personalidade, an enabled plugin set, and platform credentials, named by its configuration entry. A bot's name keys its per-chat storage and its operator Log Sinks; one running process may host several bots, each with its own connector set.
 
 ### Connector
-A platform adapter that gives a Bot presence on one chat platform (Telegram, XMPP, Discord, Matrix, loopback). Implements connect, listen, send and disconnect; owns its platform's delivery policy (message splitting at the platform's length limit, failure handling). Each connector declares its own activation rule — which credential fields its config section must carry — so adding a platform requires no loader changes. A failing connector is marked down without stopping its siblings.
+A platform adapter that gives a Bot presence on one chat platform (Telegram, XMPP, Discord, Matrix, loopback). Implements connect, listen, send and disconnect; owns its platform's delivery policy (message splitting at the platform's length limit, failure handling) and decides which conversations it will answer (see Authorized conversation). Each connector declares its own activation rule — which credential fields its config section must carry — so adding a platform requires no loader changes. A failing connector is marked down without stopping its siblings.
+
+### Authorized conversation
+A conversation a Bot is allowed to *reply* in, as distinct from one it merely *observes*. Direct messages are always authorized; group conversations are authorized only when listed in the Connector's configured channel allowlist.
+
+Observation and response are separate concerns: every message a Connector can see becomes a Neutral Record regardless of authorization, but a reply is produced only for an authorized conversation. Each Connector judges authorization for its own platform — a direct message is recognized in platform-specific ways (no group/guild, a two-member room, a non-group message type) — so the policy lives in the Connector, not in the Plugin or Personalidade that generates the reply text.
 
 ### Envelope
 The platform-neutral representation of one inbound or outbound message. Carries a normalized core (platform, sender, conversation, text, reply reference, tags, the platform's native message id, timestamp) plus a raw native platform object and an extra dict as escape hatches; the core never inspects the escape hatches and they are never persisted.
