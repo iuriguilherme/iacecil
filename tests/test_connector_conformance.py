@@ -190,6 +190,12 @@ async def test_echo_round_trip_contract(name, monkeypatch):
     manager.connectors[name].running = True
     await add_envelope_handlers(manager)
     manager.connectors[name].send = AsyncMock()
+    ## This contract pins echo ROUTING (dispatch -> handler -> send), not
+    ## authorization policy. Channel-gating connectors (discord/matrix/xmpp)
+    ## would otherwise refuse to answer the unauthorized 'chat' conversation;
+    ## their is_authorized behavior is covered by their own per-connector
+    ## tests, so force-authorize here the same way persistence is stubbed out.
+    manager.connectors[name].is_authorized = lambda env: True
 
     await manager.dispatch(Envelope(name, 'user', 'chat', 'echo me'))
 

@@ -5,6 +5,28 @@ from unittest.mock import AsyncMock, MagicMock
 
 from iacecil.models.envelope import Envelope
 from iacecil.connectors.discord import Connector
+from iacecil.connectors import ConnectorManager
+from plugins.echo import add_envelope_handlers
+import iacecil.controllers.persistence.neutral as neutral
+
+
+async def _all_records():
+    db = await neutral.get_messages_db()
+    with db.transaction() as conn:
+        if not hasattr(conn.root, 'messages'):
+            return []
+        return [dict(r) for r in conn.root.messages.values()]
+
+
+def _wired_manager():
+    """A real ConnectorManager with the echo default handler and a stubbed
+    Discord send — so dispatch runs persistence + is_authorized gating for
+    real, but no live gateway is touched."""
+    manager = ConnectorManager({'discord': {'token': 'fake', 'channels': ['222']}})
+    conn = manager.connectors['discord']
+    conn.running = True
+    conn.send = AsyncMock()
+    return manager, conn
 
 
 class FakeAuthor:
@@ -205,3 +227,54 @@ async def test_send_times_out_and_drops(caplog):
     with caplog.at_level(logging.ERROR):
         await conn.send(Envelope('discord', 'u', '123', 'hi'))
     assert any('timed out' in r.getMessage() for r in caplog.records)
+
+
+## ---------------------------------------------------------------------------
+## Integration: full on_message -> dispatch -> persistence -> echo/auth gating
+## through a REAL ConnectorManager (not a mocked dispatch). Proves the prompt's
+## observation-vs-response split: every message is persisted, but only DMs and
+## authorized channels get an echo reply.
+## ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_dm_echo_round_trip_persists():
+    """DM: persisted in+out, and the echo reply is actually sent."""
+    manager, conn = _wired_manager()
+    await add_envelope_handlers(manager)
+
+    await conn._on_message(FakeMessage(content="echo me", guild=None))
+
+    conn.send.assert_called_once()
+    records = await _all_records()
+    assert sorted(r['direction'] for r in records) == ['in', 'out']
+    out = [r for r in records if r['direction'] == 'out'][0]
+    assert out['text'] == 'echo me'
+
+
+@pytest.mark.asyncio
+async def test_authorized_guild_echo_round_trip_persists():
+    """Authorized guild channel (222 in channels): persisted in+out, reply sent."""
+    manager, conn = _wired_manager()
+    await add_envelope_handlers(manager)
+
+    await conn._on_message(FakeMessage(content="hi guild", guild=object()))
+
+    conn.send.assert_called_once()
+    records = await _all_records()
+    assert sorted(r['direction'] for r in records) == ['in', 'out']
+
+
+@pytest.mark.asyncio
+async def test_unauthorized_guild_persists_but_no_reply():
+    """Unauthorized guild channel: observed and persisted, but NO echo reply."""
+    manager, conn = _wired_manager()
+    await add_envelope_handlers(manager)
+
+    msg = FakeMessage(content="unauth", guild=object())
+    msg.channel = FakeChannel(999)  # not in channels=['222']
+    await conn._on_message(msg)
+
+    conn.send.assert_not_called()
+    records = await _all_records()
+    assert [r['direction'] for r in records] == ['in']
+    assert records[0]['text'] == 'unauth'
