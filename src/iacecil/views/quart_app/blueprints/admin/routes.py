@@ -76,6 +76,36 @@ from plugins.natural import (
         # ~ super().__init__(*args, formdata = formdata, **kwargs)
 
 # ~ class BotChatTextForm(SubFlaskForm):
+def configured_bots() -> list:
+    """Bot identities this process knows, read from configuration.
+
+    The connectors run in their own process now, so there is no live
+    dispatcher to ask (R8). Identity comes from `instance/` instead.
+    """
+    return list(getattr(current_app, 'bot_identities', []))
+
+
+def bot_choices() -> list:
+    return [(identity['id'], identity['first_name'])
+        for identity in configured_bots()]
+
+
+def stored_chat_choices(bot_id) -> list:
+    """Chats this bot has stored data for.
+
+    Titles used to come from `bot.get_chat()` on a live bot object.
+    Without one in this process, the stored chat id is the label; slice
+    2's control channel is what can enrich it again.
+    """
+    db_path = 'instance/zodb/bots/{}/chats'.format(bot_id)
+    try:
+        chats_list = set([os.path.basename(chat).split('.')[0]
+            for chat in glob.glob('{}/*.fs'.format(db_path))])
+    except FileNotFoundError:
+        chats_list = set()
+    return [(chat_id, chat_id) for chat_id in sorted(chats_list)]
+
+
 class BotChatLimitOffsetForm(FlaskForm):
     bot_id_field = RadioField(
         u"select bot",
@@ -95,39 +125,9 @@ class BotChatLimitOffsetForm(FlaskForm):
     )
     submit = SubmitField(u"Send")
     async def validate_bot_id_field(form, field):
-        field.choices = [
-            (user['id'], user['first_name']) for
-            user in [await dispatcher.bot.get_me() for
-            dispatcher in current_app.dispatchers]
-        ]
+        field.choices = bot_choices()
     async def validate_chat_id_field(form, field, bot_id):
-        bot_current = [dispatcher.bot for dispatcher in \
-            current_app.dispatchers if str(dispatcher.bot.id
-            ) == bot_id
-        ][0]
-        db_path = 'instance/zodb/bots/{}/chats'.format(bot_id)
-        try:
-            chats_list = set([os.path.basename(chat).split('.')[0
-                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-            )
-        except FileNotFoundError:
-            os.makedirs(db_path)
-            chats_list = set([os.path.basename(chat).split('.')[0
-                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-            )
-        chats_info = list()
-        for chat_id in chats_list:
-            try:
-                chats_info.append(await bot_current.get_chat(chat_id))
-            except:
-                chats_info.append({'id': chat_id, 'title': u"Unknown"})
-        chats = [{'id': chat['id'], 'desc': chat['title']
-            } if chat['title'
-            ] is not None else {'id': chat['id'], 'desc': chat[
-            'first_name']} for chat in chats_info
-        ]
-        field.choices = [(int(chat['id']),
-            chat['desc']) for chat in chats]
+        field.choices = stored_chat_choices(bot_id)
 
 class BotChatTextForm(FlaskForm):
     bot_id_field = RadioField(
@@ -144,39 +144,9 @@ class BotChatTextForm(FlaskForm):
     )
     submit = SubmitField(u"Send")
     async def validate_bot_id_field(form, field):
-        field.choices = [
-            (user['id'], user['first_name']) for
-            user in [await dispatcher.bot.get_me() for
-            dispatcher in current_app.dispatchers]
-        ]
+        field.choices = bot_choices()
     async def validate_chat_id_field(form, field, bot_id):
-        bot_current = [dispatcher.bot for dispatcher in \
-            current_app.dispatchers if str(dispatcher.bot.id
-            ) == bot_id
-        ][0]
-        db_path = 'instance/zodb/bots/{}/chats'.format(bot_id)
-        try:
-            chats_list = set([os.path.basename(chat).split('.')[0
-                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-            )
-        except FileNotFoundError:
-            os.makedirs(db_path)
-            chats_list = set([os.path.basename(chat).split('.')[0
-                ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-            )
-        chats_info = list()
-        for chat_id in chats_list:
-            try:
-                chats_info.append(await bot_current.get_chat(chat_id))
-            except:
-                chats_info.append({'id': chat_id, 'title': u"Unknown"})
-        chats = [{'id': chat['id'], 'desc': chat['title']
-            } if chat['title'
-            ] is not None else {'id': chat['id'], 'desc': chat[
-            'first_name']} for chat in chats_info
-        ]
-        field.choices = [(int(chat['id']),
-            chat['desc']) for chat in chats]
+        field.choices = stored_chat_choices(bot_id)
 
 class BotForm(FlaskForm):
     bot_id_field = HiddenField()
@@ -189,156 +159,37 @@ class BotForm(FlaskForm):
         # ~ ]
 
 async def send_message(active_tab = {}):
-    message = None
-    form = BotChatTextForm(formdata = await request.form)
-    await form.validate_bot_id_field(form.bot_id_field)
-    if form['bot_id_field'].data:
-        try:
-            await form.validate_chat_id_field(
-                form.chat_id_field,
-                form['bot_id_field'].data,
-            )
-        except Exception as exception:
-            return jsonify(repr(exception))
-            raise
-    if request.method == "POST":
-        try:
-            # ~ form = await request.form
-            dispatcher = [dispatcher for 
-                dispatcher in current_app.dispatchers if 
-                int(form['bot_id_field'].data) == int((
-                await dispatcher.bot.get_me())['id'])
-            ][0]
-            message = await dispatcher.bot.send_message(
-                chat_id = int(form['chat_id_field'].data),
-                text = str(form['text_field'].data),
-                parse_mode = None,
-            )
-        except Exception as exception:
-            return jsonify(repr(exception))
-            raise
-    return await render_template(
-        "admin/send_message.html",
-        active = {
-            'nav': dict(
-                current_app.active_nav.copy(),
-                admin = ' active',
-            ),
-            'tab': dict(
-                active_tab.copy(),
-                send_message = ' active',
-            ),
-        },
-        commit = commit,
-        form = form,
-        message = message,
-        name = name,
-        title = u"Send Message",
-        version = version,
-    )
+    """SLICE-2: requires the connector control channel.
+
+    This route acted on a live in-process aiogram bot. The connectors
+    run in their own process now, so the web unit has nothing to act on
+    until slice 2 adds the control channel. The previous implementation
+    is in git history at the commit that disabled it.
+    """
+    return jsonify({
+        'error': 'not available',
+        'reason': 'sending a message needs a live bot in this process',
+        'available_in': 'slice 2 (connector control channel)',
+    }), 503
 
 async def updates(active_tab = {}):
-    messages = None
-    chats = None
-    count = {'total': 0, 'current': 0}
-    bots = [user for user in [await dispatcher.bot.get_me() for \
-        dispatcher in current_app.dispatchers]]
-    class UpdatesForm(BotChatLimitOffsetForm):
-        bot_id_field = RadioField(
-            u"select bot",
-            choices = [(user['id'], user['first_name']
-                ) for user in bots],
-        )
-        chat_id_field = RadioField(
-            u"select chat",
-            choices = [],
-        )
-        limit_field = IntegerField(
-            'limit',
-            default = 30,
-        )
-        offset_field = IntegerField(
-            'offset',
-            default = 0,
-        )
-        submit = SubmitField(u"Send")
-    form = BotChatLimitOffsetForm(formdata = await request.form)
-    await form.validate_bot_id_field(form.bot_id_field)
-    if form['bot_id_field'].data:
-        try:
-            await form.validate_chat_id_field(
-                form.chat_id_field,
-                form['bot_id_field'].data,
-            )
-        except Exception as exception:
-            return jsonify(repr(exception))
-    if request.method == "POST":
-        try:
-            db = None
-            try:
-                db, pms = await get_bot_messages(
-                    form['bot_id_field'].data,
-                    form['chat_id_field'].data,
-                )
-                if db and pms:
-                    try:
-                        count['total'] = len(pms)
-                        offset = None
-                        limit = None
-                        if form['limit_field'].data > 0:
-                            limit = -(1+form['limit_field'].data+form[
-                                'offset_field'].data)
-                        if form['offset_field'].data > 0:
-                            offset = -(1+form['offset_field'].data)
-                            limit = limit + 1
-                        messages = [{k:v for (k,v) in pm.items()
-                            } for pm in pms.values()][offset:limit:-1]
-                        count['current'] = len(messages)
-                    except Exception as e1:
-                        logger.warning(
-                            u"Message NOT retrieved from database",
-                        )
-                        raise
-                    finally:
-                        try:
-                            db.close()
-                        except Exception as e2:
-                            logger.warning(u"""db was never created on \
-{}: {}""".format(__name__, repr(e2)))
-                            raise
-            except Exception as e3:
-                logger.warning(repr(e3))
-                raise
-        except Exception as exception:
-            return jsonify(repr(exception))
-    return await render_template(
-        "admin/updates.html",
-        active = {
-            'nav': dict(
-                current_app.active_nav.copy(),
-                admin = ' active',
-            ),
-            'tab': dict(
-                active_tab.copy(),
-                updates = ' active',
-            ),
-        },
-        commit = commit,
-        count = count,
-        bots = bots,
-        chats = chats,
-        form = form,
-        messages = messages,
-        name = name,
-        title = u"Messages",
-        version = version,
-    )
+    """SLICE-2: requires the connector control channel.
+
+    This route acted on a live in-process aiogram bot. The connectors
+    run in their own process now, so the web unit has nothing to act on
+    until slice 2 adds the control channel. The previous implementation
+    is in git history at the commit that disabled it.
+    """
+    return jsonify({
+        'error': 'not available',
+        'reason': 'fetching updates needs a live bot in this process',
+        'available_in': 'slice 2 (connector control channel)',
+    }), 503
 
 async def files(active_tab = {}):
     files = None
     count = {'total': 0, 'current': 0}
-    bots = [user for user in [await dispatcher.bot.get_me() for \
-        dispatcher in current_app.dispatchers]]
+    bots = configured_bots()
     class FilesForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
@@ -425,8 +276,7 @@ async def messages_texts_list(active_tab = {}):
     messages = (0, None)
     chats = None
     count = {'total': 0, 'current': 0}
-    bots = [user for user in [await dispatcher.bot.get_me() for \
-        dispatcher in current_app.dispatchers]]
+    bots = configured_bots()
     class MessagesTextsForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
@@ -449,40 +299,11 @@ async def messages_texts_list(active_tab = {}):
     form = MessagesTextsForm(formdata = await request.form)
     if form['bot_id_field'].data:
         try:
-            bot_current = [dispatcher.bot for dispatcher in \
-                current_app.dispatchers if str(dispatcher.bot.id
-                ) == form['bot_id_field'].data
-            ][0]
-            db_path = 'instance/zodb/bots/{}/chats'.format(
-                form['bot_id_field'].data
-            )
-            try:
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            except FileNotFoundError:
-                os.makedirs(db_path)
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            chats_info = list()
-            for chat_id in chats_list:
-                try:
-                    chats_info.append(
-                        await bot_current.get_chat(chat_id)
-                    )
-                except:
-                    chats_info.append({
-                        'id': chat_id,
-                        'title': u"Unknown",
-                    })
-            chats = [{'id': chat['id'], 'desc': chat['title']
-                } if chat['title'
-                ] is not None else {'id': chat['id'], 'desc': chat[
-                'first_name']} for chat in chats_info
-            ]
-            form['chat_id_field'].choices = [(int(chat['id']),
-                chat['desc']) for chat in chats]
+            chats = [{'id': chat_id, 'desc': label}
+                for chat_id, label in stored_chat_choices(
+                    form['bot_id_field'].data)]
+            form['chat_id_field'].choices = [(chat['id'], chat['desc'])
+                for chat in chats]
         except Exception as exception:
             return jsonify(repr(exception))
     if request.method == "POST":
@@ -537,8 +358,7 @@ async def messages_list(active_tab = {}):
     messages = (0, None)
     chats = None
     count = {'total': 0, 'current': 0}
-    bots = [user for user in [await dispatcher.bot.get_me() for \
-        dispatcher in current_app.dispatchers]]
+    bots = configured_bots()
     class MessagesForm(BotChatLimitOffsetForm):
         bot_id_field = RadioField(
             u"select bot",
@@ -561,40 +381,11 @@ async def messages_list(active_tab = {}):
     form = MessagesForm(formdata = await request.form)
     if form['bot_id_field'].data:
         try:
-            bot_current = [dispatcher.bot for dispatcher in \
-                current_app.dispatchers if str(dispatcher.bot.id
-                ) == form['bot_id_field'].data
-            ][0]
-            db_path = 'instance/zodb/bots/{}/chats'.format(
-                form['bot_id_field'].data
-            )
-            try:
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            except FileNotFoundError:
-                os.makedirs(db_path)
-                chats_list = set([os.path.basename(chat).split('.')[0
-                    ] for chat in glob.glob('{}/*.fs'.format(db_path))]
-                )
-            chats_info = list()
-            for chat_id in chats_list:
-                try:
-                    chats_info.append(
-                        await bot_current.get_chat(chat_id)
-                    )
-                except:
-                    chats_info.append({
-                        'id': chat_id,
-                        'title': u"Unknown",
-                    })
-            chats = [{'id': chat['id'], 'desc': chat['title']
-                } if chat['title'
-                ] is not None else {'id': chat['id'], 'desc': chat[
-                'first_name']} for chat in chats_info
-            ]
-            form['chat_id_field'].choices = [(int(chat['id']),
-                chat['desc']) for chat in chats]
+            chats = [{'id': chat_id, 'desc': label}
+                for chat_id, label in stored_chat_choices(
+                    form['bot_id_field'].data)]
+            form['chat_id_field'].choices = [(chat['id'], chat['desc'])
+                for chat in chats]
         except Exception as exception:
             return jsonify(repr(exception))
     if request.method == "POST":
@@ -645,76 +436,15 @@ async def messages_list(active_tab = {}):
     )
 
 async def polling(active_tab = {}):
-    try:
-        users = [{
-            'user': dispatcher,
-            'info': await dispatcher.bot.get_me(),
-            'status': dispatcher.is_polling(),
-        } for dispatcher in current_app.dispatchers]
-        names = [user['info']['first_name'] for user in users]
-        await flash(
-            f"""Total configured bots: {len(users)}\nTotal bots that are \
-polling: {len([user['status'] for user in users if user['status']])}""",
-            'info',
-        )
-        form = BotForm(formdata = await request.form)
-        # ~ await form.validate_bot_id_field(form.bot_id_field)
-        # ~ if form['bot_id_field'].data:
-            # ~ await form.validate_chat_id_field(
-                # ~ form.chat_id_field,
-                # ~ form['bot_id_field'].data,
-            # ~ )
-        if request.method == "POST":
-            try:
-                # ~ form = await request.form
-                dispatcher = [dispatcher for 
-                    dispatcher in current_app.dispatchers if 
-                    int(form['bot_id_field'].data) == int((
-                    await dispatcher.bot.get_me())['id'])
-                ][0]
-                loop = asyncio.get_event_loop()
-                if dispatcher.is_polling():
-                    dispatcher.stop_polling()
-                    await dispatcher.wait_closed()
-                else:
-                    loop.create_task(dispatcher.start_polling(
-                        reset_webhook = True,
-                        timeout = 20,
-                        relax = 0.1,
-                        fast = True,
-                        allowed_updates = None,
-                    ))
-                    while not dispatcher.is_polling():
-                        await asyncio.sleep(1)
-                users = [{
-                    'user': dispatcher,
-                    'info': await dispatcher.bot.get_me(),
-                    'status': dispatcher.is_polling(),
-                } for dispatcher in current_app.dispatchers]
-            except Exception as exception:
-                logger.exception(exception)
-                return jsonify(repr(exception))
-                raise
-        return await render_template(
-            "admin/polling.html",
-            active = {
-                'nav': dict(
-                    current_app.active_nav.copy(),
-                    admin = ' active',
-                ),
-                'tab': dict(
-                    active_tab.copy(),
-                    polling = ' active',
-                ),
-            },
-            commit = commit,
-            name = name,
-            names = names,
-            title = "Polling status and control",
-            users = users,
-            version = version,
-        )
-    except Exception as exception:
-        logger.exception(exception)
-        return jsonify(repr(exception))
-        raise
+    """SLICE-2: requires the connector control channel.
+
+    This route acted on a live in-process aiogram bot. The connectors
+    run in their own process now, so the web unit has nothing to act on
+    until slice 2 adds the control channel. The previous implementation
+    is in git history at the commit that disabled it.
+    """
+    return jsonify({
+        'error': 'not available',
+        'reason': 'polling status and control live in the connector process',
+        'available_in': 'slice 2 (connector control channel)',
+    }), 503

@@ -32,16 +32,20 @@ from ..... import (
 )
 
 async def status(active_tab = {}):
+    ## Identity from configuration, not from a live bot: the connectors
+    ## run in their own process now (R8). Whether each one is actually
+    ## polling is connector-process knowledge, so this page reports what
+    ## is configured and says plainly that it cannot see run state until
+    ## slice 2 adds the connector health view.
+    identities = list(getattr(current_app, 'bot_identities', []))
     users = [{
-        'user': await dispatcher.bot.get_me(),
-        'status': dispatcher.is_polling(),
-    } for dispatcher in current_app.dispatchers]
+        'user': identity,
+        'status': identity.get('status'),
+    } for identity in identities]
     names = [user['user']['first_name'] for user in users]
     await flash(
-        u"Total configured bots: {0}\nTotal running bots: {1}".format(
-            len(users),
-            len([user['status'] for user in users if user['status']]),
-        ), 'info')
+        u"Total configured bots: {0}\nRunning state: unknown from the web \
+process until the connector health view lands".format(len(users)), 'info')
     return await render_template(
         "root/status.html",
         active = {
