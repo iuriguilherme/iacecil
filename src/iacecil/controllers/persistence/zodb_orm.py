@@ -59,20 +59,21 @@ async def croak_transaction(transaction):
             exception))
         )
 
-async def get_db(path_string):
+async def get_db(path_string, read_only=False):
+    """Open one legacy store.
+
+    Legacy data keeps its own per-chat layout, so ZEO never names these
+    files as storages (consolidating them is deferred; see the slice 1
+    plan's follow-up work). Cross-process sharing relies on read_only
+    instead: FileStorage takes its exclusive lock only for a writer, so
+    the web unit reads what the connector unit holds open for writing.
+    """
     try:
-        try:
-            storage = ZODB.FileStorage.FileStorage(path_string)
-        except FileNotFoundError:
-            os.makedirs(os.path.dirname(path_string))
-            storage = ZODB.FileStorage.FileStorage(path_string)
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
-        return db
+        from .storage import open_db
+        return open_db(path_string, read_only=read_only)
     except Exception as exception:
         logging.warning(repr(exception))
         raise
-    return None
 
 async def get_messages(chat_id):
     if not await assertIsNotNone([chat_id]):

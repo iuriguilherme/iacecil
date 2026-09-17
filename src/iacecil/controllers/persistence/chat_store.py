@@ -27,11 +27,9 @@ import uuid
 from collections import OrderedDict
 
 import BTrees
-import zc.zlibstorage
-import ZODB
-import ZODB.FileStorage
 from ZODB.POSException import ConflictError
 
+from . import storage
 from .path_utils import sanitize_component
 
 logger = logging.getLogger(__name__)
@@ -75,6 +73,12 @@ def _chat_key(connector, chat_id) -> str:
     """
     return '{}/{}'.format(
         sanitize_component(connector), sanitize_component(chat_id))
+
+
+def _storage_name(bot_id) -> str:
+    """Name the ZEO server serves this bot's chats under. Fixed at
+    server startup: one per configured bot, never minted per chat."""
+    return storage.storage_name_for_bot(bot_id)
 
 
 def _chat_db_path(bot_id) -> str:
@@ -122,15 +126,13 @@ def _chat_container(root, key: str):
     return chat
 
 
-def _get_db(path: str):
-    ## Serialize cache lookup, FileStorage open, and eviction so
-    ## concurrent worker threads cannot double-open the same .fs.
+def _get_db(path: str, storage_name=None):
+    ## Serialize cache lookup, storage open, and eviction so concurrent
+    ## worker threads cannot double-open the same .fs.
     with _dbs_lock:
         db = _dbs.pop(path, None)
         if db is None:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            storage = ZODB.FileStorage.FileStorage(path)
-            db = ZODB.DB(zc.zlibstorage.ZlibStorage(storage))
+            db = storage.open_db(path, storage_name)
             ## Create the root container once, here under the lock, so
             ## concurrent writers never race to replace a root attribute
             ## (unresolvable); they then only do OOBTree/TreeSet inserts,
@@ -157,13 +159,15 @@ async def store_message(bot_id: str, envelope, direction: str = 'in'):
     """
     path = _chat_db_path(bot_id)
     key = _chat_key(envelope.platform, envelope.conversation_ref)
-    ## FileStorage open + ZODB commit are blocking; keep off the loop.
+    ## Storage open + ZODB commit are blocking; keep off the loop.
     return await asyncio.to_thread(
-        _store_message_sync, path, key, envelope, direction)
+        _store_message_sync, path, _storage_name(bot_id), key, envelope,
+        direction)
 
 
-def _store_message_sync(path: str, key: str, envelope, direction: str = 'in'):
-    db = _get_db(path)
+def _store_message_sync(path: str, storage_name: str, key: str, envelope,
+        direction: str = 'in'):
+    db = _get_db(path, storage_name)
     for attempt in range(_MAX_COMMIT_RETRIES):
         try:
             return _write_record(db, key, envelope, direction)

@@ -5,11 +5,11 @@ import time
 import uuid
 import BTrees
 import transaction
-import zc.zlibstorage
 import ZODB
-import ZODB.FileStorage
 from ZODB.POSException import ConflictError
 import persistent
+
+from . import storage
 
 logger = logging.getLogger(__name__)
 
@@ -20,20 +20,16 @@ _MAX_COMMIT_RETRIES = 5
 _people_db = None
 _messages_db = None
 
-def _get_shared_db(db_path):
-    try:
-        storage = ZODB.FileStorage.FileStorage(db_path)
-    except FileNotFoundError:
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        storage = ZODB.FileStorage.FileStorage(db_path)
-    compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-    return ZODB.DB(compressed_storage)
+def _get_shared_db(db_path, storage_name):
+    """Open one shared store: a ZEO client when shared storage is
+    configured, a local FileStorage otherwise (see persistence.storage)."""
+    return storage.open_db(db_path, storage_name)
 
 async def get_people_db():
     global _people_db
     if _people_db is None:
         db_path = f"{zodb_path}/people.fs"
-        _people_db = _get_shared_db(db_path)
+        _people_db = _get_shared_db(db_path, 'people')
         ## Pre-create roots once (on the single-threaded loop) so the
         ## concurrent to_thread writers below never race to replace a
         ## root attribute (unresolvable conflict).
@@ -49,7 +45,7 @@ async def get_messages_db():
     global _messages_db
     if _messages_db is None:
         db_path = f"{zodb_path}/messages.fs"
-        _messages_db = _get_shared_db(db_path)
+        _messages_db = _get_shared_db(db_path, 'messages')
         with _messages_db.transaction() as connection:
             root = connection.root
             if not hasattr(root, 'messages'):

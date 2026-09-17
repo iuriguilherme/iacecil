@@ -8,6 +8,10 @@ def isolated_zodb(tmp_path, monkeypatch):
     import iacecil.controllers.persistence.neutral as neutral
     import iacecil.controllers.persistence.chat_store as chat_store
     import iacecil.connectors.matrix as matrix_mod
+    import iacecil.controllers.persistence.storage as storage
+    ## Local FileStorage unless a test opts into a real ZEO server, so
+    ## one test's shared-storage config can never leak into the next.
+    monkeypatch.setattr(storage, 'zeo_address', None)
     monkeypatch.setattr(neutral, 'zodb_path', str(tmp_path / 'zodb'))
     monkeypatch.setattr(chat_store, 'zodb_path', str(tmp_path / 'zodb'))
     monkeypatch.setattr(matrix_mod, 'TOKEN_DIR', str(tmp_path / 'matrix'))
