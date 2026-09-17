@@ -104,7 +104,7 @@ Deferred to slice 2 (and beyond):
 
 Deferred to planning:
 
-- The exact ZEO topology: one ZEO server hosting all per-bot/per-chat storages, or one server per storage. Affects R9/R10 wiring and the connect-string config shape; resolvable by reading the `instance/zodb/` layout during planning.
+- ~~The exact ZEO topology~~ **Resolved 2026-09-17 in planning:** one ZEO server hosting a storage set that is fixed at startup — `people`, `messages`, and one `chats_<bot_id>` per bot. A ZEO server serves only the storages its config names, while `chat_store` creates a new `.fs` per chat at runtime, so slice 1 also consolidates the per-chat stores into one storage per bot keyed by `(connector, chat_id)`. See R13 in `docs/plans/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md`.
 - Whether `production` becomes a thin supervisor-launcher or a new dedicated mode (e.g. `supervised`), and the exact supervisor entry shape.
 - Backoff policy, zombie reaping, ZEO-readiness gating, and signal-forwarding specifics for the supervisor.
 - The exact set of web read routes R8 must migrate to config-sourced identity (resolved by the `current_app.dispatchers` / `dispatcher.bot` grep during planning).
