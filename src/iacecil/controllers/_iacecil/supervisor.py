@@ -39,7 +39,6 @@ import signal
 import socket
 import time
 from dataclasses import dataclass
-from importlib import import_module
 from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
@@ -253,7 +252,8 @@ def connector_unit(argv) -> None:
 
 def web_unit(argv) -> None:
     """Run uvicorn + Quart, with no ConnectorManager in the process."""
-    import_module('iacecil.controllers._iacecil.production')
+    from .production import run_web
+    run_web(*argv)
 
 
 def zeo_is_ready(argv) -> Callable[[], bool]:
