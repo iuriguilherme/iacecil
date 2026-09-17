@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import logging
 import os
 import time
@@ -19,6 +20,22 @@ zodb_path = 'instance/zodb'
 _MAX_COMMIT_RETRIES = 5
 _people_db = None
 _messages_db = None
+
+## Availability over durability (R11): when shared storage is
+## unreachable, connectors keep answering and their message records wait
+## here until a write succeeds again. In memory only, so the bound is the
+## accepted loss — a connector process that dies mid-outage takes the
+## buffer with it. Oldest records are dropped first once it is full.
+_WRITE_BUFFER_MAX = 10000
+_write_buffer = collections.deque(maxlen=_WRITE_BUFFER_MAX)
+
+try:
+    from ZEO.Exceptions import ClientDisconnected
+    ## OSError covers the socket-level failures a dying server produces
+    ## before ZEO reports its own disconnect.
+    _STORAGE_UNREACHABLE = (ClientDisconnected, OSError)
+except ImportError:  ## pragma: no cover - ZEO is optional
+    _STORAGE_UNREACHABLE = (OSError,)
 
 def _get_shared_db(db_path, storage_name):
     """Open one shared store: a ZEO client when shared storage is
@@ -113,16 +130,76 @@ def _merge_persons_sync(db, id1: str, id2: str) -> str:
         return p1.id
 
 async def persist_envelope(envelope, direction: str = 'in'):
-    db = await get_messages_db()
-    return await asyncio.to_thread(
-        _commit_with_retry, _persist_envelope_sync, db, envelope, direction)
+    """Append one normalized record to the global message store.
 
-def _persist_envelope_sync(db, envelope, direction: str = 'in'):
+    The id is minted here rather than inside the transaction, so a record
+    written now and a record buffered through an outage carry the same
+    kind of id and the caller always gets one back.
+    """
+    msg_id = str(uuid.uuid4())
+    record = _build_record(envelope, direction)
+    try:
+        db = await get_messages_db()
+    except _STORAGE_UNREACHABLE as exception:
+        _buffer_record(msg_id, record, exception)
+        return msg_id
+    return await asyncio.to_thread(_persist_sync, db, msg_id, record)
+
+def _persist_sync(db, msg_id, record):
+    ## Flush first: a successful write proves storage is back, and the
+    ## buffered records are older than this one.
+    flush_failure = _flush_buffer(db)
+    if flush_failure is not None:
+        ## Storage is still down, or went down again mid-flush. Queue
+        ## this record behind the ones already waiting rather than
+        ## writing it ahead of them and scrambling the order.
+        _buffer_record(msg_id, record, flush_failure)
+        return msg_id
+    try:
+        return _commit_with_retry(_write_message_record, db, msg_id, record)
+    except _STORAGE_UNREACHABLE as exception:
+        _buffer_record(msg_id, record, exception)
+        return msg_id
+
+def _buffer_record(msg_id, record, exception):
+    if len(_write_buffer) == _write_buffer.maxlen:
+        logger.warning(
+            "Neutral write buffer full; dropping the oldest record")
+    _write_buffer.append((msg_id, record))
+    logger.warning(
+        f"Storage unreachable ({exception!r}); buffered neutral record "
+        f"{msg_id} ({len(_write_buffer)} waiting)")
+
+def _flush_buffer(db):
+    """Write every buffered record, oldest first.
+
+    Returns None once the buffer is empty, or the exception that stopped
+    the flush. A record whose write fails goes back at the front, ahead
+    of the ones behind it, so an outage that returns mid-flush loses
+    nothing and the order is preserved.
+    """
+    while _write_buffer:
+        msg_id, record = _write_buffer.popleft()
+        try:
+            _commit_with_retry(_write_message_record, db, msg_id, record)
+        except _STORAGE_UNREACHABLE as exception:
+            _write_buffer.appendleft((msg_id, record))
+            logger.warning(
+                f"Storage unreachable during flush ({exception!r}); "
+                f"{len(_write_buffer)} records still buffered")
+            return exception
+        logger.info(f"Flushed buffered neutral record {msg_id}")
+    return None
+
+def _write_message_record(db, msg_id, record):
     with db.transaction() as connection:
         root = connection.root
         if not hasattr(root, 'messages'):
             root.messages = BTrees.OOBTree.OOBTree()
+        root.messages[msg_id] = record
+        return msg_id
 
+def _build_record(envelope, direction: str = 'in'):
         ## NOTE: this is the global messages.fs schema and uses 'platform'
         ## (the Envelope field name). The per-chat chat_store uses
         ## 'connector' for the same value — deliberately distinct schemas
@@ -142,7 +219,4 @@ def _persist_envelope_sync(db, envelope, direction: str = 'in'):
             ## Old records lack these keys — readers use .get().
             'timestamp': getattr(envelope, 'timestamp', None) or time.time(),
         }
-
-        msg_id = str(uuid.uuid4())
-        root.messages[msg_id] = record
-        return msg_id
+        return record
