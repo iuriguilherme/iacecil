@@ -54,6 +54,14 @@ class BotConfig(BaseSettings):
     loopback: dict = dict(
         enabled = False,
     ) # loopback
+    ## Shared storage. Off by default: persistence opens FileStorage
+    ## directly, which one process at a time may hold. Turn it on to run
+    ## the connector unit and the web unit as separate processes against
+    ## one ZEO server, so a web crash never takes the bots down.
+    zeo: dict = dict(
+        enabled = False,
+        address = ("localhost", 8100),
+    ) # zeo
     
     personalidade: str = "matebot"
     plugins: dict = dict(

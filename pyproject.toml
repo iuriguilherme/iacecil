@@ -85,6 +85,7 @@ dependencies = [
     "youtube-dl==2021.12.17",
     "yt-dlp==2025.11.12",
     "zc.zlibstorage==1.2.0",
+    "zeo==6.0.0",
     "zodb==6.1",
 ]
 
