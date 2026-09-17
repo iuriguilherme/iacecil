@@ -25,12 +25,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 import BTrees
-import os
 import transaction
 import uuid
-import zc.zlibstorage
-import ZODB
-import ZODB.FileStorage
 from aiogram import (
     Dispatcher,
 )

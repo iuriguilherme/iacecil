@@ -32,6 +32,39 @@ logger = logging.getLogger(__name__)
 ## the same way zodb_path is repointed on neutral and chat_store.
 zeo_address = None
 
+## How long a client waits for the server before giving up. ZEO's own
+## default is 30 seconds, which is far too long here: a connector that
+## blocks that long on a dropped connection has stopped answering, which
+## is the very thing the write buffer exists to prevent. Failing fast
+## and buffering is the design (R11), and the supervisor's readiness
+## gate is what handles a server that is merely slow to boot.
+ZEO_WAIT_TIMEOUT = 2.0
+
+
+def address_from_conf(zeo_conf):
+    """The address in one bot's ``zeo`` section, or None.
+
+    None means local files: the section is missing, disabled, or names
+    no address. Every caller that needs a ZEO address goes through here,
+    so "what counts as configured" has one answer.
+    """
+    if not zeo_conf or not zeo_conf.get('enabled'):
+        return None
+    address = zeo_conf.get('address')
+    if not address:
+        logger.warning("zeo enabled without an address; using local storage")
+        return None
+    return tuple(address) if isinstance(address, list) else address
+
+
+def address_from_configs(configs):
+    """The first ZEO address any configured bot names, or None."""
+    for config in (configs or {}).values():
+        address = address_from_conf(getattr(config, 'zeo', None))
+        if address is not None:
+            return address
+    return None
+
 
 def configure(zeo_conf) -> None:
     """Point every store at a ZEO server, or back at local files.
@@ -41,17 +74,9 @@ def configure(zeo_conf) -> None:
     so a single-process deployment needs no config change.
     """
     global zeo_address
-    if not zeo_conf or not zeo_conf.get('enabled'):
-        zeo_address = None
-        return
-    address = zeo_conf.get('address')
-    if not address:
-        logger.warning(
-            "zeo enabled without an address; using local storage")
-        zeo_address = None
-        return
-    zeo_address = tuple(address) if isinstance(address, list) else address
-    logger.info(f"Persistence connecting to ZEO at {zeo_address}")
+    zeo_address = address_from_conf(zeo_conf)
+    if zeo_address is not None:
+        logger.info(f"Persistence connecting to ZEO at {zeo_address}")
 
 
 def storage_name_for_bot(bot_id: str) -> str:
@@ -61,7 +86,7 @@ def storage_name_for_bot(bot_id: str) -> str:
 
 
 def open_db(path: str, storage_name=None, read_only: bool = False,
-        wait: bool = True) -> ZODB.DB:
+        wait: bool = True, wait_timeout: float = ZEO_WAIT_TIMEOUT) -> ZODB.DB:
     """Open one storage as a ZODB.DB.
 
     ``storage_name`` is the name the ZEO server serves it under. Without
@@ -69,20 +94,23 @@ def open_db(path: str, storage_name=None, read_only: bool = False,
     FileStorage path is used even when ZEO is configured.
     """
     if zeo_address is not None and storage_name is not None:
-        base = _client_storage(storage_name, read_only=read_only, wait=wait)
+        base = _client_storage(storage_name, read_only=read_only, wait=wait,
+            wait_timeout=wait_timeout)
     else:
         base = _file_storage(path, read_only=read_only)
     return ZODB.DB(zc.zlibstorage.ZlibStorage(base))
 
 
-def _client_storage(storage_name: str, read_only: bool, wait: bool):
+def _client_storage(storage_name: str, read_only: bool, wait: bool,
+        wait_timeout: float):
     ## Imported lazily: a deployment that never enables ZEO does not need
     ## the server package importable at startup.
     import ZEO.ClientStorage
     logger.debug(
         f"Opening ZEO storage {storage_name} at {zeo_address}")
     return ZEO.ClientStorage.ClientStorage(
-        _address(), storage=storage_name, read_only=read_only, wait=wait)
+        _address(), storage=storage_name, read_only=read_only, wait=wait,
+        wait_timeout=wait_timeout)
 
 
 def _address():

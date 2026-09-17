@@ -53,6 +53,7 @@ def storage_paths(configs: dict, zodb_path: str = DEFAULT_ZODB_PATH) -> dict:
     Built from configuration at startup and never added to afterwards,
     which is what R13's consolidation makes possible.
     """
+    from iacecil.controllers.persistence.chat_store import chat_db_path
     from iacecil.controllers.persistence.storage import storage_name_for_bot
     base = os.path.abspath(zodb_path)
     storages = {
@@ -60,8 +61,12 @@ def storage_paths(configs: dict, zodb_path: str = DEFAULT_ZODB_PATH) -> dict:
         'messages': os.path.join(base, 'messages.fs'),
     }
     for bot_id in (configs or {}):
-        storages[storage_name_for_bot(bot_id)] = os.path.join(
-            base, 'bots', bot_id, 'chats.fs')
+        ## chat_db_path owns this layout. Joining it here instead would
+        ## skip the sanitizer, and a bot id with an uppercase letter or
+        ## an `@` would be served from a different file than the one the
+        ## chat store writes when ZEO is off.
+        storages[storage_name_for_bot(bot_id)] = chat_db_path(
+            bot_id, zodb_path)
     return storages
 
 
@@ -77,12 +82,9 @@ def storage_conf(storages: dict) -> str:
 
 def zeo_address(configs: dict):
     """The first configured ZEO address, or the default."""
-    for config in (configs or {}).values():
-        zeo = getattr(config, 'zeo', None) or {}
-        address = zeo.get('address')
-        if zeo.get('enabled') and address:
-            return tuple(address) if isinstance(address, list) else address
-    return DEFAULT_ADDRESS
+    from iacecil.controllers.persistence.storage import address_from_configs
+    address = address_from_configs(configs)
+    return address if address is not None else DEFAULT_ADDRESS
 
 
 def prepare_directories(storages: dict) -> None:

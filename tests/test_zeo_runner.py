@@ -164,3 +164,19 @@ def test_a_non_loopback_host_is_reported_not_silently_ignored(tmp_path,
             for record in caplog.records)
     finally:
         stop()
+
+
+def test_storage_path_matches_the_chat_store_for_awkward_bot_ids():
+    """The storage server and the chat store must agree on the file.
+
+    A bot id with an uppercase letter or an `@` encodes through
+    sanitize_component; a second hand-rolled join would serve a
+    different file than the one the chat store writes with ZEO off.
+    """
+    from iacecil.controllers.persistence.chat_store import chat_db_path
+
+    base = chat_store.zodb_path
+    for bot_id in ('mybot', 'MateHackersBot', 'bot@host'):
+        storages = zeo_runner.storage_paths({bot_id: FakeConfig()}, base)
+        served = storages[storage.storage_name_for_bot(bot_id)]
+        assert served == chat_db_path(bot_id, base), bot_id

@@ -1,23 +1,18 @@
 import asyncio
 import collections
 import logging
-import os
 import time
 import uuid
 import BTrees
 import transaction
-import ZODB
-from ZODB.POSException import ConflictError
 import persistent
 
 from . import storage
+from .retry import commit_with_retry as _commit_with_retry
 
 logger = logging.getLogger(__name__)
 
 zodb_path = 'instance/zodb'
-## Concurrent writers race on lazy root-structure init; messages.fs and
-## people.fs are shared across all chats, so retry the standard ZODB way.
-_MAX_COMMIT_RETRIES = 5
 _people_db = None
 _messages_db = None
 
@@ -42,42 +37,44 @@ def _get_shared_db(db_path, storage_name):
     configured, a local FileStorage otherwise (see persistence.storage)."""
     return storage.open_db(db_path, storage_name)
 
+def _open_people_db(db_path):
+    db = _get_shared_db(db_path, 'people')
+    ## Pre-create roots once, before any concurrent writer exists, so the
+    ## to_thread writers below never race to replace a root attribute
+    ## (an unresolvable conflict).
+    with db.transaction() as connection:
+        root = connection.root
+        if not hasattr(root, 'people'):
+            root.people = BTrees.OOBTree.OOBTree()
+        if not hasattr(root, 'mappings'):
+            root.mappings = BTrees.OOBTree.OOBTree()
+    return db
+
+def _open_messages_db(db_path):
+    db = _get_shared_db(db_path, 'messages')
+    with db.transaction() as connection:
+        root = connection.root
+        if not hasattr(root, 'messages'):
+            root.messages = BTrees.OOBTree.OOBTree()
+    return db
+
+## Opening a store blocks: a FileStorage open does I/O, and a ZEO client
+## waits for the server. Neither may run on the loop every connector
+## shares — a reconnect during a storage outage would freeze every bot
+## instead of buffering (R11).
 async def get_people_db():
     global _people_db
     if _people_db is None:
-        db_path = f"{zodb_path}/people.fs"
-        _people_db = _get_shared_db(db_path, 'people')
-        ## Pre-create roots once (on the single-threaded loop) so the
-        ## concurrent to_thread writers below never race to replace a
-        ## root attribute (unresolvable conflict).
-        with _people_db.transaction() as connection:
-            root = connection.root
-            if not hasattr(root, 'people'):
-                root.people = BTrees.OOBTree.OOBTree()
-            if not hasattr(root, 'mappings'):
-                root.mappings = BTrees.OOBTree.OOBTree()
+        _people_db = await asyncio.to_thread(
+            _open_people_db, f"{zodb_path}/people.fs")
     return _people_db
 
 async def get_messages_db():
     global _messages_db
     if _messages_db is None:
-        db_path = f"{zodb_path}/messages.fs"
-        _messages_db = _get_shared_db(db_path, 'messages')
-        with _messages_db.transaction() as connection:
-            root = connection.root
-            if not hasattr(root, 'messages'):
-                root.messages = BTrees.OOBTree.OOBTree()
+        _messages_db = await asyncio.to_thread(
+            _open_messages_db, f"{zodb_path}/messages.fs")
     return _messages_db
-
-def _commit_with_retry(fn, *args):
-    """Re-run a transaction function on ConflictError (concurrent writers
-    racing on shared ZODB roots). Runs inside asyncio.to_thread."""
-    for attempt in range(_MAX_COMMIT_RETRIES):
-        try:
-            return fn(*args)
-        except ConflictError:
-            if attempt == _MAX_COMMIT_RETRIES - 1:
-                raise
 
 class Person(persistent.Persistent):
     def __init__(self, person_id=None):

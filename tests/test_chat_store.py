@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 from iacecil.models.envelope import Envelope
 import iacecil.controllers.persistence.chat_store as chat_store
 from iacecil.controllers.persistence.chat_store import (
-    _chat_db_path,
+    chat_db_path,
     _chat_key,
     store_message,
 )
@@ -17,7 +17,7 @@ def env(platform='loopback', chat='local_chat', text='hi', native_id=None):
 
 
 async def _records(bot_id, envelope):
-    db = chat_store._get_db(_chat_db_path(bot_id))
+    db = chat_store._get_db(chat_db_path(bot_id))
     key = _chat_key(envelope.platform, envelope.conversation_ref)
     with db.transaction() as conn:
         chat = conn.root.chats.get(key)
@@ -36,7 +36,7 @@ async def test_same_chat_one_file_two_records(tmp_path):
     assert {r['text'] for r in records} == {'one', 'two'}
     assert all(r['connector'] == 'loopback' for r in records)
 
-    bots_dir = os.path.dirname(os.path.dirname(_chat_db_path('mybot')))
+    bots_dir = os.path.dirname(os.path.dirname(chat_db_path('mybot')))
     fs_files = [f for f in os.listdir(os.path.join(bots_dir, 'mybot'))
         if f.endswith('.fs')]
     assert fs_files == ['chats.fs']
@@ -56,7 +56,7 @@ async def test_two_connectors_same_chat_id_distinct_keys():
     assert [r['text'] for r in discord] == ['d']
     assert [r['text'] for r in matrix] == ['m']
     ## One storage for the bot, both chats inside it
-    assert os.path.exists(_chat_db_path('mybot'))
+    assert os.path.exists(chat_db_path('mybot'))
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_concurrent_same_chat_writes_no_collision():
     assert all(r is not None for r in results)
     assert len(await _records('mybot', env())) == 3
 
-    bots_dir = os.path.dirname(os.path.dirname(_chat_db_path('mybot')))
+    bots_dir = os.path.dirname(os.path.dirname(chat_db_path('mybot')))
     fs_files = [f for f in os.listdir(os.path.join(bots_dir, 'mybot'))
         if f.endswith('.fs')]
     assert fs_files == ['chats.fs']
@@ -100,7 +100,7 @@ async def test_concurrent_same_chat_writes_no_collision():
 
 def test_traversal_components_stay_under_base():
     base = os.path.abspath(chat_store.zodb_path)
-    assert _chat_db_path('../../../etc').startswith(base + os.sep)
+    assert chat_db_path('../../../etc').startswith(base + os.sep)
 
 
 def test_traversal_components_stay_inside_chat_key():
@@ -111,7 +111,7 @@ def test_traversal_components_stay_inside_chat_key():
 def test_containment_assert_fires_on_sanitizer_regression(monkeypatch):
     monkeypatch.setattr(chat_store, 'sanitize_component', lambda v: str(v))
     with pytest.raises(ValueError):
-        _chat_db_path('../../../etc')
+        chat_db_path('../../../etc')
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ async def test_many_chats_share_one_storage():
         await store_message('mybot', env(chat=chat))
 
     assert len(chat_store._dbs) == 1
-    db = chat_store._get_db(_chat_db_path('mybot'))
+    db = chat_store._get_db(chat_db_path('mybot'))
     with db.transaction() as conn:
         assert len(conn.root.chats) == 4
 

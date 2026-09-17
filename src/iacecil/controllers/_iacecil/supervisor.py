@@ -260,10 +260,13 @@ def zeo_is_ready(argv) -> Callable[[], bool]:
     """A readiness probe for the configured ZEO address.
 
     Connectors and web open storage on boot, so they start only once the
-    server accepts connections.
+    server accepts connections. The address is read once, here: it
+    cannot change between polls, and re-reading it would re-import and
+    re-parse every bot config on each tick.
     """
+    address = zeo_address_from_config(argv)
+
     def _ready() -> bool:
-        address = zeo_address_from_config(argv)
         if address is None:
             ## No ZEO configured: nothing to wait for.
             return True
@@ -277,18 +280,14 @@ def zeo_is_ready(argv) -> Callable[[], bool]:
 
 def zeo_address_from_config(argv):
     """First configured ZEO address, or None when none is enabled."""
+    from iacecil.controllers.persistence.storage import address_from_configs
     from .connectors_runner import load_bot_configs
     try:
         configs = load_bot_configs(list(argv))
     except Exception as exception:
         logger.warning(f"Could not load bot configs: {exception!r}")
         return None
-    for config in configs.values():
-        zeo = getattr(config, 'zeo', None) or {}
-        if zeo.get('enabled') and zeo.get('address'):
-            address = zeo['address']
-            return tuple(address) if isinstance(address, list) else address
-    return None
+    return address_from_configs(configs)
 
 
 def default_specs(argv) -> list:

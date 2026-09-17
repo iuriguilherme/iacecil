@@ -11,7 +11,7 @@ import BTrees
 
 import iacecil.controllers.persistence.chat_store as chat_store
 from iacecil.controllers.persistence.chat_store import (
-    _chat_db_path,
+    chat_db_path,
     _chat_key,
     store_message,
 )
@@ -45,7 +45,7 @@ def _write_old_store(path, records, native_ids=()):
 
 
 def _chats(bot_id):
-    db = chat_store._get_db(_chat_db_path(bot_id))
+    db = chat_store._get_db(chat_db_path(bot_id))
     with db.transaction() as connection:
         return {key: [dict(r) for r in chat['messages'].values()]
             for key, chat in connection.root.chats.items()}
@@ -89,7 +89,7 @@ def test_dry_run_writes_nothing():
     counts = migrate_chat_stores.migrate(zodb_path, dry_run=True)
 
     assert counts['mybot']['records'] == 1
-    assert not os.path.exists(_chat_db_path('mybot'))
+    assert not os.path.exists(chat_db_path('mybot'))
 
 
 def test_legacy_telegram_layout_is_left_alone():

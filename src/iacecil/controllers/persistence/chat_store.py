@@ -27,16 +27,12 @@ import uuid
 from collections import OrderedDict
 
 import BTrees
-from ZODB.POSException import ConflictError
 
 from . import storage
 from .path_utils import sanitize_component
+from .retry import commit_with_retry
 
 logger = logging.getLogger(__name__)
-
-## Concurrent writes to the same chat (or, for messages.fs, any chat) can
-## race on lazy root-structure init; retry the standard ZODB way.
-_MAX_COMMIT_RETRIES = 5
 
 ## Module globals so the test isolation fixture can repoint storage.
 zodb_path = 'instance/zodb'
@@ -81,8 +77,15 @@ def _storage_name(bot_id) -> str:
     return storage.storage_name_for_bot(bot_id)
 
 
-def _chat_db_path(bot_id) -> str:
-    base = os.path.abspath(zodb_path)
+def chat_db_path(bot_id, base_path=None) -> str:
+    """Where one bot's chats live on disk.
+
+    The single owner of this layout: the storage server derives the
+    same path for the storage it serves under `chats_<bot_id>`, and a
+    second copy of the join would drift on the sanitizer (a bot id with
+    an uppercase letter or an `@` encodes to a different directory).
+    """
+    base = os.path.abspath(base_path or zodb_path)
     path = os.path.abspath(os.path.join(
         base, 'bots',
         sanitize_component(bot_id),
@@ -157,7 +160,7 @@ async def store_message(bot_id: str, envelope, direction: str = 'in'):
     Dedupe applies only when the platform supplied a native message id;
     records without one (outbound replies, loopback) always store.
     """
-    path = _chat_db_path(bot_id)
+    path = chat_db_path(bot_id)
     key = _chat_key(envelope.platform, envelope.conversation_ref)
     ## Storage open + ZODB commit are blocking; keep off the loop.
     return await asyncio.to_thread(
@@ -167,13 +170,11 @@ async def store_message(bot_id: str, envelope, direction: str = 'in'):
 
 def _store_message_sync(path: str, storage_name: str, key: str, envelope,
         direction: str = 'in'):
+    ## Concurrent writes to one chat race on the lazy container init;
+    ## retry the standard ZODB way, through the same helper the neutral
+    ## store uses so both layers agree on the retry count.
     db = _get_db(path, storage_name)
-    for attempt in range(_MAX_COMMIT_RETRIES):
-        try:
-            return _write_record(db, key, envelope, direction)
-        except ConflictError:
-            if attempt == _MAX_COMMIT_RETRIES - 1:
-                raise
+    return commit_with_retry(_write_record, db, key, envelope, direction)
 
 
 def _write_record(db, key: str, envelope, direction: str):

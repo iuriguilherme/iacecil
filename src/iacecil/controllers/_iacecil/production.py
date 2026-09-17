@@ -57,8 +57,7 @@ def run_web(*argv) -> None:
         )
         from ...views.quart_app import quart_startup
         from ...views.quart_app.identity import build_bot_identities
-        from ..aiogram_bot import aiogram_startup
-    
+        
         logging.info(f"Starting {name} v{version} ({commit})...")
     
         logging.debug("Loading configuration from .env files...")

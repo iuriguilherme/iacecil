@@ -33,22 +33,15 @@ import os
 import sys
 
 import BTrees
-import zc.zlibstorage
-import ZODB
-import ZODB.FileStorage
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from iacecil.controllers.persistence.chat_store import (  # noqa: E402
     _init_root,
 )
+from iacecil.controllers.persistence.storage import open_db  # noqa: E402
 
 logger = logging.getLogger('migrate_chat_stores')
-
-
-def _open(path: str):
-    storage = ZODB.FileStorage.FileStorage(path)
-    return ZODB.DB(zc.zlibstorage.ZlibStorage(storage))
 
 
 def find_old_stores(zodb_path: str):
@@ -86,7 +79,9 @@ def migrate(zodb_path: str, dry_run: bool = False) -> dict:
                 'chats': 0})
             stats['chats'] += 1
 
-            old_db = _open(path)
+            ## No storage name: always local files, which is what a
+            ## migration reads and writes even when ZEO is configured.
+            old_db = open_db(path)
             try:
                 with old_db.transaction() as connection:
                     root = connection.root
@@ -109,7 +104,7 @@ def migrate(zodb_path: str, dry_run: bool = False) -> dict:
             db = targets.get(new_path)
             if db is None:
                 os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                db = _open(new_path)
+                db = open_db(new_path)
                 _init_root(db)
                 targets[new_path] = db
 

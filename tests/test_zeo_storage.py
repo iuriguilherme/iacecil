@@ -84,13 +84,13 @@ async def test_chat_store_writes_through_zeo(zeo_server):
     assert await store_message('mybot', env(text='one')) is not None
     assert await store_message('mybot', env(text='two')) is not None
 
-    db = chat_store._get_db(chat_store._chat_db_path('mybot'),
+    db = chat_store._get_db(chat_store.chat_db_path('mybot'),
         chat_store._storage_name('mybot'))
     with db.transaction() as connection:
         chat = connection.root.chats[chat_store._chat_key(
             'loopback', 'local_chat')]
         assert len(chat['messages']) == 2
-    assert not os.path.exists(chat_store._chat_db_path('mybot'))
+    assert not os.path.exists(chat_store.chat_db_path('mybot'))
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_new_chat_needs_no_new_storage(zeo_server):
     for chat in ('c1', 'c2', 'c3'):
         assert await store_message('mybot', env(chat=chat)) is not None
 
-    db = chat_store._get_db(chat_store._chat_db_path('mybot'),
+    db = chat_store._get_db(chat_store.chat_db_path('mybot'),
         chat_store._storage_name('mybot'))
     with db.transaction() as connection:
         assert len(connection.root.chats) == 3
@@ -115,7 +115,7 @@ async def test_falls_back_to_filestorage_without_zeo():
     await store_message('mybot', env())
 
     assert os.path.exists(f"{neutral.zodb_path}/people.fs")
-    assert os.path.exists(chat_store._chat_db_path('mybot'))
+    assert os.path.exists(chat_store.chat_db_path('mybot'))
     people = await neutral.get_people_db()
     assert 'FileStorage' in type(people.storage.base).__name__
 
@@ -169,3 +169,20 @@ def test_configure_enables_and_disables_shared_storage():
 
     storage.configure({})
     assert storage.zeo_address is None
+
+
+def test_a_client_fails_fast_rather_than_blocking_the_loop(tmp_path,
+        monkeypatch):
+    """ZEO's own default wait is 30s. A connector that blocks that long
+    on a dropped connection has stopped answering, which is exactly what
+    the write buffer exists to prevent."""
+    import time
+
+    monkeypatch.setattr(storage, 'zeo_address', ('127.0.0.1', 1))
+    started = time.monotonic()
+    with pytest.raises(Exception):
+        storage.open_db('unused', 'people', wait_timeout=0.5)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 5.0, f"took {elapsed:.1f}s to give up"
+    assert storage.ZEO_WAIT_TIMEOUT <= 5.0

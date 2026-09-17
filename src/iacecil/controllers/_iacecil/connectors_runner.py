@@ -174,22 +174,29 @@ async def announce_liveness(managers: list, text: str,
     configured operator chat is skipped, and a failed send is logged.
     Bots serving matters more than an operator notification.
     """
-    for manager in managers:
-        chat_id = liveness_chat(manager)
-        if not chat_id or 'telegram' not in manager.connectors:
-            continue
-        if not await _wait_until_running(manager, timeout):
-            logger.warning(
-                f"Bot {manager.bot_id}: telegram connector did not come up "
-                f"in {timeout}s; skipping {text!r}")
-            continue
-        try:
-            await manager.send(liveness_envelope(chat_id, text))
-            logger.info(f"Bot {manager.bot_id}: sent {text!r} to {chat_id}")
-        except Exception as exception:
-            logger.warning(
-                f"Bot {manager.bot_id}: could not send {text!r}: "
-                f"{exception!r}")
+    ## Per bot, concurrently: each wait is independent, so a bot whose
+    ## connector is slow to come up must not hold the announcement for
+    ## every bot behind it in the list.
+    await asyncio.gather(*[_announce_one(manager, text, timeout)
+        for manager in managers], return_exceptions=True)
+
+
+async def _announce_one(manager, text: str, timeout: float) -> None:
+    chat_id = liveness_chat(manager)
+    if not chat_id or 'telegram' not in manager.connectors:
+        return
+    if not await _wait_until_running(manager, timeout):
+        logger.warning(
+            f"Bot {manager.bot_id}: telegram connector did not come up "
+            f"in {timeout}s; skipping {text!r}")
+        return
+    try:
+        await manager.send(liveness_envelope(chat_id, text))
+        logger.info(f"Bot {manager.bot_id}: sent {text!r} to {chat_id}")
+    except Exception as exception:
+        logger.warning(
+            f"Bot {manager.bot_id}: could not send {text!r}: "
+            f"{exception!r}")
 
 
 async def run_managers(managers: list) -> None:
@@ -211,8 +218,12 @@ async def run_managers(managers: list) -> None:
         announcement.cancel()
         try:
             await announcement
-        except (asyncio.CancelledError, Exception):
+        except asyncio.CancelledError:
+            ## Expected: the cancel above, because the run is over.
             pass
+        except Exception as exception:
+            logger.warning(
+                f"Liveness announcement failed: {exception!r}")
         ## A crash is exactly when the operator wants to hear #off, so
         ## this runs on every exit path — but never blocks shutdown.
         try:

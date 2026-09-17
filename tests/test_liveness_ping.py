@@ -177,3 +177,17 @@ def test_liveness_envelope_is_marked_as_outbound_operator_traffic():
 
     assert isinstance(envelope, Envelope)
     assert 'liveness' in envelope.tags
+
+
+@pytest.mark.asyncio
+async def test_a_slow_bot_does_not_delay_the_others():
+    """One bot whose connector never comes up must not hold the
+    announcement for every bot behind it."""
+    slow = FakeManager(bot_id='slow', running=False)
+    quick = FakeManager(bot_id='quick')
+
+    await connectors_runner.announce_liveness(
+        [slow, quick], connectors_runner.LIVENESS_ON, timeout=0.3)
+
+    assert [envelope.text for envelope in quick.sent] == ['Mãe tá #on']
+    assert slow.sent == []
