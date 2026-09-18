@@ -127,7 +127,22 @@ LIVENESS_TIMEOUT = 30.0
 LIVENESS_POLL = 0.1
 
 
-def liveness_envelope(conversation_ref: str, text: str):
+## ConnectorManager keeps only one of these: a live telegram_v3
+## supersedes the legacy telegram connector (strangler-fig arbitration).
+## Looking only for 'telegram' skipped both pings on every v3 bot.
+TELEGRAM_CONNECTORS = ('telegram_v3', 'telegram')
+
+
+def telegram_connector(manager):
+    """Name of the telegram connector this manager actually runs, or None."""
+    for name in TELEGRAM_CONNECTORS:
+        if name in manager.connectors:
+            return name
+    return None
+
+
+def liveness_envelope(conversation_ref: str, text: str,
+        platform: str = 'telegram'):
     """The ping as an ordinary outbound envelope.
 
     Tagged so an operator notification is distinguishable from
@@ -135,7 +150,7 @@ def liveness_envelope(conversation_ref: str, text: str):
     """
     from iacecil.models.envelope import Envelope
     return Envelope(
-        'telegram',
+        platform,
         'iacecil',
         str(conversation_ref),
         text,
@@ -143,23 +158,31 @@ def liveness_envelope(conversation_ref: str, text: str):
     )
 
 
-def liveness_chat(manager):
-    """The operator chat for this bot, or None when none is configured."""
-    telegram = manager._config_as_dict().get('telegram') or {}
-    users = telegram.get('users') or {}
-    special = users.get('special') or {}
-    return special.get('info')
+def liveness_chat(manager, connector_name: str = 'telegram'):
+    """The operator chat for this bot, or None when none is configured.
+
+    Read from the running connector's own section first, then the legacy
+    telegram section, which is where existing configs keep it.
+    """
+    config = manager._config_as_dict()
+    for section in (connector_name, 'telegram'):
+        users = (config.get(section) or {}).get('users') or {}
+        chat = (users.get('special') or {}).get('info')
+        if chat:
+            return chat
+    return None
 
 
-async def _wait_until_running(manager, timeout: float) -> bool:
+async def _wait_until_running(manager, timeout: float,
+        connector_name: str = 'telegram') -> bool:
     """Sending before connect() finished would silently drop the ping.
 
     Checks before waiting, so a zero timeout still sends when the
-    connector is already up — which is the shutdown case.
+    connector is already up.
     """
     deadline = asyncio.get_event_loop().time() + timeout
     while True:
-        connector = manager.connectors.get('telegram')
+        connector = manager.connectors.get(connector_name)
         if connector is not None and connector.running:
             return True
         if asyncio.get_event_loop().time() >= deadline:
@@ -171,11 +194,11 @@ async def announce_liveness(managers: list, text: str,
         timeout: float = LIVENESS_TIMEOUT, wait: bool = True) -> None:
     """Tell each bot's operator chat that its connectors are up or down.
 
-    ``wait`` is the difference between the two pings. On startup the
-    connector is still connecting, so the announcement waits for it. On
-    shutdown it has already disconnected — ConnectorManager clears
-    `running` in its own teardown before the run returns — so waiting
-    for it to be up would skip the #off every time.
+    On startup the connector is still connecting, so the announcement
+    waits for it (``wait``). The shutdown ping is sent before the
+    connectors are torn down (see run_managers): ConnectorManager.send
+    drops anything addressed to a connector that is no longer running,
+    so a ping sent after teardown never leaves the process.
 
     Best-effort throughout: a bot with no telegram connector or no
     configured operator chat is skipped, and a failed send is logged.
@@ -190,16 +213,31 @@ async def announce_liveness(managers: list, text: str,
 
 async def _announce_one(manager, text: str, timeout: float,
         wait: bool = True) -> None:
-    chat_id = liveness_chat(manager)
-    if not chat_id or 'telegram' not in manager.connectors:
+    connector_name = telegram_connector(manager)
+    if connector_name is None:
+        logger.info(
+            f"Bot {manager.bot_id}: no telegram connector; no {text!r} ping")
         return
-    if wait and not await _wait_until_running(manager, timeout):
+    chat_id = liveness_chat(manager, connector_name)
+    if not chat_id:
+        logger.info(
+            f"Bot {manager.bot_id}: no operator chat configured "
+            f"(users.special.info); no {text!r} ping")
+        return
+    if wait and not await _wait_until_running(manager, timeout,
+            connector_name):
         logger.warning(
-            f"Bot {manager.bot_id}: telegram connector did not come up "
-            f"in {timeout}s; skipping {text!r}")
+            f"Bot {manager.bot_id}: {connector_name} connector did not come "
+            f"up in {timeout}s; skipping {text!r}")
         return
     try:
-        await manager.send(liveness_envelope(chat_id, text))
+        delivered = await manager.send(
+            liveness_envelope(chat_id, text, connector_name))
+        if delivered is False:
+            logger.warning(
+                f"Bot {manager.bot_id}: {text!r} not delivered; the "
+                f"{connector_name} connector is down")
+            return
         logger.info(f"Bot {manager.bot_id}: sent {text!r} to {chat_id}")
     except Exception as exception:
         logger.warning(
@@ -207,19 +245,32 @@ async def _announce_one(manager, text: str, timeout: float,
             f"{exception!r}")
 
 
-def _install_shutdown_handlers(tasks) -> None:
+async def _stop_gracefully(managers, tasks, state) -> None:
+    """Say goodbye while the connectors can still carry it, then stop."""
+    if not state.get('off_sent'):
+        state['off_sent'] = True
+        try:
+            await announce_liveness(managers, LIVENESS_OFF, timeout=0,
+                wait=False)
+        except Exception as exception:
+            logger.warning(f"Could not announce shutdown: {exception!r}")
+    for task in tasks:
+        task.cancel()
+
+
+def _install_shutdown_handlers(managers, tasks, state) -> None:
     """Make SIGTERM stop the run the way Ctrl-C already does.
 
     The supervisor stops this unit with SIGTERM. Python's default
     handler exits the process outright, so without this the connectors
-    never disconnect cleanly and the #off ping never goes out.
+    never disconnect cleanly and the #off ping never goes out. The ping
+    goes first, while the connectors are still up to carry it.
     """
     loop = asyncio.get_event_loop()
 
     def stop():
         logger.info("Received shutdown signal; stopping connectors")
-        for task in tasks:
-            task.cancel()
+        loop.create_task(_stop_gracefully(managers, tasks, state))
 
     for sig in (signal.SIGTERM, signal.SIGINT):
         try:
@@ -235,7 +286,8 @@ async def run_managers(managers: list) -> None:
         return
     tasks = [asyncio.ensure_future(manager.run_all())
         for manager in managers]
-    _install_shutdown_handlers(tasks)
+    state = {'off_sent': False}
+    _install_shutdown_handlers(managers, tasks, state)
     ## Announce alongside the run rather than before it: the connectors
     ## are not up until run_all has started them.
     announcement = asyncio.ensure_future(
@@ -257,16 +309,17 @@ async def run_managers(managers: list) -> None:
         except Exception as exception:
             logger.warning(
                 f"Liveness announcement failed: {exception!r}")
-        ## A crash is exactly when the operator wants to hear #off, so
-        ## this runs on every exit path — but never blocks shutdown.
-        try:
-            ## wait=False: the connectors have already torn themselves
-            ## down by now, so requiring them to be up would skip every
-            ## shutdown ping.
-            await announce_liveness(managers, LIVENESS_OFF, timeout=0,
-                wait=False)
-        except Exception as exception:
-            logger.warning(f"Could not announce shutdown: {exception!r}")
+        ## Signalled shutdowns already said #off while the connectors
+        ## were up. Any other exit (every bot crashed, or run_all
+        ## returned) tries here; a connector that already went down
+        ## drops it, and _announce_one logs that rather than hiding it.
+        if not state['off_sent']:
+            state['off_sent'] = True
+            try:
+                await announce_liveness(managers, LIVENESS_OFF, timeout=0,
+                    wait=False)
+            except Exception as exception:
+                logger.warning(f"Could not announce shutdown: {exception!r}")
 
 
 def run_app(*argv) -> None:

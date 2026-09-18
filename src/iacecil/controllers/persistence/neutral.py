@@ -3,6 +3,7 @@ import collections
 import logging
 import threading
 import time
+import weakref
 import uuid
 import BTrees
 import transaction
@@ -31,8 +32,18 @@ _buffer_lock = threading.Lock()
 
 ## Opening a store is awaited, so two concurrent first messages would
 ## otherwise both open it: two handles on one file, or a leaked ZEO
-## connection. chat_store guards the same thing with _dbs_lock.
-_open_lock = asyncio.Lock()
+## connection. chat_store guards the same thing with _dbs_lock. An
+## asyncio.Lock belongs to the loop it is first used on, so keep one per
+## loop rather than one per module.
+_open_locks = weakref.WeakKeyDictionary()
+
+
+def _open_lock():
+    loop = asyncio.get_running_loop()
+    lock = _open_locks.get(loop)
+    if lock is None:
+        lock = _open_locks[loop] = asyncio.Lock()
+    return lock
 
 try:
     from ZEO.Exceptions import ClientDisconnected
@@ -75,7 +86,7 @@ def _open_messages_db(db_path):
 async def get_people_db():
     global _people_db
     if _people_db is None:
-        async with _open_lock:
+        async with _open_lock():
             ## Re-check: another coroutine may have opened it while this
             ## one waited for the lock.
             if _people_db is None:
@@ -86,7 +97,7 @@ async def get_people_db():
 async def get_messages_db():
     global _messages_db
     if _messages_db is None:
-        async with _open_lock:
+        async with _open_lock():
             if _messages_db is None:
                 _messages_db = await asyncio.to_thread(
                     _open_messages_db, f"{zodb_path}/messages.fs")

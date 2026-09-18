@@ -24,17 +24,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
+import random
+import time
+
 from ZODB.POSException import ConflictError
 
-MAX_COMMIT_RETRIES = 5
+MAX_COMMIT_RETRIES = 10
+
+## Backoff between attempts, in seconds. Retrying immediately is what
+## failed in production: a burst of writers (Matrix replaying history on
+## connect) collided, retried in lockstep, and collided again until the
+## retries ran out and records were dropped. A randomized, growing pause
+## spreads them out so they commit one after another instead.
+BACKOFF_BASE = 0.005
+BACKOFF_CAP = 0.5
 
 
-def commit_with_retry(fn, *args):
-    """Re-run a transaction function on ConflictError.
+def backoff(attempt: int) -> float:
+    """Full-jitter delay before the given retry attempt (0-based)."""
+    return random.uniform(0, min(BACKOFF_CAP, BACKOFF_BASE * (2 ** attempt)))
 
-    Runs inside asyncio.to_thread, so it must stay synchronous. The last
-    attempt re-raises: a conflict that survives five tries is a real
-    failure, not something to swallow.
+
+def commit_with_retry(fn, *args, sleep=time.sleep):
+    """Re-run a transaction function on ConflictError, with backoff.
+
+    Runs inside asyncio.to_thread, so it must stay synchronous and the
+    pause blocks only its own worker thread. The last attempt re-raises:
+    a conflict that survives every try is a real failure, not something
+    to swallow.
     """
     for attempt in range(MAX_COMMIT_RETRIES):
         try:
@@ -42,3 +59,4 @@ def commit_with_retry(fn, *args):
         except ConflictError:
             if attempt == MAX_COMMIT_RETRIES - 1:
                 raise
+            sleep(backoff(attempt))

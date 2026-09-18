@@ -40,8 +40,15 @@ class FakeManager:
         return self._conf
 
     async def send(self, envelope):
+        """Same contract as ConnectorManager.send: an envelope for a
+        connector that is missing or down is dropped and False returned.
+        A fake that accepted it anyway is how the #off ping passed its
+        tests while never leaving the real process."""
         if self.send_error:
             raise self.send_error
+        connector = self.connectors.get(envelope.platform)
+        if connector is None or not connector.running:
+            return False
         self.sent.append(envelope)
         return True
 
@@ -194,31 +201,85 @@ async def test_a_slow_bot_does_not_delay_the_others():
 
 
 @pytest.mark.asyncio
-async def test_shutdown_ping_fires_after_the_connector_disconnected():
-    """The real teardown clears `running` before the run returns, so a
-    shutdown ping that waits for the connector to be up never fires."""
+async def test_a_ping_to_a_downed_connector_is_reported_not_claimed(caplog):
+    """ConnectorManager.send drops it; the log must say so rather than
+    report a ping that never left."""
     manager = FakeManager(running=False)
 
     await connectors_runner.announce_liveness(
         [manager], connectors_runner.LIVENESS_OFF, timeout=0, wait=False)
 
-    assert [envelope.text for envelope in manager.sent] == ['Mãe tá #off']
+    assert manager.sent == []
+    assert any('not delivered' in record.message
+        for record in caplog.records)
+    assert not any("sent 'Mãe" in record.message
+        for record in caplog.records)
 
 
 @pytest.mark.asyncio
-async def test_run_managers_announces_off_when_connectors_have_stopped():
-    """End to end through the runner, with a manager whose connectors
-    go down during the run, exactly as ConnectorManager does."""
-    class DisconnectingManager(FakeManager):
-        async def run_all(self):
-            self.ran = True
-            self.connectors['telegram'].running = False
+async def test_signalled_shutdown_says_off_before_tearing_down():
+    """The path the supervisor takes: SIGTERM. #off must go out while
+    the connector can still carry it, then the run is cancelled."""
+    manager = FakeManager()
+    torn_down = []
 
-    manager = DisconnectingManager()
+    async def run_forever():
+        try:
+            await asyncio.sleep(3600)
+        except asyncio.CancelledError:
+            ## What ConnectorManager's teardown does
+            manager.connectors['telegram'].running = False
+            torn_down.append(True)
+            raise
 
-    await connectors_runner.run_managers([manager])
+    task = asyncio.ensure_future(run_forever())
+    state = {'off_sent': False}
 
-    assert 'Mãe tá #off' in [envelope.text for envelope in manager.sent]
+    await connectors_runner._stop_gracefully([manager], [task], state)
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert [envelope.text for envelope in manager.sent] == ['Mãe tá #off']
+    assert torn_down == [True]
+    assert state['off_sent']
+
+
+@pytest.mark.asyncio
+async def test_off_is_not_sent_twice():
+    """The signal path and the run's own exit path must not both send."""
+    manager = FakeManager()
+    state = {'off_sent': True}
+
+    await connectors_runner._stop_gracefully([manager], [], state)
+
+    assert manager.sent == []
+
+
+@pytest.mark.asyncio
+async def test_a_telegram_v3_bot_gets_its_pings():
+    """Found running the real bot: ConnectorManager drops 'telegram'
+    whenever 'telegram_v3' is present, and liveness looked only for
+    'telegram', so a v3 bot never got #on or #off."""
+    manager = FakeManager(connectors=('telegram_v3', 'xmpp'))
+
+    await connectors_runner.announce_liveness(
+        [manager], connectors_runner.LIVENESS_ON)
+
+    assert [envelope.text for envelope in manager.sent] == ['Mãe tá #on']
+    assert manager.sent[0].platform == 'telegram_v3'
+
+
+def test_v3_supersedes_legacy_when_both_are_present():
+    manager = FakeManager(connectors=('telegram', 'telegram_v3'))
+
+    assert connectors_runner.telegram_connector(manager) == 'telegram_v3'
+
+
+def test_operator_chat_is_found_in_either_section():
+    manager = FakeManager(connectors=('telegram_v3',))
+    manager._conf = {'telegram_v3': {'users': {'special': {'info': '-77'}}}}
+
+    assert connectors_runner.liveness_chat(manager, 'telegram_v3') == '-77'
 
 
 @pytest.mark.asyncio
@@ -241,9 +302,21 @@ async def test_sigterm_stops_the_run_like_ctrl_c_does(monkeypatch):
         def cancel(self):
             cancelled.append(True)
 
-    connectors_runner._install_shutdown_handlers([FakeTask()])
+    scheduled = []
+
+    class RecordingLoopWithTasks(RecordingLoop):
+        def create_task(self, coroutine):
+            scheduled.append(coroutine)
+            coroutine.close()
+
+    monkeypatch.setattr(asyncio, 'get_event_loop',
+        lambda: RecordingLoopWithTasks())
+
+    connectors_runner._install_shutdown_handlers([], [FakeTask()],
+        {'off_sent': False})
 
     assert set(installed) == {signal_module.SIGTERM, signal_module.SIGINT}
-    ## The handler cancels the running bots rather than killing the process
+    ## The handler schedules the graceful stop (goodbye, then cancel)
+    ## rather than killing the process
     installed[signal_module.SIGTERM]()
-    assert cancelled == [True]
+    assert len(scheduled) == 1
