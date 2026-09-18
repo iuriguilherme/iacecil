@@ -3,7 +3,7 @@ title: sanitize_component is not idempotent, so migrations must not re-sanitize 
 date: 2026-09-17
 category: database-issues
 module: persistence
-problem_type: data_corruption
+problem_type: database_issue
 component: database
 symptoms:
   - "Migrated matrix/xmpp chat keys read `%2521...` where runtime writes `%21...`"

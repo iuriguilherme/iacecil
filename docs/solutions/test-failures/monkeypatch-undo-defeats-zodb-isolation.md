@@ -3,7 +3,7 @@ title: monkeypatch.undo() defeats the autouse ZODB isolation fixture
 date: 2026-09-17
 category: test-failures
 module: tests
-problem_type: test_isolation
+problem_type: test_failure
 component: testing
 symptoms:
   - "A test asserting on its own records read 180 rows, including real production messages"

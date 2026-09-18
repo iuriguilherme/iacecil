@@ -17,13 +17,19 @@ tags: [path-sanitization, percent-encoding, ntfs, case-insensitive, injective, f
 
 ## Context
 
-Per-chat message databases are stored at
-`instance/zodb/bots/<bot_id>/<connector>/chats/<chat_id>.fs`, where the
-components come from platform-native identifiers: XMPP JIDs
+Platform-native identifiers become storage names: XMPP JIDs
 (`user@host.org`), Matrix room ids (`!AbC:server.org` — `:` is illegal on
-NTFS), Telegram group ids (`-1001234`). The operator may run on any of
-HFS+, NTFS, ext4 or btrfs, so one encoding has to be legal — and
-collision-free — on all four at once.
+NTFS), Telegram group ids (`-1001234`). The chat store keeps one database
+per bot at `instance/zodb/bots/<bot_id>/chats.fs`, and inside it keys each
+conversation as `<connector>/<chat_id>`; the same encoding produces the bot
+directory, both halves of that key, and the bot's shared-storage name
+(`chats_<bot_id>`). Earlier layouts put one `.fs` file per conversation at
+`bots/<bot_id>/<connector>/chats/<chat_id>.fs`, which is still what the
+migration script reads. The operator may run on any of HFS+, NTFS, ext4 or
+btrfs, so one encoding has to be legal — and collision-free — on all four
+at once. A key never touches the filesystem, but it needs the same
+injectivity: two conversations encoding to one key share one message
+history.
 
 ## Guidance
 
@@ -48,7 +54,13 @@ Allowlist + percent-encode everything else, with three non-obvious rules
 Belt-and-braces at assembly time: after joining sanitized components,
 assert the absolute path still lives under the storage base, so even a
 sanitizer regression cannot traverse out
-(`chat_store._chat_db_path`).
+(`chat_store.chat_db_path`).
+
+Apply the encoding exactly once. It percent-encodes `%` itself, so it is
+injective but not idempotent: a name read back from disk is already
+encoded, and encoding it again produces a different name (`%21` becomes
+`%2521`). Code that reads existing names — a migration, a directory walk —
+must join them verbatim.
 
 ## Why This Matters
 
@@ -81,3 +93,6 @@ pairwise injectivity, reserved-with-extension).
 
 - docs/solutions/database-issues/zodb-objects-returned-after-connection-close.md —
   same persistence layer
+- docs/solutions/database-issues/sanitize-component-not-idempotent-in-migrations.md —
+  the double-encoding bug this encoding's non-idempotence caused in the
+  chat-store migration
