@@ -54,7 +54,15 @@ def address_from_conf(zeo_conf):
     if not address:
         logger.warning("zeo enabled without an address; using local storage")
         return None
-    return tuple(address) if isinstance(address, list) else address
+    if isinstance(address, (list, tuple)) and len(address) == 2:
+        return tuple(address)
+    ## A bare socket path would reach ZEO, but the supervisor's readiness
+    ## probe and the server unit both assume host/port; accepting it here
+    ## would fail later and less clearly.
+    logger.warning(
+        f"zeo address {address!r} is not a (host, port) pair; "
+        "using local storage")
+    return None
 
 
 def address_from_configs(configs):
@@ -64,6 +72,22 @@ def address_from_configs(configs):
         if address is not None:
             return address
     return None
+
+
+def configure_from_configs(configs) -> None:
+    """Point this process's storage at whatever the bots configure.
+
+    Every process that persists anything calls this once at startup.
+    Without it the address stays None and the stores open local files —
+    which, with a ZEO server holding those same files, means each unit
+    fights the server for an exclusive lock instead of connecting to it.
+    """
+    global zeo_address
+    zeo_address = address_from_configs(configs)
+    if zeo_address is not None:
+        logger.info(f"Persistence connecting to ZEO at {zeo_address}")
+    else:
+        logger.info("Persistence using local storage (no ZEO configured)")
 
 
 def configure(zeo_conf) -> None:

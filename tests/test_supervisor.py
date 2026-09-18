@@ -316,14 +316,85 @@ def test_dead_child_is_not_restarted_after_shutdown_begins():
     assert len(children_of(supervisor, 'web')) == 1
 
 
-def test_default_specs_are_the_three_units_in_boot_order():
-    specs = default_specs(['__main__.py', 'production'])
+def test_storage_server_runs_only_when_a_bot_enables_zeo(monkeypatch):
+    """Starting it otherwise is worse than useless: it opens the same
+    files the other units then open locally, and takes their lock."""
+    import iacecil.controllers._iacecil.supervisor as supervisor_module
 
+    monkeypatch.setattr(supervisor_module, 'zeo_address_from_config',
+        lambda argv: None)
+    assert [spec.name for spec in default_specs(['__main__.py'])] == [
+        'connectors', 'web']
+
+    monkeypatch.setattr(supervisor_module, 'zeo_address_from_config',
+        lambda argv: ('localhost', 8100))
+    specs = default_specs(['__main__.py'])
     assert [spec.name for spec in specs] == ['zeo', 'connectors', 'web']
     assert specs[0].ready_check is not None
-    ## Config crosses the boundary by argv, never as a live object (R5)
+
+
+def test_config_crosses_the_process_boundary_as_argv(monkeypatch):
+    """R5: a spawned child re-reads instance/ itself; a live BotConfig
+    cannot cross the boundary."""
+    import iacecil.controllers._iacecil.supervisor as supervisor_module
+
+    monkeypatch.setattr(supervisor_module, 'zeo_address_from_config',
+        lambda argv: None)
+    specs = default_specs(['__main__.py', 'production'])
+
     assert all(spec.args == (['__main__.py', 'production'],)
         for spec in specs)
+
+
+def test_a_unit_that_cannot_start_does_not_kill_the_supervisor():
+    """One child's failure taking down the tree is the thing this slice
+    exists to prevent."""
+    def refuses_to_start(*args, **kwargs):
+        raise OSError('cannot fork')
+
+    supervisor, _ = build(specs=[ChildSpec('web', noop)])
+    supervisor._process_factory = refuses_to_start
+
+    supervisor.start()          # must not raise
+    supervisor.tick()           # nor on the retry
+
+    assert supervisor._state['web'].process is None
+    assert supervisor.running
+
+
+def test_shutdown_stops_storage_last():
+    """The units that use shared storage need it while they flush."""
+    stopped = []
+
+    class RecordingProcess(FakeProcess):
+        def terminate(self):
+            stopped.append(self.name)
+            super().terminate()
+
+    supervisor, _ = build()
+    supervisor._process_factory = RecordingProcess
+    supervisor.start()
+
+    supervisor.shutdown()
+
+    assert stopped == ['web', 'connectors', 'zeo']
+
+
+def test_a_signal_during_boot_does_not_orphan_started_children():
+    """start() can block on the readiness gate; a signal in that window
+    must stop what is already running."""
+    clock = FakeClock()
+    supervisor, _ = build(
+        specs=[ChildSpec('zeo', noop, ready_check=lambda: False),
+            ChildSpec('web', noop)],
+        clock=clock, ready_timeout=60.0, ready_interval=0.5)
+
+    supervisor.handle_signal(signal.SIGTERM, None)
+    supervisor.start()
+
+    ## The readiness wait gave up immediately instead of holding the
+    ## boot open for a minute
+    assert sum(clock.slept) < 60.0
 
 
 def test_children_are_spawned_not_forked():

@@ -180,8 +180,10 @@ try:
         tropixel: dict[str, Any]
         web3: dict[str, Any]
         xmpp: dict[str, Any]
-        ## Optional so a config written before shared storage existed
-        ## still validates; DefaultBotConfig carries the real default.
+        ## Shared storage, configured per instance in
+        ## instance/bots/<name>.py (see docs/instance.example). Optional
+        ## and empty here: this file declares the field's shape, and the
+        ## defaults that decide behavior stay out of it.
         zeo: dict[str, Any] = {}
         
         # ~ tz_str: str
@@ -518,15 +520,6 @@ f0123456789abcdef""",
         loopback: dict = {
             'enabled': False,
         } # loopback
-        ## Shared storage. Empty means ZEO is off and persistence opens
-        ## FileStorage directly (one process only). An instance config
-        ## sets {'enabled': True, 'address': ('localhost', 8100)} to run
-        ## the connector and web units as separate processes against one
-        ## ZEO server. Never defaulted on here — opt in per instance.
-        zeo: dict = {
-            'enabled': False,
-            'address': (),
-        } # zeo
         ## Operator log sinks: route logging records to chat
         ## conversations on any active connector. Entries:
         ## {'platform': 'matrix', 'conversation_ref': '!room:server',

@@ -191,3 +191,59 @@ async def test_a_slow_bot_does_not_delay_the_others():
 
     assert [envelope.text for envelope in quick.sent] == ['Mãe tá #on']
     assert slow.sent == []
+
+
+@pytest.mark.asyncio
+async def test_shutdown_ping_fires_after_the_connector_disconnected():
+    """The real teardown clears `running` before the run returns, so a
+    shutdown ping that waits for the connector to be up never fires."""
+    manager = FakeManager(running=False)
+
+    await connectors_runner.announce_liveness(
+        [manager], connectors_runner.LIVENESS_OFF, timeout=0, wait=False)
+
+    assert [envelope.text for envelope in manager.sent] == ['Mãe tá #off']
+
+
+@pytest.mark.asyncio
+async def test_run_managers_announces_off_when_connectors_have_stopped():
+    """End to end through the runner, with a manager whose connectors
+    go down during the run, exactly as ConnectorManager does."""
+    class DisconnectingManager(FakeManager):
+        async def run_all(self):
+            self.ran = True
+            self.connectors['telegram'].running = False
+
+    manager = DisconnectingManager()
+
+    await connectors_runner.run_managers([manager])
+
+    assert 'Mãe tá #off' in [envelope.text for envelope in manager.sent]
+
+
+@pytest.mark.asyncio
+async def test_sigterm_stops_the_run_like_ctrl_c_does(monkeypatch):
+    """The supervisor stops this unit with SIGTERM. Python's default
+    handler exits outright, so without this the connectors never
+    disconnect and no shutdown ping goes out."""
+    import signal as signal_module
+
+    installed = {}
+
+    class RecordingLoop:
+        def add_signal_handler(self, sig, handler):
+            installed[sig] = handler
+
+    monkeypatch.setattr(asyncio, 'get_event_loop', lambda: RecordingLoop())
+    cancelled = []
+
+    class FakeTask:
+        def cancel(self):
+            cancelled.append(True)
+
+    connectors_runner._install_shutdown_handlers([FakeTask()])
+
+    assert set(installed) == {signal_module.SIGTERM, signal_module.SIGINT}
+    ## The handler cancels the running bots rather than killing the process
+    installed[signal_module.SIGTERM]()
+    assert cancelled == [True]

@@ -105,18 +105,39 @@ class Supervisor:
     ## ------------------------------------------------------------ start
 
     def start(self) -> None:
-        """Start every unit in order, gating on each one's readiness."""
+        """Start every unit in order, gating on each one's readiness.
+
+        Handlers go in first: start() can block for the readiness
+        timeout, and a signal arriving in that window must stop the
+        children already spawned rather than orphan them.
+        """
+        self._install_signal_handlers()
         for spec in self.specs:
             self._spawn(spec)
             self._await_ready(spec)
 
     def _spawn(self, spec: ChildSpec) -> None:
+        """Start one unit. A failure to start is that unit's problem.
+
+        Letting it propagate would end the supervise loop without a
+        shutdown, orphaning the siblings — one child's failure taking
+        down the whole tree is the thing this slice exists to prevent.
+        """
         factory = self._process_factory or multiprocessing.get_context(
             START_METHOD).Process
-        process = factory(target=spec.target, args=spec.args, name=spec.name)
-        process.daemon = False
-        process.start()
         state = self._state[spec.name]
+        try:
+            process = factory(target=spec.target, args=spec.args,
+                name=spec.name)
+            process.daemon = False
+            process.start()
+        except Exception as exception:
+            logger.error(
+                f"Could not start {spec.name} unit: {exception!r}; "
+                "it will be retried")
+            state.process = None
+            state.started_at = self._monotonic()
+            return
         state.process = process
         state.started_at = self._monotonic()
         logger.info(f"Started {spec.name} unit (pid {process.pid})")
@@ -131,7 +152,7 @@ class Supervisor:
         if spec.ready_check is None:
             return
         deadline = self._monotonic() + self.ready_timeout
-        while self._monotonic() < deadline:
+        while self.running and self._monotonic() < deadline:
             if spec.ready_check():
                 logger.info(f"{spec.name} unit is ready")
                 return
@@ -144,6 +165,8 @@ class Supervisor:
 
     def supervise(self) -> None:
         """Watch the children until a signal stops the loop."""
+        ## Idempotent: start() installed these already in the normal
+        ## path, but supervise() is callable on its own.
         self._install_signal_handlers()
         while self.running:
             self.tick()
@@ -214,9 +237,14 @@ class Supervisor:
         self.running = False
 
     def shutdown(self) -> None:
-        """Ask every child to stop, then make sure it did."""
+        """Ask every child to stop, then make sure it did.
+
+        In reverse boot order, so the units that use shared storage stop
+        while it is still there; terminating the server first would cut
+        the connectors off mid-flush.
+        """
         self.running = False
-        for spec in self.specs:
+        for spec in reversed(self.specs):
             state = self._state[spec.name]
             process = state.process
             if process is None:
@@ -291,13 +319,26 @@ def zeo_address_from_config(argv):
 
 
 def default_specs(argv) -> list:
-    """The three units, in boot order."""
+    """The units to supervise, in boot order.
+
+    The storage server runs only when a bot enables ZEO. Starting it
+    otherwise would be worse than useless: it would open the same files
+    the connector and web units then open locally, and take the
+    exclusive lock they need.
+    """
     argv = list(argv)
-    return [
-        ChildSpec('zeo', zeo_unit, (argv,), ready_check=zeo_is_ready(argv)),
-        ChildSpec('connectors', connector_unit, (argv,)),
-        ChildSpec('web', web_unit, (argv,)),
-    ]
+    specs = []
+    address = zeo_address_from_config(argv)
+    if address is not None:
+        specs.append(ChildSpec('zeo', zeo_unit, (argv,),
+            ready_check=zeo_is_ready(argv)))
+    else:
+        logger.info(
+            "No bot enables ZEO; running without a storage server. The web "
+            "unit reads what the connector unit has committed.")
+    specs.append(ChildSpec('connectors', connector_unit, (argv,)))
+    specs.append(ChildSpec('web', web_unit, (argv,)))
+    return specs
 
 
 def run_app(*argv) -> None:

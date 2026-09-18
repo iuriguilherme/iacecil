@@ -17,32 +17,61 @@ def dispatch_source() -> str:
     return inspect.getsource(main_module)
 
 
+def imported_modules() -> set:
+    """Modules the dispatch table actually imports, read from the AST.
+
+    A substring check against the module text passes on a line that is
+    present but unreachable; the parsed import statements do not.
+    """
+    import iacecil.__main__ as main_module
+
+    tree = ast.parse(inspect.getsource(main_module))
+    modules = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            for alias in node.names:
+                modules.add(f"{node.module}.{alias.name}")
+        elif isinstance(node, ast.Import):
+            modules.update(alias.name for alias in node.names)
+    return modules
+
+
+def dispatch_modes() -> set:
+    """Every mode string the dispatch table compares against."""
+    import iacecil.__main__ as main_module
+
+    tree = ast.parse(inspect.getsource(main_module))
+    modes = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            modes.add(node.value)
+    return modes
+
+
 def test_production_starts_the_supervisor():
     """R6: production no longer imports the fused runner."""
-    source = dispatch_source()
+    modules = imported_modules()
 
-    assert 'from .controllers._iacecil.supervisor import run_app' in source
-    assert 'from .controllers._iacecil import production' not in source
+    assert 'controllers._iacecil.supervisor.run_app' in modules
+    assert not [m for m in modules
+        if m.endswith('_iacecil.production') or m.endswith('.production')]
 
 
-@pytest.mark.parametrize('mode, expected', [
-    ('connectors', 'connectors_runner'),
-    ('connectors_v3', 'connectors_v3_runner'),
-    ('fpersonas', 'fpersonas'),
-    ('furhatgpt', 'furhatgpt'),
+@pytest.mark.parametrize('mode, expected_module', [
+    ('connectors', 'controllers._iacecil.connectors_runner.run_app'),
+    ('connectors_v3', 'controllers._iacecil.connectors_v3_runner.run_app'),
+    ('fpersonas', 'controllers._iacecil.fpersonas'),
+    ('furhatgpt', 'controllers._iacecil.furhatgpt'),
+    ('zeo', 'controllers._iacecil.zeo_runner.run_zeo'),
 ])
-def test_other_modes_are_untouched(mode, expected):
-    source = dispatch_source()
-
-    assert f"'{mode}'" in source
-    assert expected in source
+def test_every_mode_dispatches_to_its_runner(mode, expected_module):
+    assert mode in dispatch_modes()
+    assert expected_module in imported_modules()
 
 
 def test_testing_mode_is_still_the_default():
-    source = dispatch_source()
-
-    assert 'No arguments provided, using testing mode' in source
-    assert 'from .controllers._iacecil.testing import run_app' in source
+    assert 'controllers._iacecil.testing.run_app' in imported_modules()
+    assert 'No arguments provided, using testing mode' in dispatch_modes()
 
 
 def test_web_unit_runs_the_web_only_entry():

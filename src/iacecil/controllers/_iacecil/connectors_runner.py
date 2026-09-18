@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 import asyncio
 import logging
 import os
+import signal
 from importlib import import_module
 
 logger = logging.getLogger(__name__)
@@ -167,8 +168,14 @@ async def _wait_until_running(manager, timeout: float) -> bool:
 
 
 async def announce_liveness(managers: list, text: str,
-        timeout: float = LIVENESS_TIMEOUT) -> None:
+        timeout: float = LIVENESS_TIMEOUT, wait: bool = True) -> None:
     """Tell each bot's operator chat that its connectors are up or down.
+
+    ``wait`` is the difference between the two pings. On startup the
+    connector is still connecting, so the announcement waits for it. On
+    shutdown it has already disconnected — ConnectorManager clears
+    `running` in its own teardown before the run returns — so waiting
+    for it to be up would skip the #off every time.
 
     Best-effort throughout: a bot with no telegram connector or no
     configured operator chat is skipped, and a failed send is logged.
@@ -177,15 +184,16 @@ async def announce_liveness(managers: list, text: str,
     ## Per bot, concurrently: each wait is independent, so a bot whose
     ## connector is slow to come up must not hold the announcement for
     ## every bot behind it in the list.
-    await asyncio.gather(*[_announce_one(manager, text, timeout)
+    await asyncio.gather(*[_announce_one(manager, text, timeout, wait)
         for manager in managers], return_exceptions=True)
 
 
-async def _announce_one(manager, text: str, timeout: float) -> None:
+async def _announce_one(manager, text: str, timeout: float,
+        wait: bool = True) -> None:
     chat_id = liveness_chat(manager)
     if not chat_id or 'telegram' not in manager.connectors:
         return
-    if not await _wait_until_running(manager, timeout):
+    if wait and not await _wait_until_running(manager, timeout):
         logger.warning(
             f"Bot {manager.bot_id}: telegram connector did not come up "
             f"in {timeout}s; skipping {text!r}")
@@ -199,12 +207,35 @@ async def _announce_one(manager, text: str, timeout: float) -> None:
             f"{exception!r}")
 
 
+def _install_shutdown_handlers(tasks) -> None:
+    """Make SIGTERM stop the run the way Ctrl-C already does.
+
+    The supervisor stops this unit with SIGTERM. Python's default
+    handler exits the process outright, so without this the connectors
+    never disconnect cleanly and the #off ping never goes out.
+    """
+    loop = asyncio.get_event_loop()
+
+    def stop():
+        logger.info("Received shutdown signal; stopping connectors")
+        for task in tasks:
+            task.cancel()
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        try:
+            loop.add_signal_handler(sig, stop)
+        except (NotImplementedError, RuntimeError, ValueError):
+            ## Not the main thread, or a loop without signal support.
+            logger.debug(f"Cannot install handler for {sig}")
+
+
 async def run_managers(managers: list) -> None:
     if not managers:
         logger.error("No bot could be started; nothing to run.")
         return
     tasks = [asyncio.ensure_future(manager.run_all())
         for manager in managers]
+    _install_shutdown_handlers(tasks)
     ## Announce alongside the run rather than before it: the connectors
     ## are not up until run_all has started them.
     announcement = asyncio.ensure_future(
@@ -212,7 +243,9 @@ async def run_managers(managers: list) -> None:
     try:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for manager, result in zip(managers, results):
-            if isinstance(result, BaseException):
+            if isinstance(result, asyncio.CancelledError):
+                logger.info(f"Bot {manager.bot_id} stopped")
+            elif isinstance(result, BaseException):
                 logger.error(f"Bot {manager.bot_id} crashed: {result!r}")
     finally:
         announcement.cancel()
@@ -227,7 +260,11 @@ async def run_managers(managers: list) -> None:
         ## A crash is exactly when the operator wants to hear #off, so
         ## this runs on every exit path — but never blocks shutdown.
         try:
-            await announce_liveness(managers, LIVENESS_OFF, timeout=0)
+            ## wait=False: the connectors have already torn themselves
+            ## down by now, so requiring them to be up would skip every
+            ## shutdown ping.
+            await announce_liveness(managers, LIVENESS_OFF, timeout=0,
+                wait=False)
         except Exception as exception:
             logger.warning(f"Could not announce shutdown: {exception!r}")
 
@@ -238,6 +275,10 @@ def run_app(*argv) -> None:
             logging.INFO))
     argv = list(argv)
     configs = load_bot_configs(argv)
+    ## Storage first: the managers below persist on their first message,
+    ## and a store opened before this would use the wrong backend.
+    from iacecil.controllers.persistence.storage import configure_from_configs
+    configure_from_configs(configs)
     logger.info(f"Starting connectors runner for bots: {list(configs)}")
     managers = build_managers(configs)
     try:

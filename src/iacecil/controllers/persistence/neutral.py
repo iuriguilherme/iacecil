@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import logging
+import threading
 import time
 import uuid
 import BTrees
@@ -23,6 +24,15 @@ _messages_db = None
 ## buffer with it. Oldest records are dropped first once it is full.
 _WRITE_BUFFER_MAX = 10000
 _write_buffer = collections.deque(maxlen=_WRITE_BUFFER_MAX)
+## The buffer is reached from asyncio.to_thread workers, so every
+## mutation is serialized; without this, two threads interleave a
+## popleft and an appendleft and the "oldest first" order is a lie.
+_buffer_lock = threading.Lock()
+
+## Opening a store is awaited, so two concurrent first messages would
+## otherwise both open it: two handles on one file, or a leaked ZEO
+## connection. chat_store guards the same thing with _dbs_lock.
+_open_lock = asyncio.Lock()
 
 try:
     from ZEO.Exceptions import ClientDisconnected
@@ -65,15 +75,21 @@ def _open_messages_db(db_path):
 async def get_people_db():
     global _people_db
     if _people_db is None:
-        _people_db = await asyncio.to_thread(
-            _open_people_db, f"{zodb_path}/people.fs")
+        async with _open_lock:
+            ## Re-check: another coroutine may have opened it while this
+            ## one waited for the lock.
+            if _people_db is None:
+                _people_db = await asyncio.to_thread(
+                    _open_people_db, f"{zodb_path}/people.fs")
     return _people_db
 
 async def get_messages_db():
     global _messages_db
     if _messages_db is None:
-        _messages_db = await asyncio.to_thread(
-            _open_messages_db, f"{zodb_path}/messages.fs")
+        async with _open_lock:
+            if _messages_db is None:
+                _messages_db = await asyncio.to_thread(
+                    _open_messages_db, f"{zodb_path}/messages.fs")
     return _messages_db
 
 class Person(persistent.Persistent):
@@ -159,10 +175,11 @@ def _persist_sync(db, msg_id, record):
         return msg_id
 
 def _buffer_record(msg_id, record, exception):
-    if len(_write_buffer) == _write_buffer.maxlen:
-        logger.warning(
-            "Neutral write buffer full; dropping the oldest record")
-    _write_buffer.append((msg_id, record))
+    with _buffer_lock:
+        if len(_write_buffer) == _write_buffer.maxlen:
+            logger.warning(
+                "Neutral write buffer full; dropping the oldest record")
+        _write_buffer.append((msg_id, record))
     logger.warning(
         f"Storage unreachable ({exception!r}); buffered neutral record "
         f"{msg_id} ({len(_write_buffer)} waiting)")
@@ -175,14 +192,27 @@ def _flush_buffer(db):
     of the ones behind it, so an outage that returns mid-flush loses
     nothing and the order is preserved.
     """
-    while _write_buffer:
-        msg_id, record = _write_buffer.popleft()
+    while True:
+        with _buffer_lock:
+            if not _write_buffer:
+                break
+            msg_id, record = _write_buffer.popleft()
         try:
             _commit_with_retry(_write_message_record, db, msg_id, record)
-        except _STORAGE_UNREACHABLE as exception:
-            _write_buffer.appendleft((msg_id, record))
+        except Exception as exception:
+            ## Any failure, not just an unreachable server: the record is
+            ## already out of the buffer, so anything not put back here
+            ## is lost. An exhausted conflict retry is the likely case.
+            with _buffer_lock:
+                if len(_write_buffer) == _write_buffer.maxlen:
+                    ## appendleft on a full deque evicts the newest
+                    ## record; say so rather than losing it silently.
+                    logger.warning(
+                        "Neutral write buffer full; dropping the newest "
+                        "record to requeue an older one")
+                _write_buffer.appendleft((msg_id, record))
             logger.warning(
-                f"Storage unreachable during flush ({exception!r}); "
+                f"Buffered write failed ({exception!r}); "
                 f"{len(_write_buffer)} records still buffered")
             return exception
         logger.info(f"Flushed buffered neutral record {msg_id}")

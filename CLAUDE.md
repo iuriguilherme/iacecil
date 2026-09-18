@@ -35,7 +35,8 @@ ia.cecil is a multi-platform chatbot (primarily Telegram via aiogram, also Disco
 
 `python -m iacecil [mode]` dispatches to controller modules:
 - no arg → `controllers/_iacecil/testing.py` (loopback REPL dev runner — type `/start` on stdin)
-- `production` or `ENV=production` → `controllers/_iacecil/production.py`
+- `production` or `ENV=production` → `controllers/_iacecil/supervisor.py` (supervises the units below as sibling processes, so a web crash never stops a bot: the storage server when a bot enables ZEO, the connector unit, and the web unit. `production.py` is now only the web unit's entry, `run_web`)
+- `zeo` → `controllers/_iacecil/zeo_runner.py` (the shared storage server alone, for running it under another supervisor or by hand)
 - `connectors` → `controllers/_iacecil/connectors_runner.py` (connector-native runner: builds one `ConnectorManager` per bot and runs all connectors — matrix/discord/mastodon/xmpp/loopback — concurrently under asyncio, no Quart/aiogram wrapper)
 - `fpersonas` → `controllers/_iacecil/fpersonas.py` (Furhat robot personas)
 - `furhatgpt` / `chatgpt` / `furhat` → `controllers/_iacecil/furhatgpt.py`
@@ -54,9 +55,13 @@ ia.cecil is a multi-platform chatbot (primarily Telegram via aiogram, also Disco
 
 **Aiogram controller** (`src/iacecil/controllers/aiogram_bot/`): Creates `IACecilBot` and `Dispatcher` instances. Attaches `config`, `users`, `plugins`, `scheduler` to the dispatcher. Calls plugin `add_handlers` and personality `add_handlers` at startup.
 
-**Quart web app** (`src/iacecil/views/quart_app/`): ASGI app served via uvicorn. Wraps the aiogram dispatchers. Has blueprints for admin, furhat, plots, and root routes.
+**Quart web app** (`src/iacecil/views/quart_app/`): ASGI app served via uvicorn. Owns no connectors: it starts no `ConnectorManager`, no aiogram dispatcher and no scheduler, and imports no aiogram. Bot identity comes from config via `views/quart_app/identity.py` (`quart_startup(config, bot_identities)`), not from live dispatchers. Blueprints for admin, furhat, plots and root. The admin routes that act on a live bot (`send_message`, `updates`, `polling`) answer 503 until slice 2 adds the connector control channel; the read pages work normally.
 
-**Production runner** (`src/iacecil/controllers/_iacecil/production.py`): Loads `instance/_bots.py` for bot list, imports `instance/bots/<name>.py` for each bot config, builds the Quart+aiogram app, runs uvicorn (prefers Unix socket, falls back to TCP).
+**Supervisor** (`src/iacecil/controllers/_iacecil/supervisor.py`): Starts each unit as its own child process — none is another's parent, so a crash restarts only the unit that crashed. First failure restarts immediately, repeats back off to a cap, and a unit that ran for the stability window starts over. Children are spawned, not forked, and configuration crosses the boundary as argv for each child to load itself. Its own supervision (systemd `Restart=always` or equivalent) is a production dependency it does not provide.
+
+**Web unit** (`src/iacecil/controllers/_iacecil/production.py`, `run_web`): Loads `instance/_bots.py` for the bot list, imports `instance/bots/<name>.py` for each bot config, builds the Quart app from config-sourced identities, runs uvicorn (prefers Unix socket, falls back to TCP). Importing the module starts nothing.
+
+**Storage server** (`src/iacecil/controllers/_iacecil/zeo_runner.py`): Runs ZEO when a bot enables it, serving a storage set fixed at startup — `people`, `messages`, and one `chats_<bot_id>` per bot. Binds loopback.
 
 ### Configuration system
 
@@ -73,7 +78,11 @@ The `instance/` directory is local-only and not versioned. See `doc/` for exampl
 
 ### Persistence
 
-ZODB object database. Legacy per-bot storage in `src/iacecil/controllers/persistence/zodb_orm.py` (read-only legacy data); platform-neutral records and Person registry in `persistence/neutral.py`. Data stored in `instance/zodb/`. Tests are isolated from real data via the autouse fixture in `tests/conftest.py` — never remove it.
+ZODB object database. Legacy per-bot storage in `src/iacecil/controllers/persistence/zodb_orm.py` (read-only legacy data, still one `.fs` per chat); platform-neutral records and Person registry in `persistence/neutral.py`; per-bot chat records in `persistence/chat_store.py` — one `bots/<bot_id>/chats.fs` per bot, each chat a `<connector>/<chat_id>` key in a BTree. `scripts/migrate_chat_stores.py` converts the old per-chat files.
+
+`persistence/storage.py` decides how any store opens: local `FileStorage` by default, or a ZEO client when a bot's `zeo` section enables it — which is what lets the connector and web units share data instead of fighting over an exclusive lock. Each process calls `storage.configure_from_configs(configs)` once at startup. During a storage outage the neutral store buffers records in memory and flushes them on reconnect, so connectors keep answering. `persistence/retry.py` holds the conflict retry both stores use.
+
+Data stored in `instance/zodb/`. Tests are isolated from real data via the autouse fixture in `tests/conftest.py` — never remove it.
 
 ### Knowledge stores
 
