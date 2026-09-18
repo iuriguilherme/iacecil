@@ -30,6 +30,16 @@ An independent feature module that adds message handlers to the bot, activated p
 
 On Telegram, the enable list's order is load-bearing: the first matching handler wins, so a plugin with broad filters can starve every plugin and Personalidade handler registered after it. Which orderings work is discovered by trial and error, and some plugin combinations are incompatible in any order — an accepted limitation. All plugin handlers register before the Personalidade's handlers.
 
+## Runtime
+
+### Unit
+One of the separate processes a production deployment runs as: the connector unit, which runs every Bot's Connectors, the web unit, which serves the admin and status pages, and, when shared storage is enabled, the storage server. A supervisor starts them as siblings — none is another's parent — and restarts only the one that dies, so the web unit failing never stops a Bot.
+
+The web unit owns no Connectors and learns which Bots exist from configuration rather than from a running Bot; anything that acts on a live Bot belongs to the connector unit. Each unit reads its own configuration at startup rather than receiving it from the supervisor.
+
+### Liveness ping
+The message a Bot sends to its operator chat when its connector unit comes up and when it goes down, so the operator learns about connector availability without watching processes. It reports the connector unit, not the web unit, and the going-down ping is sent before the Connectors disconnect, because a Connector that has disconnected can no longer deliver it.
+
 ## Identity and persistence
 
 ### Person
@@ -39,4 +49,6 @@ The canonical identity of one human across platforms. Maps one or more (platform
 The persisted form of one Envelope: only normalized fields (platform, refs, text, direction, native message id, timestamp) — never live platform objects. Inbound and outbound messages both produce one, so a conversation round-trip is reconstructable from storage alone.
 
 ### Chat Store
-Per-conversation message storage keyed by Bot, Connector and conversation, with every path component encoded to be valid and collision-free on any filesystem. Holds Neutral Records; deduplicates by native message id only when the platform supplied one. Succeeds the telegram-only per-chat storage, which remains readable as legacy data.
+Per-conversation message storage: one store per Bot, holding each of its conversations under a key made from the Connector and the conversation, with every key component encoded so two conversations can never collide. Holds Neutral Records; deduplicates by native message id within a conversation, and only when the platform supplied one. Succeeds both the telegram-only per-chat storage, which remains readable as legacy data, and an earlier layout with one store per conversation.
+
+One store per Bot rather than per conversation is what lets the stores be shared between processes: a shared storage server serves only stores it knew about when it started, while conversations appear at any time.
