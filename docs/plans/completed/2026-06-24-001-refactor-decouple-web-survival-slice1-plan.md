@@ -1,9 +1,9 @@
 ---
 title: "refactor: Decouple web from connectors — slice 1: survival + shared storage"
 type: refactor
-status: active
+status: completed
 date: 2026-06-24
-origin: docs/brainstorms/2026-06-16-decouple-web-survival-slice1-requirements.md
+origin: docs/brainstorms/completed/2026-06-16-decouple-web-survival-slice1-requirements.md
 ---
 
 # refactor: Decouple web from connectors — slice 1: survival + shared storage
@@ -16,7 +16,7 @@ Split the production runtime into three sibling OS processes (ZEO server, connec
 
 ## Problem Frame
 
-The connector system runs as a task on uvicorn's event loop — killing the web process kills every bot. The coupling is concentrated in `src/iacecil/views/quart_app/__init__.py:114-166` (`before_serving` / `after_serving` hooks). Two boot hazards block a naive split: `FileStorage` exclusive locks crash the second process, and removing dispatchers from Quart raises `AttributeError` across ~17 web route sites. (see origin: `docs/brainstorms/2026-06-16-decouple-web-survival-slice1-requirements.md`)
+The connector system runs as a task on uvicorn's event loop — killing the web process kills every bot. The coupling is concentrated in `src/iacecil/views/quart_app/__init__.py:114-166` (`before_serving` / `after_serving` hooks). Two boot hazards block a naive split: `FileStorage` exclusive locks crash the second process, and removing dispatchers from Quart raises `AttributeError` across ~17 web route sites. (see origin: `docs/brainstorms/completed/2026-06-16-decouple-web-survival-slice1-requirements.md`)
 
 ---
 
@@ -582,7 +582,7 @@ graph TB
 
 ## Sources & References
 
-- Origin: `docs/brainstorms/2026-06-16-decouple-web-survival-slice1-requirements.md`
+- Origin: `docs/brainstorms/completed/2026-06-16-decouple-web-survival-slice1-requirements.md`
 - Ideation: `docs/ideation/decouple-quart-from-connectors-2026-06-15.md`
 - Coupling site: `src/iacecil/views/quart_app/__init__.py:114-166`
 - Storage lock site: `src/iacecil/controllers/persistence/zodb_orm.py:62-74`

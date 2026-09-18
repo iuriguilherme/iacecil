@@ -10,7 +10,7 @@ holding every chat of that bot under a ``<connector>/<chat_id>`` key.
 One storage per chat was the earlier layout; ZEO serves only the
 storages its config names at startup, while chats appear at runtime, so
 the set of storages has to stay fixed (see R13 in
-docs/plans/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md).
+docs/plans/completed/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md).
 
 Key components are sanitized via path_utils (filesystem-safe on
 HFS+/NTFS/ext4/btrfs, and keys stay comparable); records are normalized

@@ -12,7 +12,7 @@ New layout (one storage per bot, chats keyed inside it):
 A ZEO server serves only the storages its configuration names at
 startup, while a new chat appears at runtime; consolidating keeps the
 storage set fixed. See R13 in
-docs/plans/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md.
+docs/plans/completed/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md.
 
 The legacy telegram-only layout (``bots/<numeric id>/chats/<chat>.fs``,
 pickled aiogram objects, read through zodb_orm) has no connector

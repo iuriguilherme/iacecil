@@ -8,7 +8,7 @@ Two modes, chosen by ``zeo_address``:
 - Set: connect to the ZEO server at that address and ask for a named
   storage. Several processes may connect, which is what lets the
   connector unit and the web unit run separately (R9, R10 of
-  docs/plans/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md).
+  docs/plans/completed/2026-06-24-001-refactor-decouple-web-survival-slice1-plan.md).
 
 Storage names are fixed when the ZEO server starts: ``people``,
 ``messages``, and one ``chats_<bot_id>`` per configured bot. Nothing
