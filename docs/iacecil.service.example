@@ -1,16 +1,48 @@
-## Copy this file to ~/.config/systemd/user/
-## Then start with systemctl --user start iacecil.service
-## Make it start at boot with systemctl --user enable iacecil.service
+## ia.cecil under systemd (user service).
+##
+## Install:
+##   cp docs/iacecil.service.example ~/.config/systemd/user/iacecil.service
+##   (edit the two paths below to your checkout)
+##   systemctl --user daemon-reload
+##   systemctl --user start iacecil.service
+##   systemctl --user enable iacecil.service     # start at login
+##   loginctl enable-linger "$USER"               # ...and at boot, without a login
+##
+## What this unit supervises: `python -m iacecil production` is itself a
+## supervisor. It runs the connector unit, the web unit and (when a bot
+## enables ZEO) the storage server as sibling processes, and restarts
+## any one of them that dies. systemd's job is the one thing that
+## supervisor cannot do for itself: restart the supervisor.
 
 [Unit]
-Description=ia.cecil daemon
-After=network.target nss-lookup.target
+Description=ia.cecil (supervisor: connectors, web, storage)
+After=network-online.target nss-lookup.target
+Wants=network-online.target
 
 [Service]
 Type=simple
+## Run the interpreter directly, not through `pipenv run`: systemd must
+## see the supervisor itself as the main process, or a stop signal lands
+## on a wrapper and the supervisor carries on without it.
 ExecStart=/home/user/iacecil/.venv/bin/python -m iacecil production
 WorkingDirectory=/home/user/iacecil/
-Restart=on-failure
+
+## Restart the supervisor whatever made it stop. Its own death is the
+## single failure the process split cannot absorb.
+Restart=always
+RestartSec=5
+
+## Signal only the supervisor, and let it stop its units in reverse boot
+## order: web first, then connectors (which send "Mãe tá #off" while
+## they can still deliver it), then storage. The default,
+## control-group, signals every process at once and loses that order.
+## Anything still running after the timeout is killed.
+KillMode=mixed
+KillSignal=SIGTERM
+## The supervisor gives each unit up to 10s to stop; leave room for all.
+TimeoutStopSec=45
 
 [Install]
-WantedBy=multi-user.target
+## A user service manager has no multi-user.target; default.target is
+## what `systemctl --user enable` hooks into.
+WantedBy=default.target
