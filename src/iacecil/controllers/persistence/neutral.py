@@ -1,70 +1,107 @@
 import asyncio
+import collections
 import logging
-import os
+import threading
 import time
+import weakref
 import uuid
 import BTrees
 import transaction
-import zc.zlibstorage
-import ZODB
-import ZODB.FileStorage
-from ZODB.POSException import ConflictError
 import persistent
+
+from . import storage
+from .retry import commit_with_retry as _commit_with_retry
 
 logger = logging.getLogger(__name__)
 
 zodb_path = 'instance/zodb'
-## Concurrent writers race on lazy root-structure init; messages.fs and
-## people.fs are shared across all chats, so retry the standard ZODB way.
-_MAX_COMMIT_RETRIES = 5
 _people_db = None
 _messages_db = None
 
-def _get_shared_db(db_path):
-    try:
-        storage = ZODB.FileStorage.FileStorage(db_path)
-    except FileNotFoundError:
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        storage = ZODB.FileStorage.FileStorage(db_path)
-    compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-    return ZODB.DB(compressed_storage)
+## Availability over durability (R11): when shared storage is
+## unreachable, connectors keep answering and their message records wait
+## here until a write succeeds again. In memory only, so the bound is the
+## accepted loss — a connector process that dies mid-outage takes the
+## buffer with it. Oldest records are dropped first once it is full.
+_WRITE_BUFFER_MAX = 10000
+_write_buffer = collections.deque(maxlen=_WRITE_BUFFER_MAX)
+## The buffer is reached from asyncio.to_thread workers, so every
+## mutation is serialized; without this, two threads interleave a
+## popleft and an appendleft and the "oldest first" order is a lie.
+_buffer_lock = threading.Lock()
 
+## Opening a store is awaited, so two concurrent first messages would
+## otherwise both open it: two handles on one file, or a leaked ZEO
+## connection. chat_store guards the same thing with _dbs_lock. An
+## asyncio.Lock belongs to the loop it is first used on, so keep one per
+## loop rather than one per module.
+_open_locks = weakref.WeakKeyDictionary()
+
+
+def _open_lock():
+    loop = asyncio.get_running_loop()
+    lock = _open_locks.get(loop)
+    if lock is None:
+        lock = _open_locks[loop] = asyncio.Lock()
+    return lock
+
+try:
+    from ZEO.Exceptions import ClientDisconnected
+    ## OSError covers the socket-level failures a dying server produces
+    ## before ZEO reports its own disconnect.
+    _STORAGE_UNREACHABLE = (ClientDisconnected, OSError)
+except ImportError:  ## pragma: no cover - ZEO is optional
+    _STORAGE_UNREACHABLE = (OSError,)
+
+def _get_shared_db(db_path, storage_name):
+    """Open one shared store: a ZEO client when shared storage is
+    configured, a local FileStorage otherwise (see persistence.storage)."""
+    return storage.open_db(db_path, storage_name)
+
+def _open_people_db(db_path):
+    db = _get_shared_db(db_path, 'people')
+    ## Pre-create roots once, before any concurrent writer exists, so the
+    ## to_thread writers below never race to replace a root attribute
+    ## (an unresolvable conflict).
+    with db.transaction() as connection:
+        root = connection.root
+        if not hasattr(root, 'people'):
+            root.people = BTrees.OOBTree.OOBTree()
+        if not hasattr(root, 'mappings'):
+            root.mappings = BTrees.OOBTree.OOBTree()
+    return db
+
+def _open_messages_db(db_path):
+    db = _get_shared_db(db_path, 'messages')
+    with db.transaction() as connection:
+        root = connection.root
+        if not hasattr(root, 'messages'):
+            root.messages = BTrees.OOBTree.OOBTree()
+    return db
+
+## Opening a store blocks: a FileStorage open does I/O, and a ZEO client
+## waits for the server. Neither may run on the loop every connector
+## shares — a reconnect during a storage outage would freeze every bot
+## instead of buffering (R11).
 async def get_people_db():
     global _people_db
     if _people_db is None:
-        db_path = f"{zodb_path}/people.fs"
-        _people_db = _get_shared_db(db_path)
-        ## Pre-create roots once (on the single-threaded loop) so the
-        ## concurrent to_thread writers below never race to replace a
-        ## root attribute (unresolvable conflict).
-        with _people_db.transaction() as connection:
-            root = connection.root
-            if not hasattr(root, 'people'):
-                root.people = BTrees.OOBTree.OOBTree()
-            if not hasattr(root, 'mappings'):
-                root.mappings = BTrees.OOBTree.OOBTree()
+        async with _open_lock():
+            ## Re-check: another coroutine may have opened it while this
+            ## one waited for the lock.
+            if _people_db is None:
+                _people_db = await asyncio.to_thread(
+                    _open_people_db, f"{zodb_path}/people.fs")
     return _people_db
 
 async def get_messages_db():
     global _messages_db
     if _messages_db is None:
-        db_path = f"{zodb_path}/messages.fs"
-        _messages_db = _get_shared_db(db_path)
-        with _messages_db.transaction() as connection:
-            root = connection.root
-            if not hasattr(root, 'messages'):
-                root.messages = BTrees.OOBTree.OOBTree()
+        async with _open_lock():
+            if _messages_db is None:
+                _messages_db = await asyncio.to_thread(
+                    _open_messages_db, f"{zodb_path}/messages.fs")
     return _messages_db
-
-def _commit_with_retry(fn, *args):
-    """Re-run a transaction function on ConflictError (concurrent writers
-    racing on shared ZODB roots). Runs inside asyncio.to_thread."""
-    for attempt in range(_MAX_COMMIT_RETRIES):
-        try:
-            return fn(*args)
-        except ConflictError:
-            if attempt == _MAX_COMMIT_RETRIES - 1:
-                raise
 
 class Person(persistent.Persistent):
     def __init__(self, person_id=None):
@@ -117,16 +154,90 @@ def _merge_persons_sync(db, id1: str, id2: str) -> str:
         return p1.id
 
 async def persist_envelope(envelope, direction: str = 'in'):
-    db = await get_messages_db()
-    return await asyncio.to_thread(
-        _commit_with_retry, _persist_envelope_sync, db, envelope, direction)
+    """Append one normalized record to the global message store.
 
-def _persist_envelope_sync(db, envelope, direction: str = 'in'):
+    The id is minted here rather than inside the transaction, so a record
+    written now and a record buffered through an outage carry the same
+    kind of id and the caller always gets one back.
+    """
+    msg_id = str(uuid.uuid4())
+    record = _build_record(envelope, direction)
+    try:
+        db = await get_messages_db()
+    except _STORAGE_UNREACHABLE as exception:
+        _buffer_record(msg_id, record, exception)
+        return msg_id
+    return await asyncio.to_thread(_persist_sync, db, msg_id, record)
+
+def _persist_sync(db, msg_id, record):
+    ## Flush first: a successful write proves storage is back, and the
+    ## buffered records are older than this one.
+    flush_failure = _flush_buffer(db)
+    if flush_failure is not None:
+        ## Storage is still down, or went down again mid-flush. Queue
+        ## this record behind the ones already waiting rather than
+        ## writing it ahead of them and scrambling the order.
+        _buffer_record(msg_id, record, flush_failure)
+        return msg_id
+    try:
+        return _commit_with_retry(_write_message_record, db, msg_id, record)
+    except _STORAGE_UNREACHABLE as exception:
+        _buffer_record(msg_id, record, exception)
+        return msg_id
+
+def _buffer_record(msg_id, record, exception):
+    with _buffer_lock:
+        if len(_write_buffer) == _write_buffer.maxlen:
+            logger.warning(
+                "Neutral write buffer full; dropping the oldest record")
+        _write_buffer.append((msg_id, record))
+    logger.warning(
+        f"Storage unreachable ({exception!r}); buffered neutral record "
+        f"{msg_id} ({len(_write_buffer)} waiting)")
+
+def _flush_buffer(db):
+    """Write every buffered record, oldest first.
+
+    Returns None once the buffer is empty, or the exception that stopped
+    the flush. A record whose write fails goes back at the front, ahead
+    of the ones behind it, so an outage that returns mid-flush loses
+    nothing and the order is preserved.
+    """
+    while True:
+        with _buffer_lock:
+            if not _write_buffer:
+                break
+            msg_id, record = _write_buffer.popleft()
+        try:
+            _commit_with_retry(_write_message_record, db, msg_id, record)
+        except Exception as exception:
+            ## Any failure, not just an unreachable server: the record is
+            ## already out of the buffer, so anything not put back here
+            ## is lost. An exhausted conflict retry is the likely case.
+            with _buffer_lock:
+                if len(_write_buffer) == _write_buffer.maxlen:
+                    ## appendleft on a full deque evicts the newest
+                    ## record; say so rather than losing it silently.
+                    logger.warning(
+                        "Neutral write buffer full; dropping the newest "
+                        "record to requeue an older one")
+                _write_buffer.appendleft((msg_id, record))
+            logger.warning(
+                f"Buffered write failed ({exception!r}); "
+                f"{len(_write_buffer)} records still buffered")
+            return exception
+        logger.info(f"Flushed buffered neutral record {msg_id}")
+    return None
+
+def _write_message_record(db, msg_id, record):
     with db.transaction() as connection:
         root = connection.root
         if not hasattr(root, 'messages'):
             root.messages = BTrees.OOBTree.OOBTree()
+        root.messages[msg_id] = record
+        return msg_id
 
+def _build_record(envelope, direction: str = 'in'):
         ## NOTE: this is the global messages.fs schema and uses 'platform'
         ## (the Envelope field name). The per-chat chat_store uses
         ## 'connector' for the same value — deliberately distinct schemas
@@ -146,7 +257,4 @@ def _persist_envelope_sync(db, envelope, direction: str = 'in'):
             ## Old records lack these keys — readers use .get().
             'timestamp': getattr(envelope, 'timestamp', None) or time.time(),
         }
-
-        msg_id = str(uuid.uuid4())
-        root.messages[msg_id] = record
-        return msg_id
+        return record

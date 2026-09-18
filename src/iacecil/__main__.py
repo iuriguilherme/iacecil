@@ -79,9 +79,18 @@ args: {sys.argv[1:]}""")
             if (sys.argv[1] in \
                 ['production', 'staging']) or \
                 os.environ.get('ENV', None) in ['production', 'staging']:
-                from .controllers._iacecil import production
+                ## Production is three sibling processes under a
+                ## supervisor now — ZEO, connectors, web — so a web
+                ## crash no longer takes every bot down with it.
+                from .controllers._iacecil.supervisor import run_app
+                run_app(*sys.argv)
             elif (sys.argv[1] in ['fpersonas']):
                 from .controllers._iacecil import fpersonas
+            elif (sys.argv[1] in ['zeo']):
+                ## The storage server on its own, for running it under
+                ## another supervisor or debugging it by hand.
+                from .controllers._iacecil.zeo_runner import run_zeo
+                run_zeo(sys.argv)
             elif (sys.argv[1] in ['connectors']):
                 from .controllers._iacecil.connectors_runner import run_app
                 run_app(*sys.argv)

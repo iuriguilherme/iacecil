@@ -46,11 +46,6 @@ import asyncio
 import json
 import quart_flask_patch
 import secrets
-from aiogram import (
-    Bot,
-    Dispatcher,
-    types,
-)
 from quart import (
     Quart,
     current_app,
@@ -58,11 +53,6 @@ from quart import (
     render_template,
 )
 from ... import name
-from ...controllers.aiogram_bot import (
-    add_filters,
-    add_handlers,
-    add_jobs,
-)
 from .blueprints import (
     admin,
     furhat,
@@ -88,7 +78,13 @@ async def add_blueprints():
         url_prefix = '/furhat/',
     )
 
-def quart_startup(config, dispatchers):
+def quart_startup(config, bot_identities):
+    """Build the web app.
+
+    Takes bot identities read from configuration, not live aiogram
+    dispatchers: the connectors run in their own process now, so this
+    process has none to attach to (R2).
+    """
     quart_app = Quart(
         name,
         template_folder = 'views/quart_app/templates',
@@ -117,51 +113,21 @@ def quart_startup(config, dispatchers):
         setattr(current_app, 'quart_config', config)
         setattr(current_app, 'aiogram', False)
         setattr(current_app, 'furhat', False)
-        setattr(current_app, 'dispatchers', dispatchers)
+        setattr(current_app, 'bot_identities', bot_identities)
         setattr(current_app, 'active_nav', active_page)
+        ## No ConnectorManager, no aiogram dispatcher setup, no scheduler
+        ## and no "Mãe tá #on" here any more. All of that belongs to the
+        ## connector unit, which runs as this process's sibling rather
+        ## than as a task on the loop uvicorn serves (R2, R12). That
+        ## coupling is exactly what killed every bot when the web layer
+        ## fell over.
         loop = asyncio.get_event_loop()
-        for dispatcher in dispatchers:
-            await add_filters(dispatcher)
-            await add_handlers(dispatcher)
-            await add_jobs(dispatcher)
-            dispatcher.scheduler.start()
-            from ...connectors import ConnectorManager
-            manager = ConnectorManager(dispatcher.config)
-            dispatcher.manager = manager
-            if 'telegram' in manager.connectors:
-                manager.connectors['telegram'].dispatcher = dispatcher
-                manager.connectors['telegram'].bot = dispatcher.bot
-            loop.create_task(manager.run_all())
-            try:
-                await dispatcher.bot.send_message(
-                    chat_id = dispatcher.config.telegram['users'][
-                        'special']['info'],
-                    text = "Mãe tá #on",
-                    disable_notification = True,
-                )
-            except Exception as e:
-                logger.warning("""logs not configured properly, did not told \
-telegram group we're online""")
-                logger.exception(e)
         loop.create_task(add_blueprints())
     @quart_app.after_serving
     async def quart_after_serving():
         logger.info("Shutting down Quart...")
-        for dispatcher in dispatchers:
-            dispatcher.scheduler.shutdown(wait = True)
-            try:
-                await dispatcher.bot.send_message(
-                    chat_id = dispatcher.config.telegram['users'][
-                        'special']['info'],
-                    text = u"Mãe tá #off",
-                    disable_notification = True,
-                )
-            except Exception as exception:
-                logger.critical(u"""logs not configured properly: {}\
-""".format(exception))
-                raise
-            await dispatcher.storage.close()
-            await dispatcher.storage.wait_closed()
+        ## Nothing connector-owned to tear down here either: stopping the
+        ## web app must never stop a bot.
         ## https://docs.aiohttp.org/en/stable/client_advanced.html
         await asyncio.sleep(0.250)
     return quart_app

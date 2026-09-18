@@ -2,7 +2,7 @@
 title: "chore: Adopt SemVer and retroactively retag the v0.0.0.0 history"
 date: 2026-06-14
 type: chore
-status: draft
+status: completed
 depth: deep
 plan_id: 2026-06-14-001-chore-semver-tag-rewrite
 ---

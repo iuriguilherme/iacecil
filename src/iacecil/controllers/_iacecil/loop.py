@@ -37,6 +37,7 @@ try:
     )
     from ...config import ProductionConfig
     from ...views.quart_app import quart_startup
+    from ...views.quart_app.identity import build_bot_identities
     from ..aiogram_bot import aiogram_startup
     
     logging.info(f"Starting {name} v{version} ({commit})...")
@@ -77,10 +78,7 @@ try:
         """Return Quart App with provided configurations"""
         return quart_startup(
             config.quart,
-            aiogram_startup(
-                config,
-                bots,
-            ),
+            build_bot_identities(configs),
         )
     
     def run_app(quart_app: Quart) -> None:

@@ -54,10 +54,10 @@ backends. Each store still writes independently — a failure in one is isolated
 preserving the current per-step `try/except` in `dispatch`. No cross-backend atomic commit.
 
 **Shared keys minted once at the authoritative layer.** `person_id` is minted by the
-identity store's get-or-create. `msg_id` is minted once above the fan-out and passed to
-every active message/chat backend, which stores the id it is given. Fan-out backends are
-pure sinks that never mint their own ids — otherwise a "both"-mode message would carry a
-different `msg_id` in each store and stop being joinable.
+identity store's get-or-create. `msg_id` is minted once above the store call and passed to
+the backend, which stores the id it is given. A backend never mints its own id — so the
+same record carries the same key in whichever store holds it, and a later multi-backend
+slice inherits the property for free.
 
 **Models drop `persistent.Persistent`.** `Person` becomes a plain dataclass like
 `Envelope` already is; the message record stays a plain dict (it already is one). Models
@@ -68,6 +68,21 @@ ids and plain values only, never live persistent objects.
 working second backend is part of the deliverable. An ABC with one implementation would
 not prove agnosticism.
 
+**One backend per concern in v1; `both` is deferred.** A connector selects exactly one
+backend for its message store and one for its chat store, or none. Writing the same record
+to two live backends at once (the "both" mode) served no operator need this doc could name,
+and it forced two unresolved conflicts: one shared `msg_id` across a chat store that
+deduplicates and a message store that does not, and a lag window where mirrors disagree.
+Substitution — the real goal — needs none of that. `both` returns as its own slice when a
+concrete need appears, most plausibly a zero-downtime migration between backends.
+*(user-confirmed 2026-09-17)*
+
+**`none` means no data at all.** A connector set to `none` skips identity resolution too: no
+`person_id` is minted, nothing is written anywhere for that connector's traffic, and command
+dispatch still runs. `none` is the privacy switch — "this connector leaves no trace" — which
+would be false if the person registry still recorded its senders. Identity stays a single
+global authority for every connector that does persist. *(user-confirmed 2026-09-17)*
+
 ---
 
 ## Requirements
@@ -77,7 +92,8 @@ not prove agnosticism.
 R1. A backend contract exists per concern — identity, message, chat — exposing only the
 operations the clean layer's call sites exercise today: identity = `resolve_person`,
 `merge_persons`; message = `persist_envelope`; chat = `store_message`; plus lifecycle
-(`close`). The contract is write-only.
+(`close`). The contract is write-and-resolve: identity is read-modify-write (get-or-create),
+message and chat are append-only, and no query API ships.
 
 R2. Every contract method is async at the boundary and returns ids or plain values, never
 a live backend object. Blocking I/O (fsync, file open) runs off the event loop so a
@@ -92,24 +108,26 @@ no per-backend branching in the loader.
 R4. An operator selects ZODB, SQLite, both, or none for a connector's message and chat
 stores through config, mirroring how a connector's config section carries its credentials.
 
-R5. A concern binds to an ordered list of backends. The first is authoritative (mints
-shared keys, serves any future reads); the rest are mirror sinks. A single backend is a
-list of one; "both" is a list of two; "none" is empty.
+R5. A concern binds to at most one backend per connector, expressed as a list holding zero
+or one entry. The list shape is kept so a later fan-out slice is an extension, not a config
+break; a list longer than one is rejected at config load with a clear error in v1.
 
-R6. When several backends are active for a concern, the same record is written to each with
-identical shared keys (`person_id`, `msg_id`).
+R6. Shared keys are minted above the backend and passed down: identity mints `person_id`,
+the message store mints `msg_id`. A backend stores the ids it is given and never mints its
+own, so a record keeps the same keys under any backend.
 
 R7. "none" for a connector skips all persistence for that connector's traffic, including
-identity resolution — nothing is written and no `person_id` is minted.
+identity resolution — nothing is written and no `person_id` is minted. Command dispatch is
+unaffected.
 
 ### Consistency and isolation
 
 R8. The identity store is a single global authoritative backend across all connectors; it
 mints `person_id` and owns the `(platform, native_id) -> person_id` mapping.
 
-R9. Each store write is isolated: a failure in one store (or one fan-out backend) is logged
-and does not skip the other stores or block command dispatch. Identity never forks; a mirror
-store may lag.
+R9. Each store write is isolated: a failure in one store is logged and does not skip the
+other stores or block command dispatch. A failed message or chat write leaves a `person_id`
+with no referencing record; such orphans are accepted and not repaired.
 
 R10. The dual-schema invariant is preserved across backends — the global message store keys
 the platform value as `platform`, the per-chat store keys it as `connector`. No backend
@@ -150,15 +168,19 @@ location per test, and the autouse isolation fixture in `tests/conftest.py` keep
 
 ## Acceptance Examples
 
-AE1. **Covers R5, R6, R8.** Connector configured "both." A message arrives. Identity store
-(global ZODB) mints `person_id=uuid-A`. The message store fans out one record to ZODB and one
-to SQLite, both carrying `person_id=uuid-A` and the same `msg_id`. The two records are joinable.
+AE1. **Covers R5, R6, R8.** Connector configured with SQLite for message and chat. A message
+arrives. The global identity store (ZODB) mints `person_id=uuid-A`. The SQLite message record
+and chat record both carry `person_id=uuid-A` and the `msg_id` minted above them, so the
+record is joinable against the ZODB identity store across backends.
 
 AE2. **Covers R7.** Connector configured "none." A message arrives. No `person_id` is minted,
 no message or chat record is written, command dispatch still runs.
 
-AE3. **Covers R9.** Connector configured "both." The SQLite write raises. The ZODB record is
-still written, the error is logged, identity is unchanged, and dispatch continues.
+AE3. **Covers R9.** Connector configured with SQLite. The message-store write raises. The chat
+write still runs, the error is logged, identity is unchanged, and dispatch continues.
+
+AE5. **Covers R5.** Config lists two backends for one concern. Config load fails with an error
+naming the connector and the concern, rather than silently writing to the first entry.
 
 AE4. **Covers R13.** Bot with no persistence config. Behavior is identical to today: ZODB
 stores, conflict retry, dedupe, sanitized chat paths.
@@ -168,6 +190,9 @@ stores, conflict retry, dedupe, sanitized chat paths.
 ## Scope Boundaries
 
 **Deferred for later:**
+- Multi-backend fan-out ("both"): ordered backend lists, identical-key mirroring, mirror-lag
+  isolation. Needs a named scenario (zero-downtime migration is the likely one) and answers to
+  the dedupe asymmetry below before it earns a slice.
 - Reads / queries. The clean layer is write-only in production today — neither `neutral.py`
   nor `chat_store.py` defines a read function, and the admin/plots routes read from legacy
   `zodb_orm`. A query contract becomes a future concern-slot when a real reader exists, so it
@@ -227,29 +252,20 @@ stores, conflict retry, dedupe, sanitized chat paths.
 
 ## Deferred / Open Questions
 
-### From 2026-06-16 review
+### From 2026-06-16 review — resolved 2026-09-17
 
-- **`none` / global-identity contradiction (P1, coherence).** R7 and AE2 say a "none"
-  connector mints no `person_id`, but Key Decisions and R8 say identity is one global
-  authoritative store across all connectors. Resolve whether "none" skips only message/chat
-  persistence (identity resolution still runs) or gates `resolve_person` at dispatch. Pairs
-  with the gate-location FYI below.
-- **`both`/fan-out may exceed the goal (P1, product-lens + scope-guardian).** Ordered backend
-  lists (R5), identical-key fan-out (R6), mirror-lag isolation (R9), and AE1/AE3 exist only to
-  run two live backends at once, a scenario no operator need in the doc explains. Decide: name
-  the scenario (e.g. zero-downtime migration) or descope `both` to a later slice and ship v1 as
-  single-backend-per-concern substitution. The two entries below dissolve if `both` is descoped.
-  - **Shared `msg_id` vs dedupe skip (P1, adversarial).** Chat store returns `None` on native-id
-    dedupe while the message store always writes; one `msg_id` across both sinks leaves a global
-    record with no matching chat record, silently breaking AE1 joinability.
-  - **Message vs chat dedupe asymmetry (P1, adversarial).** Only the chat store dedupes on
-    native-id today; the global store never does. R6's "same record, identical keys" is impossible
-    for duplicates, yet R13 demands ZODB reproduce today's asymmetric behavior.
-- **"Referential consistency" undefined for the dangling direction (P2, adversarial).** Identity
-  can commit while message writes fail (R9 isolation), leaving a `person_id` with no referencing
-  records. Define the guarantee: keys are byte-identical in any store that holds the record,
-  presence is not guaranteed, orphan `person_id`s are accepted and unrepaired.
-- **"Write-only contract" vs read-modify-write (P2, adversarial).** R1 says "write-only," but
-  `resolve_person` is get-or-create and R5 says the authoritative backend "serves any future
-  reads." Reframe as "write-and-resolve, no query API" — identity read-modify-write, message/chat
-  append-only, no ad-hoc query surface.
+- **`none` / global-identity contradiction (P1, coherence).** Resolved: `none` gates
+  `resolve_person` at dispatch as well, so that connector mints no `person_id` and leaves no
+  trace. Identity remains one global authority for every connector that does persist. See the
+  `none` decision above, R7, AE2.
+- **`both`/fan-out may exceed the goal (P1).** Resolved by descoping. v1 binds one backend per
+  concern per connector (R5); fan-out moves to Scope Boundaries as a later slice.
+  - **Shared `msg_id` vs dedupe skip (P1)** — dissolved with `both`. Revisit when fan-out returns.
+  - **Message vs chat dedupe asymmetry (P1)** — dissolved with `both`; today's asymmetry (chat
+    store dedupes on native id, global store does not) is preserved unchanged by R13.
+- **"Referential consistency" undefined for the dangling direction (P2).** Resolved in R9: keys
+  are identical in any store that holds a record, presence is not guaranteed across stores, and
+  orphan `person_id`s are accepted and unrepaired.
+- **"Write-only contract" vs read-modify-write (P2).** Resolved: the contract is
+  *write-and-resolve, no query API* — identity is read-modify-write (get-or-create), message and
+  chat are append-only, and no ad-hoc query surface ships. R1's wording follows.

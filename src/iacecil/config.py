@@ -180,6 +180,11 @@ try:
         tropixel: dict[str, Any]
         web3: dict[str, Any]
         xmpp: dict[str, Any]
+        ## Shared storage, configured per instance in
+        ## instance/bots/<name>.py (see docs/instance.example). Optional
+        ## and empty here: this file declares the field's shape, and the
+        ## defaults that decide behavior stay out of it.
+        zeo: dict[str, Any] = {}
         
         # ~ tz_str: str
         # ~ timezone: Union[DstTzInfo, tzinfo, None]

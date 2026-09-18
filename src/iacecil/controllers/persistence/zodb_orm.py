@@ -28,9 +28,6 @@ import BTrees
 import os
 import transaction
 import uuid
-import zc.zlibstorage
-import ZODB
-import ZODB.FileStorage
 from aiogram import (
     Dispatcher,
 )
@@ -42,6 +39,12 @@ from ... import (
 from ..assertions import assertIsNotNone
 
 zodb_path = 'instance/zodb'
+
+## Per process, not per call: the readers below are shared by the web
+## routes and by connector-side plugins, and only the process knows which
+## side it is. The web unit turns this on at startup; the connector unit,
+## whose plugins write these stores, leaves it off.
+read_only = False
 
 async def croak_db(db):
     try:
@@ -59,20 +62,30 @@ async def croak_transaction(transaction):
             exception))
         )
 
-async def get_db(path_string):
+async def get_db(path_string, read_only=None):
+    """Open one legacy store, or None when reading one that does not exist.
+
+    Legacy data keeps its own per-chat layout, so ZEO never names these
+    files as storages (consolidating them is deferred; see the slice 1
+    plan's follow-up work). Cross-process sharing relies on read_only
+    instead: FileStorage takes its exclusive lock only for a writer, so
+    the web unit reads what the connector unit holds open for writing.
+
+    ``read_only`` defaults to this process's setting (the module-level
+    flag). A read-only open cannot create a missing file, so a store that
+    was never written reads as absent — every reader already treats a
+    falsy db as "nothing stored".
+    """
+    if read_only is None:
+        read_only = globals()['read_only']
+    if read_only and not os.path.exists(path_string):
+        return None
     try:
-        try:
-            storage = ZODB.FileStorage.FileStorage(path_string)
-        except FileNotFoundError:
-            os.makedirs(os.path.dirname(path_string))
-            storage = ZODB.FileStorage.FileStorage(path_string)
-        compressed_storage = zc.zlibstorage.ZlibStorage(storage)
-        db = ZODB.DB(compressed_storage)
-        return db
+        from .storage import open_db
+        return open_db(path_string, read_only=read_only)
     except Exception as exception:
         logging.warning(repr(exception))
         raise
-    return None
 
 async def get_messages(chat_id):
     if not await assertIsNotNone([chat_id]):
