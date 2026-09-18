@@ -21,6 +21,19 @@ MA 02110-1301, USA.
 
 import logging, sys
 
+def configure_persistence(configs) -> None:
+    """Set up how this process opens storage, before any route runs.
+
+    Shared stores follow the bots' zeo sections, as in every unit. Legacy
+    stores are read-only here: the connector unit's plugins write them,
+    FileStorage allows one writer, and a read-only open takes no lock —
+    so an admin page load can never take the lock a plugin needs.
+    """
+    from ..persistence import storage, zodb_orm
+    storage.configure_from_configs(configs)
+    zodb_orm.read_only = True
+
+
 def run_web(*argv) -> None:
     """Run the web unit: uvicorn + Quart, and nothing else.
 
@@ -111,6 +124,9 @@ def run_web(*argv) -> None:
             else default_bot_config) \
             for module in modules
         }
+        ## Before the app is built: a route that opened storage first
+        ## would open it the wrong way.
+        configure_persistence(configs)
         logger.debug(f"""\
     Loaded configuration for bots: {bots}\n\
     Bots listed: {len(bots)}, \
